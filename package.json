@@ -1,0 +1,17 @@
+{
+  "scripts": {
+    "dev": "next dev"
+  },
+  "devDependencies": {
+    "@types/koa": "^2.11.6",
+    "@types/react": "^17.0.0",
+    "concurrently": "^5.3.0",
+    "koa": "^2.13.0",
+    "nodemon": "^2.0.6"
+  },
+  "dependencies": {
+    "next": "^10.0.2",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1"
+  }
+}
