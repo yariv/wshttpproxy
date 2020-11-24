@@ -7,23 +7,24 @@ var proxy = httpProxy.createProxyServer({});
 const log = console.log;
 
 const config = {
-  authHeaderName: "dev-in-prod",
-  localServiceUrl: "http://127.0.0.1:3000",
+  authCookieName: "dev-in-prod",
+  sidecarUrl: "http://127.0.0.1:3000",
   routerUrl: "http://127.0.0.1:3002",
   authRedirectParam: "dev-in-prod",
 };
 
 app.use(async (ctx) => {
-  const authHeader = ctx.request.header[config.authHeaderName];
-  const authRedirectParam = ctx.request.query[config.authRedirectParam];
-  let authToken = authHeader || authRedirectParam;
-  // todo check auth token
+  let authToken = ctx.request.query[config.authRedirectParam];
   if (authToken) {
-    proxy.web(ctx.req, ctx.res, { target: config.routerUrl });
-    return;
+    ctx.cookies.set(config.authCookieName, authToken);
+  } else {
+    authToken = ctx.cookies.get(config.authCookieName);
   }
 
-  proxyTargetUrl = config.localServiceUrl;
+  // If the request contains an auth token, proxy the request to
+  // the router.
+  const proxyTarget = authToken ? config.routerUrl : config.sidecarUrl;
+  proxy.web(ctx.req, ctx.res, { target: proxyTarget });
 });
 
 app.listen(3001);
