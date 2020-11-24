@@ -1,0 +1,20 @@
+{
+  "name": "sidecar",
+  "version": "1.0.0",
+  "description": "DevInProd sidecar",
+  "main": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npx ts-node-dev ./src/main.ts"
+  },
+  "author": "yarivsadan@gmail.com",
+  "license": "",
+  "devDependencies": {
+    "@types/http-proxy": "^1.17.4",
+    "@types/koa": "^2.11.6",
+    "http-proxy": "^1.18.1",
+    "koa": "^2.13.0",
+    "node-http-proxy": "^0.2.3",
+    "ts-node-dev": "^1.0.0"
+  }
+}
