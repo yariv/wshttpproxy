@@ -1,0 +1,13 @@
+{
+  "name": "example",
+  "version": "1.0.0",
+  "description": "DevInProd Example App",
+  "main": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "yarivsadan@gmail.com",
+  "devDependencies": {
+    "next": "^10.0.2"
+  }
+}
