@@ -1,18 +1,15 @@
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { google } from "googleapis";
 import { oauth2Client } from "../gapi";
-import util from "util";
-
-const log = (...x: any[]) => {
-  console.log(
-    util.inspect(x, { showHidden: false, depth: null, colors: true })
-  );
-};
+import { User, UserEntity } from "../entity/user";
+import { db } from "../db";
+import { log } from "../log";
+import { getRepository } from "typeorm";
 
 export default function OathCallbackPage({
   data,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  console.log(data);
+  log(data);
   return <div>Welcome {data}</div>;
 }
 

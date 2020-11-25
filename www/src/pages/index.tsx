@@ -17,6 +17,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       "https://www.googleapis.com/auth/userinfo.profile",
     ],
   });
+
+  //return { props: {} };
   return { redirect: { destination: url, permanent: false }, props: {} };
   log(url);
 

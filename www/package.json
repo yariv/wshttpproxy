@@ -4,15 +4,22 @@
   "description": "DevInProd App",
   "main": "",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "ts-node-dev src/main.ts"
   },
   "author": "yarivsadan@gmail.com",
   "devDependencies": {
+    "@types/koa": "^2.11.6",
     "@types/react": "^17.0.0",
     "googleapis": "^65.0.0",
+    "koa": "^2.13.0",
     "next": "^10.0.2",
+    "pg": "^8.5.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
-    "tslog": "^3.0.0"
+    "reflect-metadata": "^0.1.13",
+    "ts-node": "^9.0.0",
+    "ts-node-dev": "^1.0.0",
+    "typeorm": "^0.2.29"
   }
 }
