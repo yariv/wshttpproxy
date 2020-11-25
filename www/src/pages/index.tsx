@@ -1,9 +1,6 @@
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import { google } from "googleapis";
-
-const config = {
-  googleConfigFilePath: ".google_config.json",
-};
+import { oauth2Client } from "../gapi";
+const log = console.log;
 
 function HomePage({
   data,
@@ -13,17 +10,15 @@ function HomePage({
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  // check the auth domain
-  const googleConfig = require(config.googleConfigFilePath).web;
-  const oauth2Client = new google.auth.OAuth2(
-    googleConfig.client_id,
-    googleConfig.client_secret,
-    googleConfig.redirect_uris[0]
-  );
-
   const url = oauth2Client.generateAuthUrl({
     access_type: "offline",
+    scope: [
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile",
+    ],
   });
+  return { redirect: { destination: url, permanent: false }, props: {} };
+  log(url);
 
   return { props: { data: "hi" } };
 };

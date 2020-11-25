@@ -1,0 +1,15 @@
+import { google } from "googleapis";
+import fs from "fs";
+
+const config = {
+  googleConfigFilePath: ".google_config.json",
+};
+
+const googleConfig = JSON.parse(
+  fs.readFileSync(process.cwd() + "/" + config.googleConfigFilePath, "utf8")
+).web;
+export const oauth2Client = new google.auth.OAuth2(
+  googleConfig.client_id,
+  googleConfig.client_secret,
+  googleConfig.redirect_uris[0]
+);
