@@ -5,7 +5,7 @@ const config = {
   googleConfigFilePath: ".google_config.json",
 };
 
-const googleConfig = JSON.parse(
+export const googleConfig = JSON.parse(
   fs.readFileSync(process.cwd() + "/" + config.googleConfigFilePath, "utf8")
 ).web;
 export const oauth2Client = new google.auth.OAuth2(

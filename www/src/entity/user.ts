@@ -19,4 +19,4 @@ export const UserEntity = new EntitySchema<User>({
   },
 });
 
-export const userRepository = getRepository<User>(UserEntity);
+export const userRepository = () => getRepository<User>(UserEntity);

@@ -1,8 +1,6 @@
 import Koa from "koa";
 import next from "next";
-import { initDb } from "./db";
-import { userRepository } from "./entity/user";
-import { log } from "./log";
+//import { initDb } from "./db";
 
 const dev = process.env.NODE_ENV !== "production";
 const nextConf = require("../next.config.js");
@@ -13,9 +11,7 @@ const app = new Koa();
 (async () => {
   await nextApp.prepare();
   const requestHandler = nextApp.getRequestHandler();
-  await initDb();
-
-  log(await userRepository.findOne(1));
+  //await initDb();
 
   app.use(async (ctx) => {
     await requestHandler(ctx.req, ctx.res);

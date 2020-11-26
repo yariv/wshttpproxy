@@ -1,5 +1,5 @@
 import { Connection, createConnection } from "typeorm";
-import { UserEntity } from "./entity/user";
+//import { UserEntity } from "./entity/user";
 
 export let db: Connection;
 
