@@ -1,12 +1,14 @@
 import { NextApiRequest } from "next";
-import NextAuth from "next-auth";
+import NextAuth, { InitOptions, User } from "next-auth";
 import Providers from "next-auth/providers";
 import { NextApiResponse } from "next-auth/_utils";
 import { googleConfig } from "../../../gapi";
 
 const dbConfig = require("../../../../ormconfig.json");
 
-const options = {
+// type UserWithId = User & { id: string };
+
+const options: InitOptions = {
   providers: [
     // OAuth authentication providers
     // Providers.Apple({
@@ -25,6 +27,12 @@ const options = {
   ],
   // SQL or MongoDB database (or leave empty)
   database: dbConfig,
+  // callbacks: {
+  //   session: async (session, user) => {
+  //     (session.user as UserWithId).id = (user as UserWithId).id;
+  //     return Promise.resolve(session);
+  //   },
+  // },
 };
 
 export default (req: NextApiRequest, res: NextApiResponse) =>

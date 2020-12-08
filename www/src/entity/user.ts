@@ -1,22 +1,27 @@
 import { EntitySchema, getRepository } from "typeorm";
 
-export interface User {
-  id: number;
-  name: string;
+export interface OAuthToken {
+  token: string;
+  userId: string;
+  clientId: string;
 }
 
-export const UserEntity = new EntitySchema<User>({
-  name: "user",
+export const OAuthTokenEntity = new EntitySchema<OAuthToken>({
+  name: "oauthToken",
   columns: {
-    id: {
-      type: Number,
-      primary: true,
-      generated: true,
+    token: {
+      type: String,
+      unique: true,
     },
-    name: {
+    clientId: {
+      type: String,
+    },
+    userId: {
       type: String,
     },
   },
+  indices: [{ name: "CLIENT_ID_USER_ID", columns: ["client_id", "user_id"] }],
 });
 
-export const userRepository = () => getRepository<User>(UserEntity);
+export const oauthTokenEntity = () =>
+  getRepository<OAuthToken>(OAuthTokenEntity);
