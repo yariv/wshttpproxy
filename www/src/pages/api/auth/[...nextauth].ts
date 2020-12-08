@@ -6,7 +6,7 @@ import { googleConfig } from "../../../gapi";
 
 const dbConfig = require("../../../../ormconfig.json");
 
-// type UserWithId = User & { id: string };
+export type UserWithId = User & { id: string };
 
 const options: InitOptions = {
   providers: [
@@ -27,12 +27,12 @@ const options: InitOptions = {
   ],
   // SQL or MongoDB database (or leave empty)
   database: dbConfig,
-  // callbacks: {
-  //   session: async (session, user) => {
-  //     (session.user as UserWithId).id = (user as UserWithId).id;
-  //     return Promise.resolve(session);
-  //   },
-  // },
+  callbacks: {
+    session: async (session, user) => {
+      (session.user as UserWithId).id = (user as UserWithId).id;
+      return Promise.resolve(session);
+    },
+  },
 };
 
 export default (req: NextApiRequest, res: NextApiResponse) =>

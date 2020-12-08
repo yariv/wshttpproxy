@@ -11,17 +11,18 @@ export const OAuthTokenEntity = new EntitySchema<OAuthToken>({
   columns: {
     token: {
       type: String,
-      unique: true,
+      primary: true,
     },
     clientId: {
       type: String,
+      primary: true,
     },
     userId: {
       type: String,
     },
   },
-  indices: [{ name: "CLIENT_ID_USER_ID", columns: ["client_id", "user_id"] }],
+  indices: [{ name: "clientId_userId", columns: ["clientId", "userId"] }],
 });
 
-export const oauthTokenEntity = () =>
+export const oauthTokenRepository = () =>
   getRepository<OAuthToken>(OAuthTokenEntity);

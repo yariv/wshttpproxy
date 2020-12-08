@@ -1,5 +1,11 @@
 import { GetServerSideProps } from "next";
 import { useSession, getSession, signIn, signOut } from "next-auth/client";
+import {
+  OAuthTokenEntity,
+  oauthTokenRepository,
+} from "../../entity/oauthToken";
+import { strict as assert } from "assert";
+import { UserWithId } from "../api/auth/[...nextauth]";
 
 export default function Page() {
   const [session, loading] = useSession();
@@ -10,14 +16,14 @@ export default function Page() {
     return (
       <div>
         <p>Access Denied</p>
-        <button onClick={signIn}>Sign In</button>
+        <button onClick={() => signIn()}>Sign In</button>
       </div>
     );
   return (
     <>
       <h1>Protected Page</h1>
       <p>You can view this page because you are signed in.</p>
-      <button onClick={signOut}>Sign out</button>
+      <button onClick={() => signOut()}>Sign out</button>
     </>
   );
 }
@@ -33,14 +39,38 @@ export default function Page() {
 //   ctx.body = "foo";
 // });
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getSession(context);
-  console.log("asdf");
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  const { response_type, client_id, redirect_uri, scope } = ctx.query as Record<
+    string,
+    string
+  >;
+  assert(response_type === "token");
+  //   assert((client_id as string).startsWith("devinprod"));
+  var redirectUrl = new URL(redirect_uri as string);
+  //   assert(redirectUrl.host === "localhost");
+  assert(scope === "proxy");
 
-  if (session) {
-    console.log(session);
-    session.user;
+  const session = await getSession(ctx);
+
+  if (!session) {
+    return { props: {} };
   }
+
+  const userId = (session.user as UserWithId).id;
+  const oauthToken = oauthTokenRepository().findOne({
+    where: { clientId: client_id, userId: userId },
+  });
+
+  if (!oauthToken) {
+    const newToken = genNewToken();
+    oauthTokenRepository().create({
+      token: newToken,
+      clientId: client_id,
+      userId: userId,
+    });
+  }
+  console.log(session);
+  session.user;
   return {
     props: { session },
   };

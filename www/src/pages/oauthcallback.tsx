@@ -1,7 +1,7 @@
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { google } from "googleapis";
 import { oauth2Client } from "../gapi";
-import { User, UserEntity } from "../entity/user";
+import { User, UserEntity } from "../entity/oauthToken";
 import { db } from "../db";
 import { log } from "../log";
 import { getRepository } from "typeorm";

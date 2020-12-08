@@ -1,5 +1,5 @@
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import { userRepository } from "../entity/user";
+import { userRepository } from "../entity/oauthToken";
 import { oauth2Client } from "../gapi";
 import React from "react";
 import { signIn, signOut, useSession } from "next-auth/client";

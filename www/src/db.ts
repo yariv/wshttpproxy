@@ -1,5 +1,5 @@
 import { Connection, createConnection } from "typeorm";
-import { UserEntity } from "./entity/user";
+import { OAuthTokenEntity } from "./entity/oauthToken";
 
 export let db: Connection;
 
@@ -11,7 +11,7 @@ export const initDb = async () => {
     username: "",
     password: "",
     database: "devinprod",
-    entities: [UserEntity],
+    entities: [OAuthTokenEntity],
     synchronize: true,
     logging: false,
   });
