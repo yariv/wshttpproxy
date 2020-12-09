@@ -1,5 +1,12 @@
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
-import { useSession, getSession, signIn, signOut } from "next-auth/client";
+import {
+  useSession,
+  getSession,
+  signIn,
+  signOut,
+  session,
+  Session,
+} from "next-auth/client";
 import { oauthTokenRepository } from "../../entity/oauthToken";
 import { strict as assert } from "assert";
 import { UserWithId } from "../api/auth/[...nextauth]";
@@ -7,6 +14,7 @@ import { genNewToken } from "../../utils";
 import * as React from "react";
 import * as z from "zod";
 import { ObjectType } from "typeorm";
+import { url } from "koa-router";
 
 export default function Page() {
   const [session, loading] = useSession();
@@ -29,34 +37,15 @@ export default function Page() {
   );
 }
 
-interface foo {
-  parse(x: any): any;
-}
-
-export const validate = (ctx: GetServerSidePropsContext, x: foo) => {
-  x.parse(ctx.query);
-};
+const args = z.object({
+  response_type: z.literal("token"),
+  scope: z.literal("proxy"),
+  redirect_uri: z.string().url(),
+  client_id: z.string(),
+});
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const { response_type, client_id, redirect_uri, scope } = ctx.query as Record<
-    string,
-    string
-  >;
-
-  validate(
-    ctx,
-    z.object({
-      response_type: z.literal("token"),
-      scope: z.literal("proxy"),
-    })
-  );
-
-  //z.literal("token").parse(response_type);
-  assert(response_type === "token");
-  //   assert((client_id as string).startsWith("devinprod"));
-  var redirectUrl = new URL(redirect_uri as string);
-  //   assert(redirectUrl.host === "localhost");
-  assert(scope === "proxy");
+  const { client_id, redirect_uri } = args.parse(ctx.query);
 
   const session = await getSession(ctx);
 
@@ -65,21 +54,24 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   }
 
   const userId = (session.user as UserWithId).id;
-  const oauthToken = oauthTokenRepository().findOne({
+  const oauthToken = await oauthTokenRepository().findOne({
     where: { clientId: client_id, userId: userId },
   });
 
-  if (!oauthToken) {
-    const newToken = genNewToken();
+  let token;
+  if (oauthToken) {
+    token = oauthToken.token;
+  } else {
+    token = genNewToken();
     oauthTokenRepository().create({
-      token: newToken,
+      token: token,
       clientId: client_id,
       userId: userId,
     });
   }
-  console.log(session);
-  session.user;
+  const redirectUrl = new URL(redirect_uri);
+  redirectUrl.hash = "token=" + token;
   return {
-    props: { session },
+    redirect: { destination: redirectUrl.toString(), permanent: false },
   };
 };
