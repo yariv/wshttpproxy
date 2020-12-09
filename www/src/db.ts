@@ -13,6 +13,6 @@ export const initDb = async () => {
     database: "devinprod",
     entities: [OAuthTokenEntity],
     synchronize: true,
-    logging: false,
+    logging: true,
   });
 };

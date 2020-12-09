@@ -1,11 +1,12 @@
-import { GetServerSideProps } from "next";
+import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { useSession, getSession, signIn, signOut } from "next-auth/client";
-import {
-  OAuthTokenEntity,
-  oauthTokenRepository,
-} from "../../entity/oauthToken";
+import { oauthTokenRepository } from "../../entity/oauthToken";
 import { strict as assert } from "assert";
 import { UserWithId } from "../api/auth/[...nextauth]";
+import { genNewToken } from "../../utils";
+import * as React from "react";
+import * as z from "zod";
+import { ObjectType } from "typeorm";
 
 export default function Page() {
   const [session, loading] = useSession();
@@ -28,22 +29,29 @@ export default function Page() {
   );
 }
 
-// router.post("/authorize", async (ctx) => {
-//   const { response_type, client_id, redirect_uri, scope } = ctx.query;
-//   assert(response_type === "token");
-//   assert(client_id === "devinprod_client");
-//   var redirectUrl = new URL(redirect_uri);
-//   assert(redirectUrl.host === "localhost");
-//   assert(scope === "proxy");
+interface foo {
+  parse(x: any): any;
+}
 
-//   ctx.body = "foo";
-// });
+export const validate = (ctx: GetServerSidePropsContext, x: foo) => {
+  x.parse(ctx.query);
+};
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const { response_type, client_id, redirect_uri, scope } = ctx.query as Record<
     string,
     string
   >;
+
+  validate(
+    ctx,
+    z.object({
+      response_type: z.literal("token"),
+      scope: z.literal("proxy"),
+    })
+  );
+
+  //z.literal("token").parse(response_type);
   assert(response_type === "token");
   //   assert((client_id as string).startsWith("devinprod"));
   var redirectUrl = new URL(redirect_uri as string);
