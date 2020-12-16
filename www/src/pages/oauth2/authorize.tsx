@@ -3,6 +3,7 @@ import { getSession, signIn, signOut, useSession } from "next-auth/client";
 import * as React from "react";
 import * as z from "zod";
 import { oauthTokenRepository } from "../../entity/oauthToken";
+import { log } from "../../log";
 import { genNewToken } from "../../utils";
 import { UserWithId } from "../api/auth/[...nextauth]";
 
@@ -53,7 +54,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     token = oauthToken.token;
   } else {
     token = genNewToken();
-    oauthTokenRepository().create({
+    await oauthTokenRepository().save({
       token: token,
       clientId: client_id,
       userId: userId,

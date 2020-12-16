@@ -2,7 +2,7 @@ import { EntitySchema, getRepository } from "typeorm";
 
 export interface OAuthToken {
   token: string;
-  userId: string;
+  userId: number;
   clientId: string;
 }
 
@@ -18,7 +18,7 @@ export const OAuthTokenEntity = new EntitySchema<OAuthToken>({
       primary: true,
     },
     userId: {
-      type: String,
+      type: Number,
     },
   },
   indices: [{ name: "clientId_userId", columns: ["clientId", "userId"] }],
