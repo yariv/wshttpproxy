@@ -1,20 +1,10 @@
-import { GetServerSideProps, GetServerSidePropsContext } from "next";
-import {
-  useSession,
-  getSession,
-  signIn,
-  signOut,
-  session,
-  Session,
-} from "next-auth/client";
-import { oauthTokenRepository } from "../../entity/oauthToken";
-import { strict as assert } from "assert";
-import { UserWithId } from "../api/auth/[...nextauth]";
-import { genNewToken } from "../../utils";
+import { GetServerSideProps } from "next";
+import { getSession, signIn, signOut, useSession } from "next-auth/client";
 import * as React from "react";
 import * as z from "zod";
-import { ObjectType } from "typeorm";
-import { url } from "koa-router";
+import { oauthTokenRepository } from "../../entity/oauthToken";
+import { genNewToken } from "../../utils";
+import { UserWithId } from "../api/auth/[...nextauth]";
 
 export default function Page() {
   const [session, loading] = useSession();
@@ -28,6 +18,7 @@ export default function Page() {
         <button onClick={() => signIn()}>Sign In</button>
       </div>
     );
+
   return (
     <>
       <h1>Protected Page</h1>
@@ -48,7 +39,6 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const { client_id, redirect_uri } = args.parse(ctx.query);
 
   const session = await getSession(ctx);
-
   if (!session) {
     return { props: {} };
   }
