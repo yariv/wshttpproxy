@@ -6,6 +6,8 @@ import { oauthTokenRepository } from "../../entity/oauthToken";
 import { log } from "../../log";
 import { genNewToken } from "../../utils";
 import { UserWithId } from "../api/auth/[...nextauth]";
+import { createHash } from "crypto";
+import { getConnection } from "typeorm";
 
 export default function Page() {
   const [session, loading] = useSession();
@@ -45,21 +47,18 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   }
 
   const userId = (session.user as UserWithId).id;
-  const oauthToken = await oauthTokenRepository().findOne({
-    where: { clientId: client_id, userId: userId },
-  });
 
-  let token;
-  if (oauthToken) {
-    token = oauthToken.token;
-  } else {
-    token = genNewToken();
-    await oauthTokenRepository().save({
-      token: token,
-      clientId: client_id,
-      userId: userId,
-    });
-  }
+  const token = genNewToken();
+  const tokenHash = createHash("sha256").update(token).digest("hex");
+
+  await oauthTokenRepository().delete({ clientId: client_id, userId: userId });
+  const oauthToken = {
+    tokenHash,
+    clientId: client_id,
+    userId: userId,
+  };
+  await oauthTokenRepository().save(oauthToken);
+
   const redirectUrl = new URL(redirect_uri);
   redirectUrl.hash = "token=" + token;
   return {

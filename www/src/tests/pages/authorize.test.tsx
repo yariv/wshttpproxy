@@ -4,6 +4,7 @@ import { db, initTestDb } from "../../db";
 import { GetServerSidePropsResult } from "next";
 import { Redirect } from "next/dist/lib/load-custom-routes";
 import { oauthTokenRepository } from "../../entity/oauthToken";
+import { sha256 } from "../../utils";
 global.fetch = require("node-fetch");
 jest.mock("next-auth/client");
 
@@ -43,25 +44,35 @@ describe("authorize", () => {
       redirect.destination.startsWith(validQuery.redirect_uri)
     ).toBeTruthy();
     const destUrl = new URL(redirect.destination);
-    console.log(destUrl.hash);
     expect(destUrl.hash.match("^#token=[a-zA-Z0-9]{40}")).toBeTruthy();
     const token = destUrl.hash.split("=")[1];
 
     // check that the token was persisted
     // TODO switch to token hash
-    const tokenObj = await oauthTokenRepository().findOneOrFail({ token });
+
+    const tokenHash = sha256(token);
+    const tokenObj = await oauthTokenRepository().findOneOrFail({ tokenHash });
     expect(tokenObj.clientId).toStrictEqual(validQuery.client_id);
     expect(tokenObj).toStrictEqual({
-      token,
+      tokenHash,
       clientId: validQuery.client_id,
       userId: mockSession.user.id,
     });
 
-    // check that a second request returns the same token
+    // check that a second request updates the token hash
     const res2 = (await getServerSideProps({
       query: validQuery,
     } as any)) as any;
-    expect(res2.redirect.destination).toStrictEqual(res.redirect.destination);
+    expect(res2.redirect.destination).not.toStrictEqual(
+      res.redirect.destination
+    );
+    const tokenObj2 = await oauthTokenRepository().findOne({ tokenHash });
+    expect(tokenObj2).toBeUndefined();
+
+    const destUrl2 = new URL(res2.redirect.destination);
+    const token2 = destUrl2.hash.split("=")[1];
+    const token2Hash = sha256(token2);
+    await oauthTokenRepository().findOneOrFail({ tokenHash: token2Hash });
   });
 
   it("requires login", async () => {

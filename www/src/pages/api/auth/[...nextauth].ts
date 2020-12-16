@@ -6,7 +6,7 @@ import { googleConfig } from "../../../gapi";
 
 const dbConfig = require("../../../../ormconfig.json");
 
-export type UserWithId = User & { id: string };
+export type UserWithId = User & { id: number };
 
 const options: InitOptions = {
   providers: [
