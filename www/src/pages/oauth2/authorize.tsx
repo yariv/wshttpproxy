@@ -1,15 +1,13 @@
+import { createHash } from "crypto";
 import { GetServerSideProps } from "next";
 import { getSession, signIn, signOut, useSession } from "next-auth/client";
 import * as React from "react";
 import * as z from "zod";
 import { oauthTokenRepository } from "../../entity/oauthToken";
-import { log } from "../../log";
 import { genNewToken } from "../../utils";
 import { UserWithId } from "../api/auth/[...nextauth]";
-import { createHash } from "crypto";
-import { getConnection } from "typeorm";
 
-export default function Page() {
+export default () => {
   const [session, loading] = useSession();
 
   if (typeof window !== "undefined" && loading) return null;
@@ -29,7 +27,7 @@ export default function Page() {
       <button onClick={() => signOut()}>Sign out</button>
     </>
   );
-}
+};
 
 const args = z.object({
   response_type: z.literal("token"),

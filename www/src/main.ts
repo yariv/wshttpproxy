@@ -4,7 +4,7 @@ import route from "koa-route";
 import websockify from "koa-websocket";
 
 import { initDb } from "./db";
-import { log } from "./log";
+import { log } from "../../shared/src/log";
 
 const dev = process.env.NODE_ENV !== "production";
 const nextConf = require("../next.config.js");
