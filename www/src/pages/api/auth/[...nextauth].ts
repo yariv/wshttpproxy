@@ -35,5 +35,6 @@ const options: InitOptions = {
   },
 };
 
-export default (req: NextApiRequest, res: NextApiResponse) =>
+const NextAuthPage = (req: NextApiRequest, res: NextApiResponse) =>
   NextAuth(req, res, options);
+export default NextAuthPage;

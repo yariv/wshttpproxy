@@ -16,7 +16,7 @@ const go = () => {
   location.href = destUrl.toString();
 };
 
-export default () => {
+const Page = () => {
   return (
     <div>
       <button onClick={go}>go</button>
@@ -28,3 +28,5 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   return { props: {} };
   return { redirect: { permanent: false, destination: routerAuthUrl } };
 };
+
+export default Page;

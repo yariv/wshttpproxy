@@ -7,7 +7,7 @@ import { oauthTokenRepository } from "../../entity/oauthToken";
 import { genNewToken } from "../../utils";
 import { UserWithId } from "../api/auth/[...nextauth]";
 
-export default () => {
+const AuthorizePage = () => {
   const [session, loading] = useSession();
 
   if (typeof window !== "undefined" && loading) return null;
@@ -63,3 +63,5 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     redirect: { destination: redirectUrl.toString(), permanent: false },
   };
 };
+
+export default AuthorizePage;

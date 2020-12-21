@@ -1,3 +1,4 @@
 import * as React from react;
 
-export default function Page() {}
+const Page = () => {};
+export default Page;
