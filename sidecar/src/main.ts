@@ -1,5 +1,6 @@
 import Koa from "koa";
 import next from "next";
+import storage from "node-persist";
 
 import { log } from "../../shared/src/log";
 
@@ -10,6 +11,7 @@ const nextApp = next({ dev, conf: nextConf });
 
 // We use this initialization logic to create a db connection.
 (async () => {
+  await storage.init();
   await nextApp.prepare();
   const requestHandler = nextApp.getRequestHandler();
 

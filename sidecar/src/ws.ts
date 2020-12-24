@@ -1,11 +1,35 @@
-import WebSocket from "ws";
+import WebSocket, { CloseEvent, ErrorEvent, MessageEvent, OpenEvent } from "ws";
 
-const ws = new WebSocket("ws://localhost:3000/ws");
+enum MsgType {
+  hello = "hello",
+  bye = "bye",
+}
 
-ws.on("open", () => {
-  ws.send("hello");
-});
+class WsClient {
+  ws: WebSocket;
 
-ws.on("message", (data) => {
-  console.log(data);
-});
+  constructor(wsUrl: string, token: string) {
+    this.ws = new WebSocket(wsUrl);
+    this.ws.onopen = (event: OpenEvent) => {
+      this.send(MsgType.hello, token);
+    };
+    this.ws.onmessage = (event: MessageEvent) => {
+      console.log("message", event);
+    };
+    this.ws.onerror = (event: ErrorEvent) => {
+      console.log("error", event);
+    };
+    this.ws.onclose = (event: CloseEvent) => {
+      console.log("close", event);
+    };
+  }
+
+  send(msgType: MsgType, msg: any) {
+    this.ws.send(JSON.stringify({ msgType, msg }));
+  }
+}
+export const initWebSocket = (token: string) => {
+  const sendMsg = (msg: any) => {
+    ws.send(JSON.stringify(msg));
+  };
+};
