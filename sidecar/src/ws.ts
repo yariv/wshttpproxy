@@ -28,8 +28,3 @@ class WsClient {
     this.ws.send(JSON.stringify({ msgType, msg }));
   }
 }
-export const initWebSocket = (token: string) => {
-  const sendMsg = (msg: any) => {
-    ws.send(JSON.stringify(msg));
-  };
-};

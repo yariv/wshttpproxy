@@ -104,3 +104,4 @@ dist
 .tern-port
 
 .google_config.json
+.node-persist
