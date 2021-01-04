@@ -19,7 +19,12 @@ export async function http<T>(request: RequestInfo): Promise<HttpResponse<T>> {
 export async function post<T>(
   path: string,
   body: any,
-  args: RequestInit = { method: "post", body: JSON.stringify(body) }
+  args: RequestInit = {
+    method: "post",
+    body: JSON.stringify(body),
+    headers: { "content-type": "application/json" },
+  }
 ): Promise<HttpResponse<T>> {
-  return await http<T>(new Request(path, args));
+  const req = new Request(path, args);
+  return await http<T>(req);
 }

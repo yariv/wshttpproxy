@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import storage from "node-persist";
+import { initWsClient } from "../../wsClient";
 
 const NextAuthPage = (req: NextApiRequest, res: NextApiResponse) => {
   const token = req.body.token;
@@ -8,7 +9,10 @@ const NextAuthPage = (req: NextApiRequest, res: NextApiResponse) => {
     return;
   }
 
-  storage.set("token", token);
+  (async () => {
+    await storage.set("token", token);
+    initWsClient(token);
+  })();
 
   res.status(200).end();
 };

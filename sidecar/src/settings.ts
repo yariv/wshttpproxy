@@ -1,9 +1,7 @@
 import { type } from "os";
 
-type Settings = {
-  routerUrl: string;
-};
-
-export const settings: Settings = {
+export const settings = {
   routerUrl: "http://localhost:3000",
+  wsUrl: "ws://localhost:3000/ws",
+  localServiceUrl: "http://localhost:3002",
 };

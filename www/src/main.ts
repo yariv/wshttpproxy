@@ -22,6 +22,7 @@ const app = websockify(new Koa());
       ctx.websocket.send("hi");
       ctx.websocket.on("message", (message) => {
         log(message);
+        ctx.websocket.send("sup");
       });
     })
   );
