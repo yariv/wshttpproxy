@@ -1,6 +1,5 @@
 import Koa from "koa";
 import next from "next";
-import storage from "node-persist";
 import { globalConfig } from "../../shared/src/globalConfig";
 
 const app = new Koa();
@@ -10,12 +9,11 @@ const nextApp = next({ dev, conf: nextConf });
 
 // We use this initialization logic to create a db connection.
 (async () => {
-  await storage.init();
   await nextApp.prepare();
   const requestHandler = nextApp.getRequestHandler();
 
   app.use(async (ctx) => {
     await requestHandler(ctx.req, ctx.res);
   });
-  app.listen(globalConfig.localProxyPort);
+  app.listen(globalConfig.examplePort);
 })();

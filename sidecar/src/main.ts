@@ -1,20 +1,28 @@
 import Koa from "koa";
-import next from "next";
 
-import { log } from "../../shared/src/log";
+import proxy from "koa-better-http-proxy";
+import { config } from "./config";
+import { globalConfig } from "../../shared/src/globalConfig";
 
 const app = new Koa();
-const dev = process.env.NODE_ENV !== "production";
-const nextConf = require("../next.config.js");
-const nextApp = next({ dev, conf: nextConf });
+app.use(
+  proxy(config.prodServiceUrl, {
+    filter: (ctx) => {
+      return isProdRequest(ctx);
+    },
+  })
+);
+app.use(
+  proxy(config.devProxyUrl, {
+    filter: (ctx) => {
+      return !isProdRequest(ctx);
+    },
+  })
+);
 
-// We use this initialization logic to create a db connection.
-(async () => {
-  await nextApp.prepare();
-  const requestHandler = nextApp.getRequestHandler();
+const isProdRequest = (ctx: Koa.Context): boolean => {
+  const tokens = ctx.host.split(".");
+  return tokens.length > 2 && tokens[tokens.length - 3] == "devinprod";
+};
 
-  app.use(async (ctx) => {
-    await requestHandler(ctx.req, ctx.res);
-  });
-  app.listen(3001);
-})();
+app.listen(globalConfig.sidecarPort);

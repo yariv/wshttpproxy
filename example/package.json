@@ -12,5 +12,9 @@
     "next": "^10.0.2",
     "react": "^17.0.1",
     "react-dom": "^17.0.1"
+  },
+  "dependencies": {
+    "@types/koa": "^2.11.6",
+    "koa": "^2.13.1"
   }
 }

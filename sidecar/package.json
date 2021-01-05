@@ -10,6 +10,8 @@
   "license": "ISC",
   "devDependencies": {
     "@types/koa": "^2.11.6",
-    "koa": "^2.13.1"
-  }
+    "koa": "^2.13.1",
+    "koa-better-http-proxy": "^0.2.5"
+  },
+  "dependencies": {}
 }

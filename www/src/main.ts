@@ -5,6 +5,7 @@ import websockify from "koa-websocket";
 
 import { initDb } from "./db";
 import { log } from "../../shared/src/log";
+import { globalConfig } from "../../shared/src/globalConfig";
 
 const dev = process.env.NODE_ENV !== "production";
 const nextConf = require("../next.config.js");
@@ -29,5 +30,5 @@ const app = websockify(new Koa());
   app.use(async (ctx) => {
     await requestHandler(ctx.req, ctx.res);
   });
-  app.listen(3000);
+  app.listen(globalConfig.wwwPort);
 })();

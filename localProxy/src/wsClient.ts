@@ -1,6 +1,6 @@
 import WebSocket, { CloseEvent, ErrorEvent, MessageEvent, OpenEvent } from "ws";
-import { log } from "../shared/src/log";
-import { settings } from "./settings";
+import { globalConfig } from "../../shared/src/globalConfig";
+import { log } from "../../shared/src/log";
 
 enum MsgType {
   hello = "hello",
@@ -72,7 +72,7 @@ class WsClient {
       case WsClientState.listening:
         if (msgType == MsgType.proxyRequest) {
           const promise = (async () => {
-            const resp = await fetch(settings.localServiceUrl, msgBody);
+            const resp = await fetch(globalConfig.exampleUrl, msgBody);
             this.send(MsgType.proxyResponse, resp);
           })();
           // TODO handle promise
@@ -169,5 +169,5 @@ const checkToken = async (token: string): Promise<boolean> => {
 let wsClient;
 
 export const initWsClient = (token: string) => {
-  wsClient = new WsClient(settings.wsUrl, token);
+  wsClient = new WsClient(globalConfig.wwwWsUrl, token);
 };
