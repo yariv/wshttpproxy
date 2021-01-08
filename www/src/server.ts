@@ -24,7 +24,7 @@ export const start = async (port: number): Promise<any> => {
   return server;
 };
 
-const createApp = async (): Koa => {
+const createApp = async (): Promise<Koa> => {
   await initDb();
   const app = websockify(new Koa());
   app.ws.use(

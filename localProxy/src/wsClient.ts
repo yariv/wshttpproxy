@@ -18,6 +18,7 @@ enum WsClientState {
   closed,
   error,
 }
+
 class WsClient {
   // TODO add ping/pong
   ws: WebSocket;

@@ -1,14 +1,15 @@
-import { main as exampleMain } from "../../../example/src/main";
-import { main as sidecarMain } from "../../../sidecar/src/main";
-import { main as wwwMain } from "../../../www/src/main";
-import { main as localProxyMain } from "../../../localProxy/src/main";
+import { start as exampleStart } from "../../../example/src/server";
+import { start as sidecarMain } from "../../../sidecar/src/server";
+import { start as wwwStart } from "../../../www/src/server";
+import { start as localProxyStart } from "../../../localProxy/src/server";
+import { globalConfig } from "../../../shared/src/globalConfig";
 
 describe("all", () => {
   it("works", async () => {
-    await exampleMain();
-    await sidecarMain();
-    await wwwMain();
-    await localProxyMain();
+    await exampleStart(globalConfig.examplePort);
+    await sidecarMain(globalConfig.sidecarPort);
+    await wwwStart(globalConfig.wwwPort);
+    await localProxyStart(globalConfig.localProxyPort);
     console.log("b");
   });
 });

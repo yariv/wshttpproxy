@@ -11,9 +11,10 @@ const NextAuthPage = (req: NextApiRequest, res: NextApiResponse) => {
 
   (async () => {
     await storage.set("token", token);
-    initWsClient(token);
-  })();
+    const wsClient = initWsClient(token);
+    // TODO preserve the client socket in the server state
 
-  res.status(200).end();
+    res.status(200).end();
+  })();
 };
 export default NextAuthPage;
