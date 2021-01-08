@@ -1,10 +1,10 @@
 import client, { Session } from "next-auth/client";
-import { getServerSideProps } from "../../pages/oauth2/authorize";
-import { db, initTestDb } from "../../db";
+import { getServerSideProps } from "../../../pages/oauth2/authorize";
+import { db, initTestDb } from "../../../db";
 import { GetServerSidePropsResult } from "next";
 import { Redirect } from "next/dist/lib/load-custom-routes";
-import { oauthTokenRepository } from "../../entity/oauthToken";
-import { sha256 } from "../../utils";
+import { oauthTokenRepository } from "../../../entity/oauthToken";
+import { sha256 } from "../../../utils";
 global.fetch = require("node-fetch");
 jest.mock("next-auth/client");
 

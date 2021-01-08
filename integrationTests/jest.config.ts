@@ -7,7 +7,7 @@ const config: Config.InitialOptions = {
   testEnvironment: "node",
   // testRegex: "/tests/.*\\.(test|spec)?\\.(ts|tsx)$",
   // moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
-  testTimeout: 5000,
+  testTimeout: 50000,
   preset: "ts-jest",
 };
 export default config;

@@ -25,5 +25,5 @@ export const start = (port: number) => {
     return tokens.length > 2 && tokens[tokens.length - 3] == "devinprod";
   };
 
-  app.listen(port);
+  return app.listen(port);
 };

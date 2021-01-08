@@ -9,6 +9,7 @@
   "author": "yarivsadan@gmail.com",
   "devDependencies": {
     "@types/react": "^17.0.0",
+    "http-terminator": "^2.0.3",
     "next": "^10.0.2",
     "react": "^17.0.1",
     "react-dom": "^17.0.1"

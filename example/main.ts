@@ -1,6 +1,6 @@
-import { start } from "./src/start";
+import { start } from "./src/server";
 import { globalConfig } from "../shared/src/globalConfig";
 
 (async () => {
-  await start(globalConfig.examplePort);
+  await start(globalConfig.exampleProdPort);
 })();

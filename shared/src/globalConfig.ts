@@ -3,18 +3,18 @@ const getHttpUrl = (port: number): string => {
 };
 
 const configPorts = {
-  examplePort: 3000,
-  localProxyPort: 3001,
-  sidecarPort: 3002,
-  wwwDevPort: 3003,
-  wwwProdPort: 3004,
+  exampleProdPort: 3000,
+  exampleDevPort: 3001,
+  localProxyPort: 3002,
+  sidecarPort: 3003,
+  wwwPort: 3004,
 };
 
 export const globalConfig = {
   ...configPorts,
-  exampleUrl: getHttpUrl(configPorts.examplePort),
+  exampleUrl: getHttpUrl(configPorts.exampleProdPort),
   localProxyUrl: getHttpUrl(configPorts.localProxyPort),
-  wwwUrl: getHttpUrl(configPorts.wwwDevPort),
-  wwwWsUrl: `ws://localhost:${configPorts.wwwDevPort}/ws`,
+  wwwUrl: getHttpUrl(configPorts.wwwPort),
+  wwwWsUrl: `ws://localhost:${configPorts.wwwPort}/ws`,
   sidecarUrl: getHttpUrl(configPorts.sidecarPort),
 };
