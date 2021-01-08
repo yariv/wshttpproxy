@@ -1,0 +1,20 @@
+{
+  "name": "DevInProdShared",
+  "version": "1.0.0",
+  "description": "DevInProd shared classes",
+  "main": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "yarivsadan@gmail.com",
+  "devDependencies": {
+    "@types/koa": "^2.11.6",
+    "koa": "^2.13.1",
+    "next": "^10.0.5"
+  },
+  "dependencies": {
+    "@types/react": "^17.0.0",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1"
+  }
+}

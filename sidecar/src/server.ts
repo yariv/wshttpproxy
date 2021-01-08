@@ -2,8 +2,9 @@ import Koa from "koa";
 
 import proxy from "koa-better-http-proxy";
 import { config } from "./config";
+import { Closeable } from "../../shared/src/appServer";
 
-export const start = (port: number) => {
+export const start = (port: number): Closeable => {
   const app = new Koa();
   app.use(
     proxy(config.prodServiceUrl, {
@@ -25,5 +26,14 @@ export const start = (port: number) => {
     return tokens.length > 2 && tokens[tokens.length - 3] == "devinprod";
   };
 
-  return app.listen(port);
+  const server = app.listen(port);
+
+  // TODO handle errors
+  const closeableServer = {
+    close: async () => {
+      await server.close();
+    },
+  };
+
+  return closeableServer;
 };
