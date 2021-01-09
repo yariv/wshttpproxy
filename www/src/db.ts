@@ -35,8 +35,8 @@ export const initTestDb = async () => {
   });
 };
 
-export const initDb = async () => {
-  db = await createConnection({
+export const initDb = (): Promise<Connection> => {
+  return createConnection({
     type: "postgres",
     host: "localhost",
     port: 5432,

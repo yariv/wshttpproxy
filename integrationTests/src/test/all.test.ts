@@ -1,7 +1,7 @@
 import { main as exampleMain } from "../../../example/main";
-import { start as sidecarMain } from "../../../sidecar/src/server";
-import { start as wwwStart } from "../../../www/src/server";
-import { start as localProxyStart } from "../../../localProxy/src/server";
+import { main as sidecarMain } from "../../../sidecar/main";
+import { main as wwwMain } from "../../../www/main";
+import { main as localProxyMain } from "../../../localProxy/main";
 import { globalConfig } from "../../../shared/src/globalConfig";
 
 describe("all", () => {
@@ -12,12 +12,15 @@ describe("all", () => {
 
   it("works", async () => {
     const mainPromises = [];
-    //mainPromises.push(exampleMain(globalConfig.exampleDevPort));
+    mainPromises.push(exampleMain(globalConfig.exampleDevPort));
     mainPromises.push(exampleMain(globalConfig.exampleProdPort));
+    mainPromises.push(sidecarMain(globalConfig.sidecarPort));
+    mainPromises.push(wwwMain(globalConfig.wwwPort));
+    mainPromises.push(localProxyMain(globalConfig.localProxyPort));
     const cloeasbles = await Promise.all(mainPromises);
-
     const closeablePromises = cloeasbles.map((closeable) => closeable.close());
     await Promise.all(closeablePromises);
+
     return;
 
     // promises.push(exampleStart(globalConfig.exampleProdPort));

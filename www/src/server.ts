@@ -5,12 +5,23 @@ import { Closeable, start as appServerStart } from "../../shared/src/appServer";
 import { log } from "../../shared/src/log";
 import { initDb } from "./db";
 
-export const start = (port: number, dirname: string): Promise<Closeable> => {
-  return appServerStart(port, dirname, initKoaApp);
+export const start = async (
+  port: number,
+  dirname: string
+): Promise<Closeable> => {
+  const closeables = await Promise.all([
+    initDb(),
+    appServerStart(port, dirname, initKoaApp),
+  ]);
+
+  return {
+    close: async (): Promise<void> => {
+      await Promise.all(closeables.map((closeable) => closeable.close()));
+    },
+  };
 };
 
 const initKoaApp = async (): Promise<Koa> => {
-  await initDb();
   const app = websockify(new Koa());
   app.ws.use(
     route.all("/ws", (ctx) => {

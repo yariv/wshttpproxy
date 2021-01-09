@@ -16,6 +16,8 @@
   },
   "dependencies": {
     "@types/koa": "^2.11.6",
-    "koa": "^2.13.1"
+    "@types/koa-router": "^7.4.1",
+    "koa": "^2.13.1",
+    "koa-router": "^10.0.0"
   }
 }
