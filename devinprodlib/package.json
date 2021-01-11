@@ -9,10 +9,6 @@
   "author": "yarivsadan@gmail.com",
   "dependencies": {
     "@types/koa": "^2.11.6",
-    "koa": "^2.13.1",
-    "next": "^10.0.5",
-    "@types/react": "^17.0.0",
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1"
+    "koa": "^2.13.1"
   }
 }
