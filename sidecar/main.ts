@@ -1,5 +1,5 @@
 import { start } from "./src/server";
-import { globalConfig } from "../shared/src/globalConfig";
+import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 
 // We do this for consistency with the other services
 export const main = start;

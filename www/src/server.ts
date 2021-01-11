@@ -3,10 +3,13 @@ import route from "koa-route";
 import websockify from "koa-websocket";
 import {
   Closeable,
+  CloseableContainer,
   start as appServerStart,
 } from "dev-in-prod-lib/src/appServer";
 import { log } from "dev-in-prod-lib/src/log";
 import { initDb } from "./db";
+
+import next from "next";
 
 export const start = async (
   port: number,
@@ -14,14 +17,10 @@ export const start = async (
 ): Promise<Closeable> => {
   const closeables = await Promise.all([
     initDb(),
-    appServerStart(port, dirname, initKoaApp),
+    appServerStart(port, dirname, next, initKoaApp),
   ]);
 
-  return {
-    close: async (): Promise<void> => {
-      await Promise.all(closeables.map((closeable) => closeable.close()));
-    },
-  };
+  return new CloseableContainer(closeables);
 };
 
 const initKoaApp = async (): Promise<Koa> => {

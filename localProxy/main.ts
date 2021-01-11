@@ -1,5 +1,5 @@
-import { Closeable, start } from "../shared/src/appServer";
-import { globalConfig } from "../shared/src/globalConfig";
+import { Closeable, start } from "dev-in-prod-lib/src/appServer";
+import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 
 export const main = (port: number): Promise<Closeable> => {
   return start(port, __dirname);

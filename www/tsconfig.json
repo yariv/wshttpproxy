@@ -71,7 +71,7 @@
     "**/*.ts",
     "**/*.tsx",
     "src/model.js",
-    "../shared/src/log.ts"
+    "dev-in-prod-lib/src/log.ts"
   ],
   "exclude": ["node_modules"]
 }

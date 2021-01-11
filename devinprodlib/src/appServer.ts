@@ -1,11 +1,10 @@
 import Koa from "koa";
-import next from "next";
 
 export interface Closeable {
   close(): Promise<void>;
 }
 
-export class AppServer implements Closeable {
+export class CloseableContainer implements Closeable {
   closeables: Closeable[];
 
   constructor(closables: Closeable[]) {
@@ -20,6 +19,9 @@ export class AppServer implements Closeable {
 export const start = async (
   port: number,
   dirname: string,
+  // note: next is a parameter instead of an import to prevent
+  // duplicate imports of react, which causes errors
+  next: (params: any) => any,
   initKoaApp?: () => Promise<Koa>
 ): Promise<Closeable> => {
   const dev = process.env.NODE_ENV !== "production";
@@ -53,5 +55,5 @@ export const start = async (
     },
   };
 
-  return new AppServer([closeableServer, closeableNextApp]);
+  return new CloseableContainer([closeableServer, closeableNextApp]);
 };
