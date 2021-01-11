@@ -1,8 +1,7 @@
-import { osconfig } from "googleapis/build/src/apis/osconfig";
-import { Connection, createConnection } from "typeorm";
-import { OAuthTokenEntity } from "./entity/oauthToken";
 import { exec } from "child_process";
 import { Client } from "pg";
+import { Connection, createConnection } from "typeorm";
+import { OAuthTokenEntity } from "./entity/oauthToken";
 
 export let db: Connection;
 

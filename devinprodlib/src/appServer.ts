@@ -1,4 +1,5 @@
 import Koa from "koa";
+import util from "util";
 
 export interface Closeable {
   close(): Promise<void>;
@@ -42,9 +43,7 @@ export const start = async (
 
   // TODO handle errors
   const closeableServer = {
-    close: async () => {
-      await server.close();
-    },
+    close: util.promisify(server.close),
   };
 
   const closeableNextApp = {
