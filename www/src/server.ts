@@ -1,8 +1,11 @@
 import Koa from "koa";
 import route from "koa-route";
 import websockify from "koa-websocket";
-import { Closeable, start as appServerStart } from "../../shared/src/appServer";
-import { log } from "../../shared/src/log";
+import {
+  Closeable,
+  start as appServerStart,
+} from "dev-in-prod-lib/src/appServer";
+import { log } from "dev-in-prod-lib/src/log";
 import { initDb } from "./db";
 
 export const start = async (

@@ -2,14 +2,9 @@ import { main as exampleMain } from "../../../example/main";
 import { main as sidecarMain } from "../../../sidecar/main";
 import { main as wwwMain } from "../../../www/main";
 import { main as localProxyMain } from "../../../localProxy/main";
-import { globalConfig } from "../../../shared/src/globalConfig";
+import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 
 describe("all", () => {
-  afterAll(() => {
-    console.log("c");
-    //process.exit(0);
-  });
-
   it("works", async () => {
     const mainPromises = [];
     mainPromises.push(exampleMain(globalConfig.exampleDevPort));
@@ -17,6 +12,9 @@ describe("all", () => {
     mainPromises.push(sidecarMain(globalConfig.sidecarPort));
     mainPromises.push(wwwMain(globalConfig.wwwPort));
     mainPromises.push(localProxyMain(globalConfig.localProxyPort));
+
+    const resp = await fetch(globalConfig.sidecarUrl);
+    console.log(resp);
     const cloeasbles = await Promise.all(mainPromises);
     const closeablePromises = cloeasbles.map((closeable) => closeable.close());
     await Promise.all(closeablePromises);

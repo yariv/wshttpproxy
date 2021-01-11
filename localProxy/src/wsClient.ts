@@ -1,6 +1,6 @@
 import WebSocket, { CloseEvent, ErrorEvent, MessageEvent, OpenEvent } from "ws";
-import { globalConfig } from "../../shared/src/globalConfig";
-import { log } from "../../shared/src/log";
+import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
+import { log } from "dev-in-prod-lib/src/log";
 
 enum MsgType {
   hello = "hello",

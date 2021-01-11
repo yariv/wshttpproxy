@@ -2,7 +2,7 @@ import Koa from "koa";
 
 import proxy from "koa-better-http-proxy";
 import { config } from "./config";
-import { Closeable } from "../../shared/src/appServer";
+import { Closeable } from "dev-in-prod-lib/src/appServer";
 
 export const start = (port: number): Closeable => {
   const app = new Koa();
@@ -26,6 +26,7 @@ export const start = (port: number): Closeable => {
     return tokens.length > 2 && tokens[tokens.length - 3] == "devinprod";
   };
 
+  console.log(port);
   const server = app.listen(port);
 
   // TODO handle errors
