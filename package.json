@@ -1,6 +1,10 @@
 {
   "private": true,
   "workspaces": [
-    "devinprodlib"
+    "lib",
+    "router",
+    "example",
+    "sidecar",
+    "localProxy"
   ]
 }

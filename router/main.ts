@@ -7,5 +7,5 @@ export const main = (port: number): Promise<Closeable> => {
 };
 
 if (require.main == module) {
-  main(globalConfig.wwwPort);
+  main(globalConfig.routerPort);
 }

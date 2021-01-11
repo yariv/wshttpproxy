@@ -1,5 +1,5 @@
 {
-  "name": "IntegrationTests",
+  "name": "dev-in-prod-integration-tests",
   "version": "1.0.0",
   "description": "DevInProd Integration Tests",
   "main": "",
@@ -12,6 +12,9 @@
     "jest": "^26.6.3"
   },
   "dependencies": {
-    "http-terminator": "^2.0.3"
+    "fetch": "^1.1.0",
+    "http-terminator": "^2.0.3",
+    "node-fetch": "^2.6.1",
+    "dev-in-prod-router": "1.0.0"
   }
 }

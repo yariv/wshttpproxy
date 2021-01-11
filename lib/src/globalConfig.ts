@@ -7,14 +7,14 @@ const configPorts = {
   exampleDevPort: 3001,
   localProxyPort: 3002,
   sidecarPort: 3003,
-  wwwPort: 3004,
+  routerPort: 3004,
 };
 
 export const globalConfig = {
   ...configPorts,
   exampleUrl: getHttpUrl(configPorts.exampleProdPort),
   localProxyUrl: getHttpUrl(configPorts.localProxyPort),
-  wwwUrl: getHttpUrl(configPorts.wwwPort),
-  wwwWsUrl: `ws://localhost:${configPorts.wwwPort}/ws`,
+  routerUrl: getHttpUrl(configPorts.routerPort),
+  routerWsUrl: `ws://localhost:${configPorts.routerPort}/ws`,
   sidecarUrl: getHttpUrl(configPorts.sidecarPort),
 };

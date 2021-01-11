@@ -1,7 +1,7 @@
 {
-  "name": "sidecar",
+  "name": "dev-in-prod-local-proxy",
   "version": "1.0.0",
-  "description": "DevInProd sidecar",
+  "description": "DevInProd local proxy",
   "main": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

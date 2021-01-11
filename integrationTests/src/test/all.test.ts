@@ -1,8 +1,9 @@
 import { main as exampleMain } from "../../../example/main";
 import { main as sidecarMain } from "../../../sidecar/main";
-import { main as wwwMain } from "../../../www/main";
+import { main as routerMain } from "../../../router/main";
 import { main as localProxyMain } from "../../../localProxy/main";
-import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
+import { globalConfig } from "../../../lib/src/globalConfig";
+import { fetch } from "node-fetch";
 
 describe("all", () => {
   it("works", async () => {
@@ -10,7 +11,7 @@ describe("all", () => {
     mainPromises.push(exampleMain(globalConfig.exampleDevPort));
     mainPromises.push(exampleMain(globalConfig.exampleProdPort));
     mainPromises.push(sidecarMain(globalConfig.sidecarPort));
-    mainPromises.push(wwwMain(globalConfig.wwwPort));
+    mainPromises.push(routerMain(globalConfig.routerPort));
     mainPromises.push(localProxyMain(globalConfig.localProxyPort));
 
     const resp = await fetch(globalConfig.sidecarUrl);
