@@ -31,7 +31,7 @@ export const start = (port: number): Closeable => {
   const server = app.listen(port);
 
   const closeableServer = {
-    close: util.promisify(server.close),
+    close: util.promisify(server.close).bind(server),
   };
 
   return closeableServer;

@@ -1,7 +1,8 @@
-import { Closeable, start } from "dev-in-prod-lib/src/appServer";
-import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
+import { Closeable } from "dev-in-prod-lib/src/appServer";
 import Koa from "koa";
 import Router from "koa-router";
+import util from "util";
+import { globalConfig } from "../lib/src/globalConfig";
 
 export const main = (port: number): Closeable => {
   const app = new Koa();
@@ -12,11 +13,9 @@ export const main = (port: number): Closeable => {
   });
   app.use(router.routes()).use(router.allowedMethods);
   const server = app.listen(port);
+
   return {
-    close: async () => {
-      // TODO handle errors
-      await server.close();
-    },
+    close: util.promisify(server.close).bind(server),
   };
 };
 

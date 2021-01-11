@@ -43,7 +43,7 @@ export const start = async (
 
   // TODO handle errors
   const closeableServer = {
-    close: util.promisify(server.close),
+    close: util.promisify(server.close).bind(server),
   };
 
   const closeableNextApp = {

@@ -1,9 +1,9 @@
-import { main as exampleMain } from "../../../example/main";
-import { main as sidecarMain } from "../../../sidecar/main";
-import { main as routerMain } from "../../../router/main";
-import { main as localProxyMain } from "../../../localProxy/main";
-import { globalConfig } from "../../../lib/src/globalConfig";
-import { fetch } from "node-fetch";
+import { main as exampleMain } from "dev-in-prod-example/main";
+import { main as sidecarMain } from "dev-in-prod-sidecar/main";
+import { main as routerMain } from "dev-in-prod-router/main";
+import { main as localProxyMain } from "dev-in-prod-local-proxy/main";
+import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
+import { CloseableContainer } from "dev-in-prod-lib/src/appServer";
 
 describe("all", () => {
   it("works", async () => {
@@ -14,23 +14,10 @@ describe("all", () => {
     mainPromises.push(routerMain(globalConfig.routerPort));
     mainPromises.push(localProxyMain(globalConfig.localProxyPort));
 
+    const cloeasbles = await Promise.all(mainPromises);
+
     const resp = await fetch(globalConfig.sidecarUrl);
     console.log(resp);
-    const cloeasbles = await Promise.all(mainPromises);
-    const closeablePromises = cloeasbles.map((closeable) => closeable.close());
-    await Promise.all(closeablePromises);
-
-    return;
-
-    // promises.push(exampleStart(globalConfig.exampleProdPort));
-    // promises.push(exampleStart(globalConfig.exampleDevPort));
-    // // promises.push(sidecarMain(globalConfig.sidecarPort));
-    // // promises.push(wwwStart(globalConfig.wwwPort));
-    // // promises.push(localProxyStart(globalConfig.localProxyPort));
-    // const servers = await Promise.all(promises);
-    // const promises2 = servers.map((server) => server.close());
-    // console.log(promises2);
-    // await Promise.all(promises2);
-    // console.log("b");
+    await new CloseableContainer(cloeasbles).close();
   });
 });
