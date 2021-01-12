@@ -1,5 +1,5 @@
-import React, { MouseEvent } from "react";
 import { signIn, signOut, useSession } from "next-auth/client";
+import React from "react";
 
 const HomePage = () => {
   const [session, loading] = useSession();

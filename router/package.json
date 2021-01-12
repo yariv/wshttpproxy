@@ -9,6 +9,7 @@
   },
   "author": "yarivsadan@gmail.com",
   "dependencies": {
+    "@prisma/client": "2.14.0",
     "@types/jest": "^26.0.18",
     "@types/koa": "^2.11.6",
     "@types/koa-bodyparser": "^4.3.0",
@@ -16,7 +17,6 @@
     "@types/koa-route": "^3.2.4",
     "@types/koa-router": "^7.4.1",
     "@types/koa-websocket": "^5.0.5",
-    "@types/next-auth": "^3.1.17",
     "@types/oauth2-server": "^3.0.12",
     "@types/pg": "^7.14.7",
     "@types/react": "^17.0.0",
@@ -46,5 +46,9 @@
     "typeorm": "^0.2.29",
     "ws": "^7.4.1",
     "zod": "^1.11.11"
+  },
+  "devDependencies": {
+    "@prisma/cli": "2.14.0",
+    "@types/next-auth": "^3.1.20"
   }
 }

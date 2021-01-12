@@ -7,16 +7,15 @@ import {
   start as appServerStart,
 } from "dev-in-prod-lib/src/appServer";
 import { log } from "../../lib/src/log";
-import { initDb } from "./db";
 
 import next from "next";
+import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 
 export const start = async (
   port: number,
   dirname: string
 ): Promise<Closeable> => {
   const closeables = await Promise.all([
-    initDb(),
     appServerStart(port, dirname, next, initKoaApp),
   ]);
 
@@ -24,7 +23,20 @@ export const start = async (
 };
 
 const initKoaApp = async (): Promise<Koa> => {
-  const app = websockify(new Koa());
+  const koa = new Koa();
+  koa.use(async (ctx, next) => {
+    if (ctx.header[globalConfig.sidecarProxyHeader]) {
+      // handle proxy request
+      const appSecret = 123;
+      const routeId = 456;
+      // TODO look up app from appSecret
+      // look up appSecret/routeId combination
+
+      return;
+    }
+  });
+
+  const app = websockify(koa);
   app.ws.use(
     route.all("/ws", (ctx) => {
       ctx.websocket.send("hi");

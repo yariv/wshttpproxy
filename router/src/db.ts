@@ -2,10 +2,11 @@ import { exec } from "child_process";
 import { Client } from "pg";
 import { Connection, createConnection } from "typeorm";
 import { OAuthTokenEntity } from "./entity/oauthToken";
+import { ApplicationEntity } from "./entity/application";
 
 export let db: Connection;
 
-const entities = [OAuthTokenEntity];
+const entities = [OAuthTokenEntity, ApplicationEntity];
 
 export const initTestDb = async () => {
   const pgSettings = {

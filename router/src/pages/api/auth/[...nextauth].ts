@@ -1,12 +1,22 @@
-import { NextApiRequest } from "next";
-import NextAuth, { InitOptions, User } from "next-auth";
+import { NextApiRequest, NextApiResponse } from "next";
+import { PrismaClient } from "@prisma/client";
 import Providers from "next-auth/providers";
-import { NextApiResponse } from "next-auth/_utils";
+import Adapters from "next-auth/adapters";
+
 import { googleConfig } from "../../../gapi";
+import NextAuth, { InitOptions } from "next-auth";
 
-const dbConfig = require("../../../../ormconfig.json");
+let prisma;
 
-export type UserWithId = User & { id: number };
+if (process.env.NODE_ENV === "production") {
+  prisma = new PrismaClient();
+} else {
+  const glob = global as any;
+  if (!glob.prisma) {
+    glob.prisma = new PrismaClient();
+  }
+  prisma = glob.prisma;
+}
 
 const options: InitOptions = {
   providers: [
@@ -25,14 +35,7 @@ const options: InitOptions = {
       from: "<no-reply@example.com>",
     }),
   ],
-  // SQL or MongoDB database (or leave empty)
-  database: dbConfig,
-  callbacks: {
-    session: async (session, user) => {
-      (session.user as UserWithId).id = (user as UserWithId).id;
-      return Promise.resolve(session);
-    },
-  },
+  adapter: Adapters.Prisma.Adapter({ prisma }),
 };
 
 const NextAuthPage = (req: NextApiRequest, res: NextApiResponse) =>
