@@ -8,7 +8,7 @@ export const main = (port: number): Closeable => {
   const app = new Koa();
   const router = new Router();
   router.get("/", async (ctx, next) => {
-    ctx.body = "hi";
+    ctx.body = "" + port;
     await next();
   });
   app.use(router.routes()).use(router.allowedMethods);

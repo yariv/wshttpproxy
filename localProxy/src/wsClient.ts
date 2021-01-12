@@ -1,6 +1,6 @@
 import WebSocket, { CloseEvent, ErrorEvent, MessageEvent, OpenEvent } from "ws";
-import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
-import { log } from "dev-in-prod-lib/src/log";
+import { globalConfig } from "../../lib/src/globalConfig";
+import { log } from "../../lib/src/log";
 
 enum MsgType {
   hello = "hello",
@@ -170,5 +170,5 @@ const checkToken = async (token: string): Promise<boolean> => {
 let wsClient;
 
 export const initWsClient = (token: string) => {
-  wsClient = new WsClient(globalConfig.wwwWsUrl, token);
+  wsClient = new WsClient(globalConfig.routerWsUrl, token);
 };

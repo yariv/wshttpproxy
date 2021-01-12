@@ -12,9 +12,12 @@ const configPorts = {
 
 export const globalConfig = {
   ...configPorts,
-  exampleUrl: getHttpUrl(configPorts.exampleProdPort),
+  exampleProdUrl: getHttpUrl(configPorts.exampleProdPort),
+  exampleDevUrl: getHttpUrl(configPorts.exampleDevPort),
   localProxyUrl: getHttpUrl(configPorts.localProxyPort),
   routerUrl: getHttpUrl(configPorts.routerPort),
   routerWsUrl: `ws://localhost:${configPorts.routerPort}/ws`,
   sidecarUrl: getHttpUrl(configPorts.sidecarPort),
+  devInProdHeader: "dev-in-prod-enabled",
+  sidecarProxyHeader: "dev-in-prod-sidecar",
 };
