@@ -5,7 +5,6 @@ import { getSession, signIn, signOut, useSession } from "next-auth/client";
 import * as React from "react";
 import * as z from "zod";
 import { genNewToken } from "../../utils";
-import { UserWithId } from "../api/auth/[...nextauth]";
 
 const AuthorizePage = () => {
   const [session, loading] = useSession();
@@ -44,7 +43,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     return { props: {} };
   }
 
-  const userId = (session.user as UserWithId).id;
+  const userId = (session.user as any).id;
 
   const token = genNewToken();
   const tokenHash = createHash("sha256").update(token).digest("hex");

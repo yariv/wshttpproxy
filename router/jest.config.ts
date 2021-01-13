@@ -3,11 +3,13 @@ import type { Config } from "@jest/types";
 // Sync object
 const config: Config.InitialOptions = {
   verbose: true,
-  // transform: { "^.+\\.(ts|tsx)$": "ts-jest" },
-  // testEnvironment: "node",
-  // testRegex: "/tests/.*\\.(test|spec)?\\.(ts|tsx)$",
-  // moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
-  // testTimeout: 10000,
-  preset: "ts-jest",
+  roots: ["<rootDir>/src"],
+  testMatch: [
+    "**/__tests__/**/*.+(ts|tsx|js)",
+    "**/?(*.)+(spec|test).+(ts|tsx|js)",
+  ],
+  transform: {
+    "^.+\\.(ts|tsx)$": "ts-jest",
+  },
 };
 export default config;

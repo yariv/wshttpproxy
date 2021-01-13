@@ -102,5 +102,5 @@ model OAuthToken {
   user User @relation(fields:[userId], references: [id])
 
   @@unique([tokenHash, clientId])
-  @@index([userId, clientId])
+  @@unique([userId, clientId])
 } 
