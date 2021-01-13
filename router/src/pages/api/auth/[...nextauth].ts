@@ -1,10 +1,9 @@
-import { NextApiRequest, NextApiResponse } from "next";
 import { PrismaClient } from "@prisma/client";
-import Providers from "next-auth/providers";
-import Adapters from "next-auth/adapters";
-
-import { googleConfig } from "../../../gapi";
+import { NextApiRequest, NextApiResponse } from "next";
 import NextAuth, { InitOptions } from "next-auth";
+import Adapters from "next-auth/adapters";
+import Providers from "next-auth/providers";
+import { googleConfig } from "../../../gapi";
 
 let prisma;
 
@@ -36,6 +35,13 @@ const options: InitOptions = {
     }),
   ],
   adapter: Adapters.Prisma.Adapter({ prisma }),
+  callbacks: {
+    session: async (session, user) => {
+      // hack to add the user id to the session object
+      (session.user as any).id = (user as any).id;
+      return session;
+    },
+  },
 };
 
 const NextAuthPage = (req: NextApiRequest, res: NextApiResponse) =>

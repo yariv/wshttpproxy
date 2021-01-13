@@ -1,25 +1,19 @@
+import {
+  Closeable,
+  start as appServerStart,
+} from "dev-in-prod-lib/src/appServer";
+import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 import Koa from "koa";
 import route from "koa-route";
 import websockify from "koa-websocket";
-import {
-  Closeable,
-  CloseableContainer,
-  start as appServerStart,
-} from "dev-in-prod-lib/src/appServer";
-import { log } from "../../lib/src/log";
-
 import next from "next";
-import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
+import { log } from "../../lib/src/log";
 
 export const start = async (
   port: number,
   dirname: string
 ): Promise<Closeable> => {
-  const closeables = await Promise.all([
-    appServerStart(port, dirname, next, initKoaApp),
-  ]);
-
-  return new CloseableContainer(closeables);
+  return await appServerStart(port, dirname, next, initKoaApp);
 };
 
 const initKoaApp = async (): Promise<Koa> => {
@@ -34,6 +28,7 @@ const initKoaApp = async (): Promise<Koa> => {
 
       return;
     }
+    return next();
   });
 
   const app = websockify(koa);

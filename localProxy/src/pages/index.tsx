@@ -1,9 +1,10 @@
+import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 import { GetServerSideProps } from "next";
 import * as React from "react";
 
 // TODO make configurable.
-const routerAuthUrl = "http://localhost:3000/oauth2/authorize";
-const redirectUrl = "http://localhost:3001/oauth2/callback";
+const routerAuthUrl = `${globalConfig.routerUrl}/oauth2/authorize`;
+const redirectUrl = `${globalConfig.localProxyUrl}/oauth2/callback`;
 
 const go = () => {
   const destUrl = new URL(routerAuthUrl);
@@ -11,6 +12,7 @@ const go = () => {
     response_type: "token",
     scope: "proxy",
     redirect_uri: redirectUrl,
+    // TODO use real client id
     client_id: "123",
   }).toString();
   location.href = destUrl.toString();

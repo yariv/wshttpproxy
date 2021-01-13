@@ -1,9 +1,9 @@
+import { PrismaClient } from "@prisma/client";
 import { createHash } from "crypto";
 import { GetServerSideProps } from "next";
 import { getSession, signIn, signOut, useSession } from "next-auth/client";
 import * as React from "react";
 import * as z from "zod";
-import { oauthTokenRepository } from "../../entity/oauthToken";
 import { genNewToken } from "../../utils";
 import { UserWithId } from "../api/auth/[...nextauth]";
 
@@ -49,13 +49,15 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const token = genNewToken();
   const tokenHash = createHash("sha256").update(token).digest("hex");
 
-  await oauthTokenRepository().delete({ clientId: client_id, userId: userId });
-  const oauthToken = {
-    tokenHash,
-    clientId: client_id,
-    userId: userId,
-  };
-  await oauthTokenRepository().save(oauthToken);
+  const prisma = new PrismaClient();
+
+  await prisma.oAuthToken.delete({
+    where: { userId_clientId: { userId, clientId: client_id } },
+  });
+
+  await prisma.oAuthToken.create({
+    data: { clientId: client_id, tokenHash, user: { connect: { id: userId } } },
+  });
 
   const redirectUrl = new URL(redirect_uri);
   redirectUrl.hash = "token=" + token;

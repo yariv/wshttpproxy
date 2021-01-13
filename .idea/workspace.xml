@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ede52615-f2eb-41d5-8fc6-8e5ab14709fc" name="Default Changelist" comment="" />
+    <list default="true" id="ede52615-f2eb-41d5-8fc6-8e5ab14709fc" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/lib/src/globalConfig.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/src/globalConfig.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/localProxy/main.ts" beforeDir="false" afterPath="$PROJECT_DIR$/localProxy/main.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/localProxy/src/pages/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/localProxy/src/pages/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/router/prisma/schema.prisma" beforeDir="false" afterPath="$PROJECT_DIR$/router/prisma/schema.prisma" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/router/src/pages/api/auth/[...nextauth].ts" beforeDir="false" afterPath="$PROJECT_DIR$/router/src/pages/api/auth/[...nextauth].ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/router/src/pages/oauth2/authorize.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/router/src/pages/oauth2/authorize.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/router/src/server.ts" beforeDir="false" afterPath="$PROJECT_DIR$/router/src/server.ts" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -32,6 +40,7 @@
       <updated>1608251125439</updated>
       <workItem from="1608251132749" duration="195000" />
       <workItem from="1608312643917" duration="197000" />
+      <workItem from="1610495564295" duration="29000" />
     </task>
     <servers />
   </component>
