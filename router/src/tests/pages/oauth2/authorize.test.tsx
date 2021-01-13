@@ -12,7 +12,7 @@ const testDbUrl =
 
 describe("authorize", () => {
   beforeEach(async () => {
-    await initTestDb();
+    //await initTestDb();
   });
 
   const validQuery = {
