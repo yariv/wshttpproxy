@@ -46,24 +46,16 @@ describe("authorize", () => {
     const destUrl = new URL(redirect.destination);
     expect(destUrl.hash.match("^#token=[a-zA-Z0-9]{40}")).toBeTruthy();
     const token = destUrl.hash.split("=")[1];
+
     // check that the token was persisted
     const tokenHash = sha256(token);
     const tokenObj = await prisma.oAuthToken.findUnique({
       where: { tokenHash },
     });
     expect(tokenObj).toBeDefined();
-    if (tokenObj !== null) {
-      expect(tokenObj.clientId).toStrictEqual(validQuery.client_id);
-    }
-    expect({
-      tokenHash: tokenObj?.tokenHash,
-      clientId: tokenObj?.clientId,
-      userId: tokenObj?.userId,
-    }).toStrictEqual({
-      tokenHash,
-      clientId: validQuery.client_id,
-      userId: mockSession.user.id,
-    });
+    expect(tokenObj?.clientId).toStrictEqual(validQuery.client_id);
+    expect(tokenObj?.userId).toStrictEqual(mockSession.user.id);
+    expect(tokenObj?.tokenHash).toStrictEqual(tokenHash);
 
     // check that a second request updates the token hash
     const res2 = (await getServerSideProps({
