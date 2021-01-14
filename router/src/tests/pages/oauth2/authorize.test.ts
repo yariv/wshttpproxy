@@ -1,18 +1,22 @@
-import { PrismaClient, PrismaClientUnknownRequestError } from "@prisma/client";
 import client from "next-auth/client";
 import { Redirect } from "next/dist/lib/load-custom-routes";
 import { getServerSideProps } from "../../../pages/oauth2/authorize";
 import { sha256 } from "../../../utils";
 import { initTestDb } from "../../db";
-global.fetch = require("node-fetch");
 jest.mock("next-auth/client");
-
-const testDbUrl =
-  "postgresql://postgres@localhost:5432/devinprod_test?schema=public";
+import { prisma } from "../../../prisma";
+import { config } from "dotenv";
+import path from "path";
+config({ path: path.resolve(process.cwd(), ".env_test") });
 
 describe("authorize", () => {
-  beforeEach(async () => {
-    //await initTestDb();
+  // console.log(3);
+  beforeAll(async () => {
+    await initTestDb();
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
   });
 
   const validQuery = {
@@ -23,18 +27,13 @@ describe("authorize", () => {
   };
 
   it("works", async () => {
-    // TODO use a Session-derived type with a user id field.
+    const user = await prisma.user.create({ data: {} });
     const mockSession = {
       expires: "1",
-      user: { email: "a", name: "Delta", image: "c", id: 1 },
+      user: { email: "a", name: "Delta", image: "c", id: user.id },
     };
     (client.getSession as jest.Mock).mockReturnValue(mockSession);
-
-    const prisma = new PrismaClient({
-      datasources: { db: { url: testDbUrl } },
-    });
     expect(await prisma.oAuthToken.count()).toStrictEqual(0);
-
     const res = (await getServerSideProps({
       query: validQuery,
     } as any)) as any;
@@ -47,10 +46,7 @@ describe("authorize", () => {
     const destUrl = new URL(redirect.destination);
     expect(destUrl.hash.match("^#token=[a-zA-Z0-9]{40}")).toBeTruthy();
     const token = destUrl.hash.split("=")[1];
-
     // check that the token was persisted
-    // TODO switch to token hash
-
     const tokenHash = sha256(token);
     const tokenObj = await prisma.oAuthToken.findUnique({
       where: { tokenHash },
@@ -59,7 +55,11 @@ describe("authorize", () => {
     if (tokenObj !== null) {
       expect(tokenObj.clientId).toStrictEqual(validQuery.client_id);
     }
-    expect(tokenObj).toStrictEqual({
+    expect({
+      tokenHash: tokenObj?.tokenHash,
+      clientId: tokenObj?.clientId,
+      userId: tokenObj?.userId,
+    }).toStrictEqual({
       tokenHash,
       clientId: validQuery.client_id,
       userId: mockSession.user.id,
@@ -75,11 +75,13 @@ describe("authorize", () => {
     const tokenObj2 = await prisma.oAuthToken.findUnique({
       where: { tokenHash },
     });
-    expect(tokenObj2).toBeUndefined();
+    expect(tokenObj2).toBeNull();
 
+    // Check that the url contains the raw token
     const destUrl2 = new URL(res2.redirect.destination);
     const token2 = destUrl2.hash.split("=")[1];
     const token2Hash = sha256(token2);
+
     const tokenObj3 = await prisma.oAuthToken.findUnique({
       where: { tokenHash: token2Hash },
     });

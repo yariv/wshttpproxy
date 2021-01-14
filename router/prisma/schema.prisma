@@ -80,6 +80,7 @@ model Application {
   @@index(secret)
   @@index(ownerId)
   @@unique([ownerId, name])
+  @@map(name: "application")
 }
 
 model Route {
@@ -91,6 +92,8 @@ model Route {
   owner User @relation(fields: [ownerId], references: [id])
   applicationId String 
   application Application @relation(fields:[applicationId], references: [id])
+
+  @@map(name: "route")
 }
 
 model OAuthToken {
@@ -103,4 +106,5 @@ model OAuthToken {
 
   @@unique([tokenHash, clientId])
   @@unique([userId, clientId])
+  @@map(name: "oauth_token")
 } 

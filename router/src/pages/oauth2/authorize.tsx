@@ -1,10 +1,10 @@
-import { PrismaClient } from "@prisma/client";
 import { createHash } from "crypto";
 import { GetServerSideProps } from "next";
 import { getSession, signIn, signOut, useSession } from "next-auth/client";
 import * as React from "react";
 import * as z from "zod";
 import { genNewToken } from "../../utils";
+import { prisma } from "../../prisma";
 
 const AuthorizePage = () => {
   const [session, loading] = useSession();
@@ -48,10 +48,9 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const token = genNewToken();
   const tokenHash = createHash("sha256").update(token).digest("hex");
 
-  const prisma = new PrismaClient();
-
-  await prisma.oAuthToken.delete({
-    where: { userId_clientId: { userId, clientId: client_id } },
+  // we use deleteMany to avoid
+  await prisma.oAuthToken.deleteMany({
+    where: { userId, clientId: client_id },
   });
 
   await prisma.oAuthToken.create({
@@ -60,6 +59,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 
   const redirectUrl = new URL(redirect_uri);
   redirectUrl.hash = "token=" + token;
+
   return {
     redirect: { destination: redirectUrl.toString(), permanent: false },
   };
