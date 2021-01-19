@@ -26,6 +26,5 @@ describe("createApplication works", () => {
       headers: { "content-type": "application/json" },
     });
     await cloesable.close();
-    await prisma.$disconnect();
   });
 });
