@@ -20,10 +20,11 @@ describe("createApplication works", () => {
     await setupMockSession();
     const cloesable = await main(globalConfig.routerPort);
 
-    const res = await fetch("/api/createApplication", {
-      method: "POST",
-      body: JSON.stringify({ name: "foo" }),
-    });
+    // const res = await fetch(globalConfig.routerUrl + "/api/createApplication", {
+    //   method: "POST",
+    //   body: JSON.stringify({ name: "foo" }),
+    //   headers: { "content-type": "application/json" },
+    // });
     await cloesable.close();
   });
 });

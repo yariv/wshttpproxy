@@ -11,6 +11,7 @@ const args = z.object({
 type Res = {
   secret: string;
 };
+
 export default async function handle(
   req: NextApiRequest,
   res: NextApiResponse<Res>
@@ -50,7 +51,7 @@ export default async function handle(
   await prisma.application.create({
     data: {
       name: reqBody.name,
-      owner: ownerId,
+      owner: { connect: { id: ownerId } },
       secret,
     },
   });

@@ -15,11 +15,11 @@ export const initTestDb = async () => {
   //await prisma.$executeRaw(query);
   await prisma.oAuthToken.deleteMany({});
   await prisma.route.deleteMany({});
-  await prisma.user.deleteMany({});
   await prisma.verificationRequest.deleteMany({});
   await prisma.session.deleteMany({});
   await prisma.account.deleteMany({});
   await prisma.application.deleteMany({});
+  await prisma.user.deleteMany({});
   const t2 = Date.now();
   console.log("db deletes", (t2 - t1) / 1000, "seconds");
 };
