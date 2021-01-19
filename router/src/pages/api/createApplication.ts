@@ -1,15 +1,15 @@
 import { PrismaClient } from "@prisma/client";
-import { getPrismaClient } from "@prisma/client/runtime";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/client";
 import * as z from "zod";
+import { genNewToken } from "../../utils";
 
 const args = z.object({
   name: z.string(),
 });
 
 type Res = {
-  userId: string;
+  secret: string;
 };
 export default async function handle(
   req: NextApiRequest,
@@ -30,12 +30,29 @@ export default async function handle(
 
   const prisma = new PrismaClient();
 
-  await prisma.application.findUnique({
+  const ownerId = (session.user as any).id;
+  const application = await prisma.application.findUnique({
     where: {
       ownerId_name: {
-        ownerId: (session.user as any).id,
+        ownerId: ownerId,
         name: reqBody.name,
       },
     },
   });
+
+  if (application) {
+    res.write("An application with the same name already exists.");
+    res.status(400).end();
+    return;
+  }
+
+  const secret = genNewToken();
+  await prisma.application.create({
+    data: {
+      name: reqBody.name,
+      owner: ownerId,
+      secret,
+    },
+  });
+  res.status(200).json({ secret });
 }

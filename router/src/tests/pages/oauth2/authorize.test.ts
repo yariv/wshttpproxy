@@ -1,13 +1,11 @@
-import client from "next-auth/client";
 import { Redirect } from "next/dist/lib/load-custom-routes";
 import { getServerSideProps } from "../../../pages/oauth2/authorize";
 import { sha256 } from "../../../utils";
 import { initTestDb } from "../../db";
-jest.mock("next-auth/client");
 import { prisma } from "../../../prisma";
-import { config } from "dotenv";
-import path from "path";
-config({ path: path.resolve(process.cwd(), ".env_test") });
+import { setupMockSession } from "../../testLib";
+import client from "next-auth/client";
+jest.mock("next-auth/client");
 
 describe("authorize", () => {
   // console.log(3);
@@ -27,12 +25,8 @@ describe("authorize", () => {
   };
 
   it("works", async () => {
-    const user = await prisma.user.create({ data: {} });
-    const mockSession = {
-      expires: "1",
-      user: { email: "a", name: "Delta", image: "c", id: user.id },
-    };
-    (client.getSession as jest.Mock).mockReturnValue(mockSession);
+    await setupMockSession();
+
     expect(await prisma.oAuthToken.count()).toStrictEqual(0);
     const res = (await getServerSideProps({
       query: validQuery,
@@ -54,7 +48,9 @@ describe("authorize", () => {
     });
     expect(tokenObj).toBeDefined();
     expect(tokenObj?.clientId).toStrictEqual(validQuery.client_id);
-    expect(tokenObj?.userId).toStrictEqual(mockSession.user.id);
+
+    const session = await client.getSession();
+    expect(tokenObj?.userId).toStrictEqual((session?.user as any).id);
     expect(tokenObj?.tokenHash).toStrictEqual(tokenHash);
 
     // check that a second request updates the token hash
