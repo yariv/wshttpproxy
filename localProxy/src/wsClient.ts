@@ -73,7 +73,7 @@ class WsClient {
       case WsClientState.listening:
         if (msgType == MsgType.proxyRequest) {
           const promise = (async () => {
-            const resp = await fetch(globalConfig.exampleUrl, msgBody);
+            const resp = await fetch(globalConfig.exampleProdUrl, msgBody);
             this.send(MsgType.proxyResponse, resp);
           })();
           // TODO handle promise

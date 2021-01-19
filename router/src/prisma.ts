@@ -1,4 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 
-console.log("INIT PRISMA");
-export const prisma = new PrismaClient();
+const gb = global as any;
+if (!gb.prisma) {
+  console.log("INIT PRISMA");
+  gb.prisma = new PrismaClient();
+}
+export const prisma = gb.prisma;

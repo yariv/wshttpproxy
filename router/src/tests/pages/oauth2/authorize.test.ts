@@ -9,11 +9,11 @@ jest.mock("next-auth/client");
 
 describe("authorize", () => {
   // console.log(3);
-  beforeAll(async () => {
+  beforeEach(async () => {
     await initTestDb();
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await prisma.$disconnect();
   });
 

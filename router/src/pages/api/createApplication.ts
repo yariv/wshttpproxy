@@ -1,7 +1,7 @@
-import { PrismaClient } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/client";
 import * as z from "zod";
+import { prisma } from "../../prisma";
 import { genNewToken } from "../../utils";
 
 const args = z.object({
@@ -28,9 +28,6 @@ export default async function handle(
   }
 
   const reqBody = args.parse(req.body);
-
-  const prisma = new PrismaClient();
-
   const ownerId = (session.user as any).id;
   const application = await prisma.application.findUnique({
     where: {

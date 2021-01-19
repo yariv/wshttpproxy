@@ -8,11 +8,11 @@ jest.mock("next-auth/client");
 
 describe("createApplication works", () => {
   // console.log(3);
-  beforeAll(async () => {
+  beforeEach(async () => {
     await initTestDb();
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await prisma.$disconnect();
   });
 
@@ -20,11 +20,12 @@ describe("createApplication works", () => {
     await setupMockSession();
     const cloesable = await main(globalConfig.routerPort);
 
-    // const res = await fetch(globalConfig.routerUrl + "/api/createApplication", {
-    //   method: "POST",
-    //   body: JSON.stringify({ name: "foo" }),
-    //   headers: { "content-type": "application/json" },
-    // });
+    const res = await fetch(globalConfig.routerUrl + "/api/createApplication", {
+      method: "POST",
+      body: JSON.stringify({ name: "foo" }),
+      headers: { "content-type": "application/json" },
+    });
     await cloesable.close();
+    await prisma.$disconnect();
   });
 });

@@ -66,6 +66,11 @@
     "isolatedModules": true,
     "jsx": "preserve"
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "../router/src/tests/pages/oauth2/authorize.test.tsx"
+  ],
   "exclude": ["node_modules"]
 }
