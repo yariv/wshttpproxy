@@ -31,6 +31,6 @@ describe("createApplication works", () => {
     await setupMockSession();
     const res = await callApi("createApplication", {} as any);
     expect(res.status).toBe(400);
-    expect(res.parsedBody).toBeNull();
+    expect(res.parsedBody).toBeUndefined();
   });
 });

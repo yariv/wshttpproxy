@@ -29,8 +29,8 @@ export const createHandler = <MethodName extends MethodType>(
     }
     const session = await getSession({ req });
     if (!session) {
-      res.json({ error: "Not logged in" });
-      res.status(401).end();
+      res.status(401).json({ error: "Not logged in" });
+      res.end();
       return;
     }
 
@@ -42,8 +42,8 @@ export const createHandler = <MethodName extends MethodType>(
       }
     } catch (e) {
       const status = e instanceof ZodError ? 400 : 500;
-      res.json({ error: e });
-      res.status(status).end();
+      res.status(status).json({ error: e });
+      res.end();
     }
   };
   return wrappedHandler;
