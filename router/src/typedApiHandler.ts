@@ -7,12 +7,15 @@ type Err = {
   error: any;
 };
 
+type ValidatedNextApiRequest<T> = NextApiRequest & {
+  validatedBody: T;
+};
+
 export const createHandler = <MethodName extends MethodType>(
   methodName: MethodName,
   handler: (
-    req: NextApiRequest,
+    req: ValidatedNextApiRequest<ReqSchema<MethodName>>,
     res: NextApiResponse<ResSchema<MethodName> | Err>,
-    body: ReqSchema<MethodName>,
     session: Session
   ) => Promise<void>
 ): ((
@@ -37,8 +40,12 @@ export const createHandler = <MethodName extends MethodType>(
     const schemaType = apiSchema[methodName].reqSchema;
     try {
       const body = schemaType.parse(req.body);
+      const validatedReq = req as ValidatedNextApiRequest<
+        ReqSchema<MethodName>
+      >;
+      validatedReq.validatedBody = body;
       if (schemaType.check(body)) {
-        return handler(req, res, body, session);
+        return handler(validatedReq, res, session);
       }
     } catch (e) {
       const status = e instanceof ZodError ? 400 : 500;
