@@ -1,14 +1,25 @@
 import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
-import { MethodType, ReqSchema, ResSchema } from "./apiSchema";
+import { apiSchema, MethodType, ReqSchema, ResSchema } from "./apiSchema";
+
+type RespType<T> = Response & {
+  parsedBody: T;
+};
 
 export const callApi = async (
   methodName: MethodType,
-  body: ReqSchema<typeof methodName>
-): Promise<ResSchema<typeof methodName>> => {
+  reqBody: ReqSchema<typeof methodName>
+): Promise<RespType<ResSchema<typeof methodName>>> => {
   const res = await fetch(globalConfig.routerUrl + "/api/" + methodName, {
     method: "POST",
-    body: JSON.stringify(body),
+    body: JSON.stringify(reqBody),
     headers: { "content-type": "application/json" },
   });
-  return await res.json();
+  const respBody = await res.json();
+
+  const parsedBody = apiSchema[methodName].resSchema.parse(respBody);
+
+  return {
+    ...res,
+    parsedBody: parsedBody,
+  };
 };

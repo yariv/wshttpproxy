@@ -29,11 +29,7 @@ describe("createApplication works", () => {
 
   it("requires name", async () => {
     await setupMockSession();
-    try {
-      await callApi("createApplication", {} as any);
-    } catch (e) {
-      console.log("FDSF");
-      console.log(e);
-    }
+    const res = await callApi("createApplication", {} as any);
+    expect(res.res.status).toBe(400);
   });
 });
