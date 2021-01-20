@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { Session } from "next-auth/client";
 import { ReqSchema, ResSchema } from "../../apiSchema";
 import { prisma } from "../../prisma";
-import { createHandler } from "../../typedHandler";
+import { createHandler } from "../../typedApiHandler";
 import { genNewToken } from "../../utils";
 
 export default createHandler(
@@ -22,6 +22,7 @@ export default createHandler(
         },
       },
     });
+    console.log("SADF");
 
     if (application) {
       res.write("An application with the same name already exists.");
