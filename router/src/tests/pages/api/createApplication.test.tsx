@@ -30,6 +30,7 @@ describe("createApplication works", () => {
   it("requires name", async () => {
     await setupMockSession();
     const res = await callApi("createApplication", {} as any);
-    expect(res.res.status).toBe(400);
+    expect(res.status).toBe(400);
+    expect(res.parsedBody).toBeNull();
   });
 });
