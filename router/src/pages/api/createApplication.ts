@@ -1,6 +1,6 @@
 import { getSession } from "next-auth/client";
 import { prisma } from "../../prisma";
-import { createHandler, HttpError } from "../../typedApiHandler";
+import { createHandler, HttpError } from "../../typedApi/typedApiHandler";
 import { genNewToken, log } from "../../utils";
 
 export default createHandler("createApplication", async (req) => {

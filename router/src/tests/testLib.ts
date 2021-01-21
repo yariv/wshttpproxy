@@ -9,7 +9,7 @@ export const setupMockSession = async () => {
   const user = await prisma.user.create({ data: {} });
   const mockSession = {
     expires: "1",
-    user: { email: "a", name: "Delta", image: "c", id: user.id },
+    user: { email: "email", name: "name", image: "image", id: user.id },
   };
   (client.getSession as jest.Mock).mockReturnValue(mockSession);
 };
