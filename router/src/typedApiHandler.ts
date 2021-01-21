@@ -9,6 +9,15 @@ type ParsedNextApiRequest<T> = NextApiRequest & {
   parsedBody: T;
 };
 
+class HttpError extends Error {
+  status: number;
+
+  constructor(message?: string, status: number = 500) {
+    super(message);
+    this.status = status;
+  }
+}
+
 export const createHandler = <MethodName extends MethodType>(
   methodName: MethodName,
   handler: (
@@ -25,18 +34,24 @@ export const createHandler = <MethodName extends MethodType>(
   ) => {
     const schemaType = apiSchema[methodName].reqSchema;
     const parseResult = schemaType.safeParse(req.body);
-    if (parseResult.success) {
-      const validatedReq = req as ParsedNextApiRequest<ReqSchema<MethodName>>;
-      validatedReq.parsedBody = parseResult.data;
-      try {
-        return handler(validatedReq, res);
-      } catch (error) {
+    if (!parseResult.success) {
+      res.status(400).json({ error: parseResult.error });
+      res.end();
+      return;
+    }
+
+    const validatedReq = req as ParsedNextApiRequest<ReqSchema<MethodName>>;
+    validatedReq.parsedBody = parseResult.data;
+    try {
+      return handler(validatedReq, res);
+    } catch (error) {
+      if (error instanceof HttpError) {
+        res.status(error.status).json({ error: error.message });
+      } else {
         res.status(500).json({ error });
       }
-    } else {
-      res.status(400).json({ error: parseResult.error });
+      res.end();
     }
-    res.end();
   };
   return wrappedHandler;
 };

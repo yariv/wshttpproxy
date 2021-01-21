@@ -30,7 +30,7 @@ export default createHandler("createApplication", async (req, res) => {
 
   if (application) {
     res.status(400).write("An application with the same name already exists.");
-    res.status(400).end();
+    res.end();
     return;
   }
 
