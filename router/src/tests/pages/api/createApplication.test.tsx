@@ -52,6 +52,12 @@ describe("createApplication", () => {
     });
   });
 
+  it("requires session", async () => {
+    const res = await callApi("createApplication", { name: "foo" });
+    expect(res.status).toBe(405);
+    expect(res.error).toBe("Not logged in");
+  });
+
   it("ensures name is unique", async () => {
     await setupMockSession();
     const res = await callApi("createApplication", { name: "foo" });
