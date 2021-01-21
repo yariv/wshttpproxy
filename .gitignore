@@ -105,3 +105,5 @@ dist
 
 .google_config.json
 .node-persist
+
+.DS_Store
