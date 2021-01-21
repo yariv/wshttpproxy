@@ -1,4 +1,5 @@
-import { apiSchema, MethodType, ReqSchema, ResSchema } from "./apiSchema";
+import { apiSchema } from "./apiSchema";
+import { MethodType, ReqSchema, ResSchema } from "./typedApiTypes";
 
 export type ResponseType<ParsedBodyType> = {
   response: Response;
