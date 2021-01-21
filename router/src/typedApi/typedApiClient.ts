@@ -1,12 +1,15 @@
 import { apiSchema } from "./apiSchema";
 import { MethodType, ReqSchema, ResSchema } from "./typedApiTypes";
 
-export type ResponseType<ParsedBodyType> = {
-  response: Response;
-  parsedBody?: ParsedBodyType;
-  error?: any;
-  status: number;
-};
+type BaseResponse = { response: Response; status: number };
+
+export type ResponseType<ParsedBodyType> =
+  | (BaseResponse & {
+      parsedBody: ParsedBodyType;
+    })
+  | (BaseResponse & {
+      error: any;
+    });
 
 export class TypedClient {
   baseUrl: string;
