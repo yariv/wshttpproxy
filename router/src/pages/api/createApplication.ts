@@ -1,21 +1,16 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import { getSession, Session } from "next-auth/client";
-import { ReqSchema, ResSchema } from "../../apiSchema";
+import { getSession } from "next-auth/client";
 import { prisma } from "../../prisma";
-import { createHandler } from "../../typedApiHandler";
-import { genNewToken } from "../../utils";
+import { createHandler, HttpError } from "../../typedApiHandler";
+import { genNewToken, log } from "../../utils";
 
-export default createHandler("createApplication", async (req, res) => {
+export default createHandler("createApplication", async (req) => {
   if (req.method != "POST") {
-    res.status(405).end();
-    return;
+    throw new HttpError({ status: 405 });
   }
 
   const session = await getSession({ req });
   if (!session) {
-    res.status(401).json({ error: "Not logged in" });
-    res.end();
-    return;
+    throw new HttpError({ message: "Not logged in", status: 401 });
   }
 
   const ownerId = (session.user as any).id;
@@ -29,9 +24,10 @@ export default createHandler("createApplication", async (req, res) => {
   });
 
   if (application) {
-    res.status(400).write("An application with the same name already exists.");
-    res.end();
-    return;
+    throw new HttpError({
+      message: "An application with the same name already exists.",
+      status: 400,
+    });
   }
 
   const secret = genNewToken();
@@ -42,5 +38,5 @@ export default createHandler("createApplication", async (req, res) => {
       secret,
     },
   });
-  res.status(200).json({ secret });
+  return { secret };
 });

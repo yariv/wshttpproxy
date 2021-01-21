@@ -1,29 +1,28 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { apiSchema, MethodType, ReqSchema, ResSchema } from "./apiSchema";
 
-type ErrorResponse = {
+export type ErrorResponse = {
   error: any;
 };
 
-type ParsedNextApiRequest<T> = NextApiRequest & {
+export type ParsedNextApiRequest<T> = NextApiRequest & {
   parsedBody: T;
 };
 
-class HttpError extends Error {
+export class HttpError extends Error {
   status: number;
 
-  constructor(message?: string, status: number = 500) {
+  constructor({ message, status }: { message?: string; status?: number }) {
     super(message);
-    this.status = status;
+    this.status = status || 500;
   }
 }
 
 export const createHandler = <MethodName extends MethodType>(
   methodName: MethodName,
   handler: (
-    req: ParsedNextApiRequest<ReqSchema<MethodName>>,
-    res: NextApiResponse<ResSchema<MethodName> | ErrorResponse>
-  ) => Promise<void>
+    req: ParsedNextApiRequest<ReqSchema<MethodName>>
+  ) => Promise<ResSchema<MethodName>>
 ): ((
   req: NextApiRequest,
   resp: NextApiResponse<ResSchema<MethodName> | ErrorResponse>
@@ -43,15 +42,16 @@ export const createHandler = <MethodName extends MethodType>(
     const validatedReq = req as ParsedNextApiRequest<ReqSchema<MethodName>>;
     validatedReq.parsedBody = parseResult.data;
     try {
-      return handler(validatedReq, res);
+      const handlerResult = await handler(validatedReq);
+      res.status(200).json(handlerResult);
     } catch (error) {
       if (error instanceof HttpError) {
         res.status(error.status).json({ error: error.message });
       } else {
         res.status(500).json({ error });
       }
-      res.end();
     }
+    res.end();
   };
   return wrappedHandler;
 };
