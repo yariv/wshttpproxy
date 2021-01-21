@@ -32,8 +32,3 @@ export const callApi = async (
     status: res.status,
   };
 };
-
-const log = (obj: any) => {
-  const util = require("util");
-  console.log(util.inspect(obj, { showHidden: false, depth: null }));
-};

@@ -1,57 +1,42 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { getSession, Session } from "next-auth/client";
-import { ZodError } from "zod";
 import { apiSchema, MethodType, ReqSchema, ResSchema } from "./apiSchema";
 
-type Err = {
+type ErrorResponse = {
   error: any;
 };
 
-type ValidatedNextApiRequest<T> = NextApiRequest & {
-  validatedBody: T;
+type ParsedNextApiRequest<T> = NextApiRequest & {
+  parsedBody: T;
 };
 
 export const createHandler = <MethodName extends MethodType>(
   methodName: MethodName,
   handler: (
-    req: ValidatedNextApiRequest<ReqSchema<MethodName>>,
-    res: NextApiResponse<ResSchema<MethodName> | Err>,
-    session: Session
+    req: ParsedNextApiRequest<ReqSchema<MethodName>>,
+    res: NextApiResponse<ResSchema<MethodName> | ErrorResponse>
   ) => Promise<void>
 ): ((
   req: NextApiRequest,
-  resp: NextApiResponse<ResSchema<MethodName> | Err>
+  resp: NextApiResponse<ResSchema<MethodName> | ErrorResponse>
 ) => void) => {
   const wrappedHandler = async (
     req: NextApiRequest,
-    res: NextApiResponse<ResSchema<MethodName> | Err>
+    res: NextApiResponse<ResSchema<MethodName> | ErrorResponse>
   ) => {
-    if (req.method != "POST") {
-      res.status(405).end();
-      return;
-    }
-    const session = await getSession({ req });
-    if (!session) {
-      res.status(401).json({ error: "Not logged in" });
-      res.end();
-      return;
-    }
-
     const schemaType = apiSchema[methodName].reqSchema;
-    try {
-      const body = schemaType.parse(req.body);
-      const validatedReq = req as ValidatedNextApiRequest<
-        ReqSchema<MethodName>
-      >;
-      validatedReq.validatedBody = body;
-      if (schemaType.check(body)) {
-        return handler(validatedReq, res, session);
+    const parseResult = schemaType.safeParse(req.body);
+    if (parseResult.success) {
+      const validatedReq = req as ParsedNextApiRequest<ReqSchema<MethodName>>;
+      validatedReq.parsedBody = parseResult.data;
+      try {
+        return handler(validatedReq, res);
+      } catch (error) {
+        res.status(500).json({ error });
       }
-    } catch (e) {
-      const status = e instanceof ZodError ? 400 : 500;
-      res.status(status).json({ error: e });
-      res.end();
+    } else {
+      res.status(400).json({ error: parseResult.error });
     }
+    res.end();
   };
   return wrappedHandler;
 };
