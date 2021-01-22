@@ -1,4 +1,5 @@
-import { apiSchema } from "./apiSchema";
+//import { apiSchema } from "typedApiSchema/schema";
+import { apiSchema } from "../../typedApiSchema/schema";
 import { MethodType, ReqSchema, ResSchema } from "./typedApiTypes";
 
 type BaseResponse = { response: Response };
