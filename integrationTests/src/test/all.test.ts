@@ -15,7 +15,7 @@ describe("integration", () => {
   });
 
   afterEach(async () => {
-    //await new CloseableContainer(closeables).close();
+    await new CloseableContainer(closeables).close();
     closeables = [];
     promises = [];
   });
@@ -26,15 +26,20 @@ describe("integration", () => {
 
   it("sidecar works", async () => {
     // sidecar should return 500 if the prod service is offline
-    // deferClose(await sidecarMain(globalConfig.sidecarPort));
-    // const resp = await fetch(globalConfig.sidecarUrl);
-    // expect(resp.status).toBe(500);
+    deferClose(await sidecarMain(globalConfig.sidecarPort));
+    const resp = await fetch(globalConfig.sidecarUrl);
+    expect(resp.status).toBe(500);
 
     // start the prod service and verify it works
     deferClose(exampleMain(globalConfig.exampleProdPort));
+
+    const res = await fetch(globalConfig.exampleProdUrl);
+    const text = await res.text();
+
     const resp2 = await fetch(globalConfig.exampleProdUrl);
     expect(resp2.status).toBe(200);
-    expect(resp2.body).toBe("" + globalConfig.exampleProdPort);
+    const body = await resp2.text();
+    expect(body).toBe("" + globalConfig.exampleProdPort);
 
     // // sidecar should successfully forward standard requests to prod service
     // const resp3 = await fetch(globalConfig.sidecarUrl);
