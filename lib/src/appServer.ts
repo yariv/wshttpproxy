@@ -1,5 +1,6 @@
 import Koa from "koa";
 import util from "util";
+import { Server } from "http";
 
 export interface Closeable {
   close(): Promise<void>;
@@ -39,12 +40,7 @@ export const start = async (
     await requestHandler(ctx.req, ctx.res);
   });
 
-  const server = app.listen(port);
-
-  // TODO handle errors
-  const closeableServer = {
-    close: util.promisify(server.close).bind(server),
-  };
+  const closeableKoaApp = await listenOnPort(app, port);
 
   const closeableNextApp = {
     close: async () => {
@@ -54,5 +50,29 @@ export const start = async (
     },
   };
 
-  return new CloseableContainer([closeableServer, closeableNextApp]);
+  return new CloseableContainer([closeableKoaApp, closeableNextApp]);
+};
+
+interface CanListen {
+  listen(port: number): Server;
+}
+export const listenOnPort = (
+  app: CanListen,
+  port: number
+): Promise<Closeable> => {
+  const promise = new Promise<Closeable>((resolve, reject) => {
+    const server = app.listen(port);
+    server.addListener("listening", () => {
+      console.log("Listening on port ", port);
+      const closeableServer = {
+        close: util.promisify(server.close).bind(server),
+      };
+      resolve(closeableServer);
+    });
+    server.addListener("error", () => {
+      console.error("Error listening on port ", port);
+      reject();
+    });
+  });
+  return promise;
 };

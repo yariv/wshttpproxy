@@ -2,12 +2,11 @@ import Koa from "koa";
 
 import proxy from "koa-better-http-proxy";
 import { config } from "./config";
-import { Closeable } from "dev-in-prod-lib/src/appServer";
+import { Closeable, listenOnPort } from "dev-in-prod-lib/src/appServer";
 
-import util from "util";
 import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 
-export const start = (port: number): Closeable => {
+export const start = async (port: number): Promise<Closeable> => {
   const app = new Koa();
   const sidecarHeaders = {
     [globalConfig.sidecarProxyHeader]: "true",
@@ -39,11 +38,5 @@ export const start = (port: number): Closeable => {
     );
   };
 
-  const server = app.listen(port);
-
-  const closeableServer = {
-    close: util.promisify(server.close).bind(server),
-  };
-
-  return closeableServer;
+  return listenOnPort(app, port);
 };
