@@ -4,6 +4,7 @@ import { main as routerMain } from "dev-in-prod-router/main";
 import { main as localProxyMain } from "dev-in-prod-local-proxy/main";
 import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 import { CloseableContainer, Closeable } from "dev-in-prod-lib/src/appServer";
+import axios, { AxiosPromise } from "axios";
 
 describe("integration", () => {
   let closeables: Closeable[];
@@ -27,39 +28,41 @@ describe("integration", () => {
   it("sidecar works", async () => {
     // sidecar should return 500 if the prod service is offline
     deferClose(await sidecarMain(globalConfig.sidecarPort));
-    const resp = await fetch(globalConfig.sidecarUrl);
-    expect(resp.status).toBe(500);
+    try {
+      const resp = await axios(globalConfig.sidecarUrl);
+      fail();
+    } catch (err) {
+      expect(err.response.status).toBe(500);
+    }
 
     // start the prod service and verify it works
     deferClose(exampleMain(globalConfig.exampleProdPort));
 
-    const res = await fetch(globalConfig.exampleProdUrl);
-    const text = await res.text();
-
-    const resp2 = await fetch(globalConfig.exampleProdUrl);
+    const resp2 = await axios(globalConfig.exampleProdUrl);
     expect(resp2.status).toBe(200);
-    const body = await resp2.text();
-    expect(body).toBe("" + globalConfig.exampleProdPort);
+    expect(resp2.data).toBe(globalConfig.exampleProdPort);
 
-    // // sidecar should successfully forward standard requests to prod service
-    // const resp3 = await fetch(globalConfig.sidecarUrl);
-    // expect(resp3.status).toBe(resp2.status);
-    // expect(resp3.body).toBe(resp2.body);
-  });
+    // sidecar should successfully forward standard requests to prod service
+    const resp3 = await axios(globalConfig.sidecarUrl);
+    expect(resp3.status).toBe(resp2.status);
+    expect(resp3.data).toBe(resp2.data);
 
-  const foo = async () => {
-    const sendDevRequest = async (): Promise<Response> => {
+    const sendDevRequest = (): AxiosPromise => {
       // send a dev request, verify it fails because the router hasn't been started
-      return fetch(globalConfig.sidecarUrl, {
+      return axios(globalConfig.sidecarUrl, {
         headers: { [globalConfig.devInProdHeader]: "true" },
       });
     };
 
-    const resp4 = await sendDevRequest();
-    expect(resp4.status).toBe(500);
+    try {
+      const resp4 = await sendDevRequest();
+      fail();
+    } catch (err) {
+      expect(err.response.status).toBe(500);
+    }
 
     deferClose(await routerMain(globalConfig.routerPort));
-  };
+  });
 
   it("works", async () => {
     return;
