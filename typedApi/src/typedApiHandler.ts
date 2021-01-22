@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { apiSchema } from "typedApiSchema";
+import { typedApiSchema } from "typedApiSchema";
 import { MethodType, ReqSchema, ResSchema } from "./typedApiTypes";
 
 export type ErrorResponse = {
@@ -32,7 +32,7 @@ export const createHandler = <MethodName extends MethodType>(
     req: NextApiRequest,
     res: NextApiResponse<ResSchema<MethodName> | ErrorResponse>
   ) => {
-    const schemaType = apiSchema[methodName].reqSchema;
+    const schemaType = typedApiSchema[methodName].reqSchema;
     const parseResult = schemaType.safeParse(req.body);
     if (!parseResult.success) {
       res.status(400).json({ error: parseResult.error });

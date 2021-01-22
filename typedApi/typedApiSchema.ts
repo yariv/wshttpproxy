@@ -1,12 +1,12 @@
 import * as z from "zod";
 
 export const typedApiSchema = {
-  createApplication: {
+  testMethod: {
     reqSchema: z.object({
-      name: z.string(),
+      param1: z.string(),
     }),
     resSchema: z.object({
-      secret: z.string(),
+      param2: z.string(),
     }),
   },
 };

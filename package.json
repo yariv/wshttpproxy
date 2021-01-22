@@ -5,6 +5,7 @@
     "router",
     "example",
     "sidecar",
-    "localProxy"
+    "localProxy",
+    "typedApi"
   ]
 }

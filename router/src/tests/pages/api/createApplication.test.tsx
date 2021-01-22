@@ -2,7 +2,7 @@ import { Closeable } from "dev-in-prod-lib/src/appServer";
 import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 import { main } from "../../../../main";
 import { prisma } from "../../../prisma";
-import { TypedClient } from "../../../typedApi/typedApiClient";
+import { TypedClient } from "typedApi/src/typedApiClient";
 import { initTestDb } from "../../db";
 import { setupMockSession } from "../../testLib";
 jest.mock("next-auth/client");

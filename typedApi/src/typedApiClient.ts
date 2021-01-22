@@ -1,4 +1,4 @@
-import { apiSchema } from "typedApiSchema";
+import { typedApiSchema } from "typedApiSchema";
 import { MethodType, ReqSchema, ResSchema } from "./typedApiTypes";
 
 type BaseResponse = { response: Response };
@@ -32,7 +32,9 @@ export class TypedClient {
     });
     const respBody = await res.json();
     if (res.status === 200) {
-      const parseResult = apiSchema[methodName].resSchema.safeParse(respBody);
+      const parseResult = typedApiSchema[methodName].resSchema.safeParse(
+        respBody
+      );
       if (parseResult.success) {
         return {
           response: res,
