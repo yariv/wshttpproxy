@@ -14,4 +14,5 @@ module.exports = {
       tsconfig: "tsconfig.test.json",
     },
   },
+  modulePaths: ["<rootDir>"],
 };

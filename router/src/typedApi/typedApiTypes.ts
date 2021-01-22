@@ -1,5 +1,4 @@
-import { apiSchema } from "typedApiSchema/schema";
-//import { apiSchema } from "../../typedApiSchema/schema";
+import { apiSchema } from "typedApiSchema";
 import * as z from "zod";
 
 export type SchemaType = typeof apiSchema;

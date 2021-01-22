@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-//import { apiSchema } from "../../typedApiSchema/schema";
-import { apiSchema } from "typedApiSchema/schema";
+import { apiSchema } from "typedApiSchema";
 import { MethodType, ReqSchema, ResSchema } from "./typedApiTypes";
 
 export type ErrorResponse = {
