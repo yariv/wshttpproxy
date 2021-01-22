@@ -1,13 +1,15 @@
 import { apiSchema } from "./apiSchema";
 import { MethodType, ReqSchema, ResSchema } from "./typedApiTypes";
 
-type BaseResponse = { response: Response; status: number };
+type BaseResponse = { response: Response };
 
 export type ResponseType<ParsedBodyType> =
   | (BaseResponse & {
+      success: true;
       parsedBody: ParsedBodyType;
     })
   | (BaseResponse & {
+      success: false;
       error: any;
     });
 
@@ -30,17 +32,25 @@ export class TypedClient {
     });
     const respBody = await res.json();
     if (res.status === 200) {
-      const parsedBody = apiSchema[methodName].resSchema.parse(respBody);
-      return {
-        response: res,
-        parsedBody: parsedBody,
-        status: res.status,
-      };
+      const parseResult = apiSchema[methodName].resSchema.safeParse(respBody);
+      if (parseResult.success) {
+        return {
+          response: res,
+          success: true,
+          parsedBody: parseResult.data,
+        };
+      } else {
+        return {
+          response: res,
+          success: false,
+          error: parseResult.error,
+        };
+      }
     }
     return {
       response: res,
       error: respBody.error,
-      status: res.status,
+      success: false,
     };
   }
 }
