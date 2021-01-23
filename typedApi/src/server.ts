@@ -19,54 +19,47 @@ export class HttpError extends Error {
   }
 }
 
-export class TypedApiServer<ApiSchemaType extends AbstractApiSchemaType> {
-  schema: ApiSchemaType;
-
-  constructor(schema: ApiSchemaType) {
-    this.schema = schema;
-  }
-
-  createHandler(
-    methodName: keyof ApiSchemaType,
-    handler: (
-      req: ParsedNextApiRequest<ReqSchema<ApiSchemaType, typeof methodName>>
-    ) => Promise<ResSchema<ApiSchemaType, typeof methodName>>
-  ): (
+export const createHandler = <ApiSchemaType extends AbstractApiSchemaType>(
+  schema: ApiSchemaType,
+  methodName: keyof ApiSchemaType,
+  handler: (
+    req: ParsedNextApiRequest<ReqSchema<ApiSchemaType, typeof methodName>>
+  ) => Promise<ResSchema<ApiSchemaType, typeof methodName>>
+): ((
+  req: NextApiRequest,
+  resp: NextApiResponse<
+    ResSchema<ApiSchemaType, typeof methodName> | ErrorResponse
+  >
+) => void) => {
+  const wrappedHandler = async (
     req: NextApiRequest,
-    resp: NextApiResponse<
+    res: NextApiResponse<
       ResSchema<ApiSchemaType, typeof methodName> | ErrorResponse
     >
-  ) => void {
-    const wrappedHandler = async (
-      req: NextApiRequest,
-      res: NextApiResponse<
-        ResSchema<ApiSchemaType, typeof methodName> | ErrorResponse
-      >
-    ) => {
-      const schemaType = this.schema[methodName].reqSchema;
-      const parseResult = schemaType.safeParse(req.body);
-      if (!parseResult.success) {
-        res.status(400).json({ error: parseResult.error });
-        res.end();
-        return;
-      }
-
-      const validatedReq = req as ParsedNextApiRequest<
-        ReqSchema<ApiSchemaType, typeof methodName>
-      >;
-      validatedReq.parsedBody = parseResult.data;
-      try {
-        const handlerResult = await handler(validatedReq);
-        res.status(200).json(handlerResult);
-      } catch (error) {
-        if (error instanceof HttpError) {
-          res.status(error.status).json({ error: error.message });
-        } else {
-          res.status(500).json({ error });
-        }
-      }
+  ) => {
+    const schemaType = schema[methodName].reqSchema;
+    const parseResult = schemaType.safeParse(req.body);
+    if (!parseResult.success) {
+      res.status(400).json({ error: parseResult.error });
       res.end();
-    };
-    return wrappedHandler;
-  }
-}
+      return;
+    }
+
+    const validatedReq = req as ParsedNextApiRequest<
+      ReqSchema<ApiSchemaType, typeof methodName>
+    >;
+    validatedReq.parsedBody = parseResult.data;
+    try {
+      const handlerResult = await handler(validatedReq);
+      res.status(200).json(handlerResult);
+    } catch (error) {
+      if (error instanceof HttpError) {
+        res.status(error.status).json({ error: error.message });
+      } else {
+        res.status(500).json({ error });
+      }
+    }
+    res.end();
+  };
+  return wrappedHandler;
+};

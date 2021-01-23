@@ -37,6 +37,7 @@ describe("integration", () => {
       expect(err.response.status).toBe(code);
     }
   };
+
   it("example works", async () => {
     // start the prod service and verify it works
     deferClose(exampleMain(globalConfig.exampleProdPort));
@@ -48,7 +49,7 @@ describe("integration", () => {
 
   it("sidecar works", async () => {
     // sidecar should return 500 if the prod service is offline
-    deferClose(await sidecarMain(globalConfig.sidecarPort));
+    deferClose(await sidecarMain(globalConfig.sidecarPort, "secret"));
     await expectHttpError(axios(globalConfig.sidecarUrl), 500);
 
     deferClose(exampleMain(globalConfig.exampleProdPort));
@@ -60,7 +61,6 @@ describe("integration", () => {
   });
 
   it("routing works", async () => {
-    deferClose(await sidecarMain(globalConfig.sidecarPort));
     deferClose(await routerMain(globalConfig.routerPort));
 
     const res = await new TypedClient(
@@ -75,6 +75,9 @@ describe("integration", () => {
     } else {
       fail();
     }
+
+    deferClose(await sidecarMain(globalConfig.sidecarPort, secret));
+
     const sendDevRequest = (): AxiosPromise => {
       return axios(globalConfig.sidecarUrl, {
         headers: { [globalConfig.devInProdHeader]: secret },
@@ -92,7 +95,7 @@ describe("integration", () => {
     const mainPromises: Promise<any>[] = [];
     exampleMain(globalConfig.exampleDevPort);
     exampleMain(globalConfig.exampleProdPort);
-    sidecarMain(globalConfig.sidecarPort);
+    sidecarMain(globalConfig.sidecarPort, "secret");
     mainPromises.push(routerMain(globalConfig.routerPort));
     mainPromises.push(localProxyMain(globalConfig.localProxyPort));
 

@@ -6,10 +6,13 @@ import { Closeable, listenOnPort } from "dev-in-prod-lib/src/appServer";
 
 import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 
-export const start = async (port: number): Promise<Closeable> => {
+export const start = async (
+  port: number,
+  appSecret: string
+): Promise<Closeable> => {
   const app = new Koa();
   const sidecarHeaders = {
-    [globalConfig.sidecarProxyHeader]: "true",
+    [globalConfig.sidecarProxyHeader]: appSecret,
   };
 
   app.use(
