@@ -31,11 +31,7 @@ export const start = async (port: number): Promise<Closeable> => {
   );
 
   const isDevRequest = (ctx: Koa.Context): boolean => {
-    const tokens = ctx.host.split(".");
-    return (
-      (tokens.length > 2 && tokens[tokens.length - 3] == "devinprod") ||
-      ctx.header[globalConfig.devInProdHeader] == "true"
-    );
+    return globalConfig.devInProdHeader in ctx.headers;
   };
 
   return listenOnPort(app, port);

@@ -5,6 +5,8 @@ import { main as localProxyMain } from "dev-in-prod-local-proxy/main";
 import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 import { CloseableContainer, Closeable } from "dev-in-prod-lib/src/appServer";
 import axios, { AxiosPromise } from "axios";
+import { TypedClient } from "typed-api/src/client";
+import { typedApiSchema } from "dev-in-prod-router/typedApiSchema";
 
 describe("integration", () => {
   let closeables: Closeable[];
@@ -25,43 +27,64 @@ describe("integration", () => {
     closeables.push(closeable);
   };
 
-  it("sidecar works", async () => {
-    // sidecar should return 500 if the prod service is offline
-    deferClose(await sidecarMain(globalConfig.sidecarPort));
+  const expectHttpError = async (promise: AxiosPromise, code: number) => {
     try {
-      const resp = await axios(globalConfig.sidecarUrl);
+      const resp = await promise;
+      console.log(resp.status);
+      console.log(resp.data);
       fail();
     } catch (err) {
-      expect(err.response.status).toBe(500);
+      expect(err.response.status).toBe(code);
     }
-
+  };
+  it("example works", async () => {
     // start the prod service and verify it works
     deferClose(exampleMain(globalConfig.exampleProdPort));
 
     const resp2 = await axios(globalConfig.exampleProdUrl);
     expect(resp2.status).toBe(200);
     expect(resp2.data).toBe(globalConfig.exampleProdPort);
+  });
 
-    // sidecar should successfully forward standard requests to prod service
+  it("sidecar works", async () => {
+    // sidecar should return 500 if the prod service is offline
+    deferClose(await sidecarMain(globalConfig.sidecarPort));
+    await expectHttpError(axios(globalConfig.sidecarUrl), 500);
+
+    deferClose(exampleMain(globalConfig.exampleProdPort));
+
+    // sidecar should forward standard requests to prod service
     const resp3 = await axios(globalConfig.sidecarUrl);
-    expect(resp3.status).toBe(resp2.status);
-    expect(resp3.data).toBe(resp2.data);
+    expect(resp3.status).toBe(200);
+    expect(resp3.data).toBe(globalConfig.exampleProdPort);
+  });
 
+  it("routing works", async () => {
+    deferClose(await sidecarMain(globalConfig.sidecarPort));
+    deferClose(await routerMain(globalConfig.routerPort));
+
+    const res = await new TypedClient(
+      globalConfig.routerUrl,
+      typedApiSchema
+    ).post("createApplication", {
+      name: "foo",
+    });
+    let secret: string;
+    if (res.success) {
+      secret = res.parsedBody.secret;
+    } else {
+      fail();
+    }
     const sendDevRequest = (): AxiosPromise => {
-      // send a dev request, verify it fails because the router hasn't been started
       return axios(globalConfig.sidecarUrl, {
-        headers: { [globalConfig.devInProdHeader]: "true" },
+        headers: { [globalConfig.devInProdHeader]: secret },
       });
     };
-
-    try {
-      const resp4 = await sendDevRequest();
-      fail();
-    } catch (err) {
-      expect(err.response.status).toBe(500);
-    }
+    // send a dev request, verify it fails because the router hasn't been started
+    await expectHttpError(sendDevRequest(), 500);
 
     deferClose(await routerMain(globalConfig.routerPort));
+    await expectHttpError(sendDevRequest(), 404);
   });
 
   it("works", async () => {

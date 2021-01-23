@@ -1,9 +1,12 @@
 import { getSession } from "next-auth/client";
+import { HttpError, TypedApiServer } from "typed-api/src/server";
+import { typedApiSchema } from "../../../typedApiSchema";
 import { prisma } from "../../prisma";
-import { createHandler, HttpError } from "typedApi/src/typedApiHandler";
-import { genNewToken, log } from "../../utils";
+import { genNewToken } from "../../utils";
 
-export default createHandler("createApplication", async (req) => {
+const server = new TypedApiServer(typedApiSchema);
+
+export default server.createHandler("createApplication", async (req) => {
   if (req.method != "POST") {
     throw new HttpError({ status: 405 });
   }

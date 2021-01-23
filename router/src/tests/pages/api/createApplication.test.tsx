@@ -2,15 +2,19 @@ import { Closeable } from "dev-in-prod-lib/src/appServer";
 import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 import { main } from "../../../../main";
 import { prisma } from "../../../prisma";
-import { TypedClient } from "typedApi/src/typedApiClient";
+import { TypedClient } from "typed-api/src/client";
 import { initTestDb } from "../../db";
 import { setupMockSession } from "../../testLib";
+import { typedApiSchema } from "../../../../typedApiSchema";
 jest.mock("next-auth/client");
 
 describe("createApplication", () => {
   let closeable: Closeable;
 
-  const client = new TypedClient(globalConfig.routerUrl + "/api/");
+  const client = new TypedClient(
+    globalConfig.routerUrl + "/api/",
+    typedApiSchema
+  );
 
   beforeAll(async () => {
     closeable = await main(globalConfig.routerPort);
