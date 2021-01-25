@@ -6,7 +6,7 @@ import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 import { CloseableContainer, Closeable } from "dev-in-prod-lib/src/appServer";
 import axios, { AxiosPromise } from "axios";
 import { TypedClient } from "typed-api/src/client";
-import { typedApiSchema } from "dev-in-prod-router/typedApiSchema";
+import { typedApiSchema } from "dev-in-prod-router/src/typedApiSchema";
 
 describe("integration", () => {
   let closeables: Closeable[];

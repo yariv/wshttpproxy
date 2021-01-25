@@ -1,8 +1,7 @@
 import * as z from "zod";
-import { AbstractApiSchemaType } from "../src/types";
 
 export const schema = {
-  testSayHi: {
+  sayHi: {
     reqSchema: z.object({
       name: z.string(),
     }),
@@ -11,7 +10,7 @@ export const schema = {
     }),
   },
 
-  testMultiply: {
+  multiply: {
     reqSchema: z.object({
       num1: z.number(),
       num2: z.number(),

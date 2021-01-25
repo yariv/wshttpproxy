@@ -2,8 +2,5 @@
   "name": "typed-api",
   "version": "1.0.0",
   "main": "index.js",
-  "license": "MIT",
-  "exports": {
-    "./": "./src"
-  }
+  "license": "MIT"
 }
