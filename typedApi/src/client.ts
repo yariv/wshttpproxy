@@ -22,8 +22,8 @@ export class TypedClient<ApiSchemaType extends AbstractApiSchemaType> {
     this.schema = schema;
   }
 
-  async post(
-    methodName: keyof ApiSchemaType,
+  async post<MethodName extends keyof ApiSchemaType>(
+    methodName: MethodName,
     reqBody: ReqSchema<ApiSchemaType, typeof methodName>
   ): Promise<ResponseType<ResSchema<ApiSchemaType, typeof methodName>>> {
     const res = await fetch(this.baseUrl + methodName, {

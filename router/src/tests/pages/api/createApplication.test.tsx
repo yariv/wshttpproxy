@@ -5,7 +5,7 @@ import { prisma } from "../../../prisma";
 import { TypedClient } from "typed-api/src/client";
 import { initTestDb } from "../../db";
 import { setupMockSession } from "../../testLib";
-import { typedApiSchema } from "../../../../typedApiSchema";
+import { typedApiSchema } from "../../../typedApiSchema";
 jest.mock("next-auth/client");
 
 describe("createApplication", () => {
