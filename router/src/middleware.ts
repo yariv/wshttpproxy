@@ -1,7 +1,8 @@
+import { NextApiRequest } from "next";
 import { getSession, Session } from "next-auth/client";
 import { HttpError } from "typed-api/src/server";
 
-export const authorize = async (req: any): Promise<Session> => {
+export const authorize = async (req: NextApiRequest): Promise<Session> => {
   if (req.method != "POST") {
     throw new HttpError({ status: 405 });
   }

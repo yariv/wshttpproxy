@@ -9,7 +9,7 @@ export type ParsedNextApiRequest<T> = NextApiRequest & {
   parsedBody: T;
 };
 
-export class HttpError extends Error {
+export class ApiHttpError extends Error {
   status: number;
 
   constructor({ message, status }: { message?: string; status?: number }) {
@@ -55,7 +55,7 @@ export const createHandler = <
       const handlerResult = await handler(validatedReq);
       res.status(200).json(handlerResult);
     } catch (error) {
-      if (error instanceof HttpError) {
+      if (error instanceof ApiHttpError) {
         res.status(error.status).json({ error: error.message });
       } else {
         res.status(500).json({ error });

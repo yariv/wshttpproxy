@@ -1,7 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 const gb = global as any;
 if (!gb.prisma) {
   gb.prisma = new PrismaClient();
 }
-export const prisma = gb.prisma;
+export const prisma: PrismaClient = gb.prisma;
