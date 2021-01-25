@@ -1,7 +1,7 @@
 import * as z from "zod";
 import { AbstractApiSchemaType, ReqSchema, ResSchema } from "./types";
 
-type BaseResponse = { response: Response };
+type BaseResponse = { response?: Response };
 
 export type ResponseType<ParsedBodyType> =
   | (BaseResponse & {
@@ -26,32 +26,45 @@ export class TypedClient<ApiSchemaType extends AbstractApiSchemaType> {
     methodName: MethodName,
     reqBody: ReqSchema<ApiSchemaType, typeof methodName>
   ): Promise<ResponseType<ResSchema<ApiSchemaType, typeof methodName>>> {
-    const res = await fetch(this.baseUrl + methodName, {
-      method: "POST",
-      body: JSON.stringify(reqBody),
-      headers: { "content-type": "application/json" },
-    });
-    const respBody = await res.json();
-    if (res.status === 200) {
-      const parseResult = this.schema[methodName].resSchema.safeParse(respBody);
-      if (parseResult.success) {
-        return {
-          response: res,
-          success: true,
-          parsedBody: parseResult.data,
-        };
-      } else {
+    try {
+      const res = await fetch(this.baseUrl + methodName, {
+        method: "POST",
+        body: JSON.stringify(reqBody),
+        headers: { "content-type": "application/json" },
+      });
+      const respBody = await res.text();
+      console.log(this.baseUrl + methodName);
+      console.log(respBody);
+      const respJson = JSON.parse(respBody);
+      if (res.status === 200) {
+        const parseResult = this.schema[methodName].resSchema.safeParse(
+          respJson
+        );
+        if (parseResult.success) {
+          return {
+            response: res,
+            success: true,
+            parsedBody: parseResult.data,
+          };
+        }
         return {
           response: res,
           success: false,
           error: parseResult.error,
         };
+      } else {
+        return {
+          response: res,
+          error: respJson.error,
+          success: false,
+        };
       }
+    } catch (e) {
+      console.error(e);
+      return {
+        success: false,
+        error: e,
+      };
     }
-    return {
-      response: res,
-      error: respBody.error,
-      success: false,
-    };
   }
 }
