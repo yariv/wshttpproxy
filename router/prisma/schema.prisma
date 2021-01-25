@@ -87,12 +87,13 @@ model Route {
   id String @default(cuid()) @id
   createdAt DateTime @default(now()) @map(name: "created_at")
   updatedAt DateTime @updatedAt @map(name: "updated_at")
-  shortId String
+  key String
   ownerId Int
   owner User @relation(fields: [ownerId], references: [id])
   applicationId String 
   application Application @relation(fields:[applicationId], references: [id])
 
+  @@unique([applicationId, key])
   @@map(name: "route")
 }
 

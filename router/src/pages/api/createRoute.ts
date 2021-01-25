@@ -2,6 +2,7 @@ import { authorize } from "src/middleware";
 import { prisma } from "src/prisma";
 import { typedApiSchema } from "src/typedApiSchema";
 import { createHandler, ApiHttpError } from "typed-api/src/server";
+import ShortUniqueId from "short-unique-id";
 
 export default createHandler(typedApiSchema, "createRoute", async (req) => {
   const session = await authorize(req);
@@ -15,8 +16,24 @@ export default createHandler(typedApiSchema, "createRoute", async (req) => {
       status: 400,
     });
   }
+  const routeKey = new ShortUniqueId().toString();
   const route = await prisma.route.create({
-    data: { shortId: null, owner: null, application: null },
+    data: {
+      key: routeKey,
+      owner: {
+        connect: {
+          id: 1,
+        },
+      },
+      application: {
+        connect: {
+          id: application.id,
+        },
+      },
+    },
   });
-  application?.createdAt;
+
+  return {
+    key: routeKey,
+  };
 });
