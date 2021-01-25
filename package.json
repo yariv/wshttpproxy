@@ -7,5 +7,6 @@
     "sidecar",
     "localProxy",
     "typedApi"
-  ]
+  ],
+  "dependencies": {}
 }

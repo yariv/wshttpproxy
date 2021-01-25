@@ -34,9 +34,11 @@ export class TypedClient<ApiSchemaType extends AbstractApiSchemaType> {
       });
       const respBody = await res.text();
       const respJson = JSON.parse(respBody);
-      const parseResult = this.schema[methodName].resSchema.safeParse(respJson);
-      if (parseResult.success) {
-        if (res.status === 200) {
+      if (res.status === 200) {
+        const parseResult = this.schema[methodName].resSchema.safeParse(
+          respJson
+        );
+        if (parseResult.success) {
           // The server returned a successful response
           return {
             response: res,
@@ -44,13 +46,6 @@ export class TypedClient<ApiSchemaType extends AbstractApiSchemaType> {
             parsedBody: parseResult.data,
           };
         }
-        // The server returned an error response.
-        return {
-          response: res,
-          success: false,
-          error: parseResult.data,
-        };
-      } else {
         // The result from the server failed to pass the schema check
         return {
           response: res,
@@ -58,6 +53,13 @@ export class TypedClient<ApiSchemaType extends AbstractApiSchemaType> {
           error: parseResult.error,
         };
       }
+
+      // The server returned an error response.
+      return {
+        response: res,
+        success: false,
+        error: respJson.error,
+      };
     } catch (e) {
       // An error occurred in sending the request or processing the response.
       return {
