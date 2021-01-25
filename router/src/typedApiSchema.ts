@@ -9,4 +9,12 @@ export const typedApiSchema = {
       secret: z.string(),
     }),
   },
+  createRoute: {
+    reqSchema: z.object({
+      applicationSecret: z.string(),
+    }),
+    resSchema: z.object({
+      routeKey: z.string(),
+    }),
+  },
 };

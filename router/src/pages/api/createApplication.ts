@@ -1,6 +1,6 @@
-import { getSession } from "next-auth/client";
-import { HttpError, createHandler } from "typed-api/src/server";
-import { typedApiSchema } from "../../../typedApiSchema";
+import { authorize } from "src/middleware";
+import { typedApiSchema } from "src/typedApiSchema";
+import { createHandler, HttpError } from "typed-api/src/server";
 import { prisma } from "../../prisma";
 import { genNewToken } from "../../utils";
 
@@ -8,14 +8,7 @@ export default createHandler(
   typedApiSchema,
   "createApplication",
   async (req) => {
-    if (req.method != "POST") {
-      throw new HttpError({ status: 405 });
-    }
-
-    const session = await getSession({ req });
-    if (!session) {
-      throw new HttpError({ message: "Not logged in", status: 401 });
-    }
+    const session = await authorize(req);
 
     const ownerId = (session.user as any).id;
     const application = await prisma.application.findUnique({

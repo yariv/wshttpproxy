@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { AbstractApiSchemaType, ReqSchema, ResSchema } from "./types";
-import * as z from "zod";
 
 export type ErrorResponse = {
   error: any;
@@ -19,9 +18,12 @@ export class HttpError extends Error {
   }
 }
 
-export const createHandler = <ApiSchemaType extends AbstractApiSchemaType>(
+export const createHandler = <
+  ApiSchemaType extends AbstractApiSchemaType,
+  MethodType extends keyof ApiSchemaType
+>(
   schema: ApiSchemaType,
-  methodName: keyof ApiSchemaType,
+  methodName: MethodType,
   handler: (
     req: ParsedNextApiRequest<ReqSchema<ApiSchemaType, typeof methodName>>
   ) => Promise<ResSchema<ApiSchemaType, typeof methodName>>
