@@ -7,20 +7,21 @@ import path from "path";
 describe("typedApi", () => {
   const port = 4829;
   let closeable: Closeable;
-  let client: TypedClient<typeof schema>;
 
   beforeAll(async () => {
     closeable = await start(port, path.resolve(__dirname, "../../"), next);
-    client = new TypedClient("http://localhost:" + port, schema);
   });
 
   afterAll(async () => {
     await closeable.close();
   });
 
+  const getClient = (): TypedClient<typeof schema> => {
+    return new TypedClient("http://localhost:" + port + "/api/", schema);
+  };
+
   test("sayHi", async () => {
-    debugger;
-    const res1 = await client.post("sayHi", { name: "Eve" });
+    const res1 = await getClient().post("sayHi", { name: "Eve" });
     if (res1.success) {
       expect(res1.parsedBody.salute).toBe("Hi Eve");
     } else {
@@ -28,12 +29,22 @@ describe("typedApi", () => {
     }
   });
 
-  test("multiply", async () => {
-    const res1 = await client.post("multiply", { num1: 5, num2: 7 });
+  test("divide works", async () => {
+    const res1 = await getClient().post("divide", { num1: 15, num2: 5 });
     if (res1.success) {
-      expect(res1.parsedBody.result).toBe(35);
+      expect(res1.parsedBody.result).toBe(3);
     } else {
       fail("Unexpected error");
+    }
+  });
+
+  test("divide error", async () => {
+    const res1 = await getClient().post("divide", { num1: 15, num2: 0 });
+    if (res1.success) {
+      fail("expected error");
+    } else {
+      expect(res1.error).toBe("Can't divide by 0");
+      expect(res1.response.status).toBe(400);
     }
   });
 });

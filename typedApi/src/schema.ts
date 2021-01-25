@@ -10,7 +10,7 @@ export const schema = {
     }),
   },
 
-  multiply: {
+  divide: {
     reqSchema: z.object({
       num1: z.number(),
       num2: z.number(),
