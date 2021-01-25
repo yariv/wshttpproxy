@@ -33,34 +33,33 @@ export class TypedClient<ApiSchemaType extends AbstractApiSchemaType> {
         headers: { "content-type": "application/json" },
       });
       const respBody = await res.text();
-      console.log(this.baseUrl + methodName);
-      console.log(respBody);
       const respJson = JSON.parse(respBody);
-      if (res.status === 200) {
-        const parseResult = this.schema[methodName].resSchema.safeParse(
-          respJson
-        );
-        if (parseResult.success) {
+      const parseResult = this.schema[methodName].resSchema.safeParse(respJson);
+      if (parseResult.success) {
+        if (res.status === 200) {
+          // The server returned a successful response
           return {
             response: res,
             success: true,
             parsedBody: parseResult.data,
           };
         }
+        // The server returned an error response.
+        return {
+          response: res,
+          success: false,
+          error: parseResult.data,
+        };
+      } else {
+        // The result from the server failed to pass the schema check
         return {
           response: res,
           success: false,
           error: parseResult.error,
         };
-      } else {
-        return {
-          response: res,
-          error: respJson.error,
-          success: false,
-        };
       }
     } catch (e) {
-      console.error(e);
+      // An error occurred in sending the request or processing the response.
       return {
         success: false,
         error: e,
