@@ -4,7 +4,6 @@ import { ApiHttpError } from "../../typedApi/types";
 import { prisma } from "../../prisma";
 import { genNewToken } from "../../utils";
 import { createNextHandler } from "../../typedApi/nextServer";
-import { NextApiRequest } from "next";
 
 export default createNextHandler(
   typedApiSchema,

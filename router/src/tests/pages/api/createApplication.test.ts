@@ -65,7 +65,6 @@ describe("createApplication", () => {
   });
 
   it("requires session", async () => {
-    debugger;
     const res = await client.post("createApplication", { name: "foo" });
     if (res.success) {
       fail();
