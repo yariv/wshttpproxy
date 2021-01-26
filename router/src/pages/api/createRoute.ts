@@ -1,7 +1,7 @@
-import { authorize } from "src/middleware";
-import { prisma } from "src/prisma";
-import { typedApiSchema } from "src/typedApiSchema";
-import { createHandler, ApiHttpError } from "typed-api/src/server";
+import { authorize } from "../../middleware";
+import { prisma } from "../../prisma";
+import { typedApiSchema } from "../../typedApiSchema";
+import { createHandler, ApiHttpError } from "../../typedApi/server";
 import ShortUniqueId from "short-unique-id";
 
 export default createHandler(typedApiSchema, "createRoute", async (req) => {
@@ -34,6 +34,6 @@ export default createHandler(typedApiSchema, "createRoute", async (req) => {
   });
 
   return {
-    key: routeKey,
+    routeKey,
   };
 });

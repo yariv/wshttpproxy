@@ -51,10 +51,10 @@
     "ts-jest": "^26.4.4",
     "ts-node": "^9.0.0",
     "ts-node-dev": "^1.0.0",
-    "typed-api": "1.0.0",
     "typeorm": "^0.2.29",
     "ws": "^7.4.1",
-    "zod": "^1.11.11"
+    "zod": "^1.11.11",
+    "typed-api": "1.0.0"
   },
   "devDependencies": {
     "@prisma/cli": "^2.15.0",

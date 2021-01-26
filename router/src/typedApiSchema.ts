@@ -14,7 +14,7 @@ export const typedApiSchema = {
       applicationSecret: z.string(),
     }),
     resSchema: z.object({
-      key: z.string(),
+      routeKey: z.string(),
     }),
   },
 };

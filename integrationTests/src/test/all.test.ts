@@ -5,7 +5,8 @@ import { main as localProxyMain } from "dev-in-prod-local-proxy/main";
 import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 import { CloseableContainer, Closeable } from "dev-in-prod-lib/src/appServer";
 import axios, { AxiosPromise } from "axios";
-import { TypedClient } from "typed-api/src/client";
+// TODO fix import
+import { TypedClient } from "../../../typedApi/src/client";
 import { typedApiSchema } from "dev-in-prod-router/src/typedApiSchema";
 
 describe("integration", () => {

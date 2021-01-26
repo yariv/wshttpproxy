@@ -2,7 +2,7 @@ import { Closeable } from "dev-in-prod-lib/src/appServer";
 import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 import { main } from "../../../../main";
 import { prisma } from "../../../prisma";
-import { TypedClient } from "typed-api/src/client";
+import { TypedClient } from "../../../typedApi/client";
 import { initTestDb } from "../../db";
 import { setupMockSession } from "../../testLib";
 import { typedApiSchema } from "../../../typedApiSchema";
@@ -36,7 +36,7 @@ describe("createApplication", () => {
   it("works", async () => {
     await setupMockSession();
     const res = await client.post("createApplication", { name: "foo" });
-    expect(res.response.status).toBe(200);
+    expect(res.response?.status).toBe(200);
     if (res.success) {
       expect(res.parsedBody.secret).toBeDefined();
     } else {
@@ -46,7 +46,7 @@ describe("createApplication", () => {
 
   it("requires name", async () => {
     const res = await client.post("createApplication", {} as any);
-    expect(res.response.status).toBe(400);
+    expect(res.response?.status).toBe(400);
     if (res.success) {
       fail();
     } else {
@@ -65,11 +65,13 @@ describe("createApplication", () => {
   });
 
   it("requires session", async () => {
+    debugger;
     const res = await client.post("createApplication", { name: "foo" });
     if (res.success) {
       fail();
     } else {
-      expect(res.response.status).toBe(401);
+      console.error(res);
+      expect(res.response?.status).toBe(401);
       expect(res.error).toBe("Not logged in");
     }
   });
@@ -85,7 +87,7 @@ describe("createApplication", () => {
     if (res2.success) {
       fail();
     } else {
-      expect(res2.response.status).toBe(400);
+      expect(res2.response?.status).toBe(400);
       expect(res2.error).toStrictEqual(
         "An application with the same name already exists."
       );

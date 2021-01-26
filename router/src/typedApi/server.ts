@@ -52,18 +52,11 @@ export const createHandler = <
     >;
     validatedReq.parsedBody = parseResult.data;
     try {
-      debugger;
-      console.log("XXX2");
       const handlerResult = await handler(validatedReq);
-      console.log("XXX1");
       res.status(200).json(handlerResult);
     } catch (error) {
-      console.log("XXX3");
       if (error instanceof ApiHttpError) {
         res.status(error.status).json({ error: error.message });
-      } else {
-        console.error("SDFADF", error);
-        res.status(500).json({ error });
       }
     }
     res.end();

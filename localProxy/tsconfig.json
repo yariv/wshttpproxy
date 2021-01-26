@@ -66,6 +66,6 @@
     "isolatedModules": true,
     "jsx": "preserve"
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "../router/src/pages/api/createApplication.ts"],
   "exclude": ["node_modules"]
 }

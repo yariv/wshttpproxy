@@ -1,6 +1,7 @@
 import { NextApiRequest } from "next";
 import { getSession, Session } from "next-auth/client";
-import { ApiHttpError } from "typed-api/src/server";
+
+import { ApiHttpError } from "./typedApi/server";
 
 export const authorize = async (req: NextApiRequest): Promise<Session> => {
   if (req.method != "POST") {

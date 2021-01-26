@@ -1,6 +1,6 @@
-import { authorize } from "src/middleware";
-import { typedApiSchema } from "src/typedApiSchema";
-import { createHandler, ApiHttpError } from "typed-api/src/server";
+import { authorize } from "../../middleware";
+import { typedApiSchema } from "../../typedApiSchema";
+import { createHandler, ApiHttpError } from "../../typedApi/server";
 import { prisma } from "../../prisma";
 import { genNewToken } from "../../utils";
 
@@ -19,7 +19,6 @@ export default createHandler(
         },
       },
     });
-
     if (application) {
       throw new ApiHttpError({
         message: "An application with the same name already exists.",
@@ -35,6 +34,7 @@ export default createHandler(
         secret,
       },
     });
+
     return { secret };
   }
 );
