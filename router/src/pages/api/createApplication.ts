@@ -20,10 +20,10 @@ export default createHandler(
       },
     });
     if (application) {
-      throw new ApiHttpError({
-        message: "An application with the same name already exists.",
-        status: 400,
-      });
+      throw new ApiHttpError(
+        "An application with the same name already exists.",
+        400
+      );
     }
 
     const secret = genNewToken();

@@ -11,13 +11,10 @@ export default createHandler(typedApiSchema, "createRoute", async (req) => {
     where: { secret: secret },
   });
   if (!application) {
-    throw new ApiHttpError({
-      message: "Invalid application secret",
-      status: 400,
-    });
+    throw new ApiHttpError("Invalid application secret", 400);
   }
   const routeKey = new ShortUniqueId().toString();
-  const route = await prisma.route.create({
+  await prisma.route.create({
     data: {
       key: routeKey,
       owner: {
@@ -33,6 +30,7 @@ export default createHandler(typedApiSchema, "createRoute", async (req) => {
     },
   });
 
+  console.log(routeKey);
   return {
     routeKey,
   };

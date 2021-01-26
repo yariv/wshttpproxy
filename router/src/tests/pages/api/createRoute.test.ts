@@ -66,6 +66,7 @@ describe("createRoute", () => {
       });
       if (res2.success) {
         const routeKey = res2.parsedBody.routeKey;
+        console.log(routeKey);
       } else {
         fail();
       }

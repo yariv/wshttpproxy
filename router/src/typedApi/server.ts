@@ -12,7 +12,7 @@ export type ParsedNextApiRequest<T> = NextApiRequest & {
 export class ApiHttpError extends Error {
   status: number;
 
-  constructor({ message, status }: { message?: string; status?: number }) {
+  constructor(message: string, status?: number) {
     super(message);
     this.status = status || 500;
   }
@@ -57,6 +57,8 @@ export const createHandler = <
     } catch (error) {
       if (error instanceof ApiHttpError) {
         res.status(error.status).json({ error: error.message });
+      } else {
+        res.status(500).json({ error });
       }
     }
     res.end();
