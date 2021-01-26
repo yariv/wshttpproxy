@@ -21,7 +21,6 @@ export const callHandler = async <
   ) => Promise<ResSchema<ApiSchemaType, typeof methodName>>
 ): Promise<HandlerResult<ResSchema<ApiSchemaType, typeof methodName>>> => {
   const schemaType = schema[methodName].reqSchema;
-  console.log("XXXXXX");
   const parseResult = schemaType.safeParse(reqBody);
   if (!parseResult.success) {
     return {
@@ -48,4 +47,27 @@ export const callHandler = async <
       status: 500,
     };
   }
+};
+
+export const wrapHandler = <
+  ApiSchemaType extends AbstractApiSchemaType,
+  MethodType extends keyof ApiSchemaType,
+  ReqType
+>(
+  schema: ApiSchemaType,
+  methodName: MethodType,
+  handler: (
+    params: ReqSchema<ApiSchemaType, typeof methodName>,
+    req: ReqType
+  ) => Promise<ResSchema<ApiSchemaType, typeof methodName>>
+): ((
+  body: ReqSchema<ApiSchemaType, typeof methodName>,
+  req: ReqType
+) => Promise<HandlerResult<ResSchema<ApiSchemaType, typeof methodName>>>) => {
+  return (
+    reqBody: ReqSchema<ApiSchemaType, typeof methodName>,
+    req: ReqType
+  ): Promise<HandlerResult<ResSchema<ApiSchemaType, typeof methodName>>> => {
+    return callHandler(schema, methodName, reqBody, req, handler);
+  };
 };

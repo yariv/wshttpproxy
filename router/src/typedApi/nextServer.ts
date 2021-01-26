@@ -1,6 +1,10 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { callHandler } from "./server";
-import { AbstractApiSchemaType, ReqSchema, ResSchema } from "./types";
+import {
+  AbstractApiSchemaType,
+  HandlerResult,
+  ReqSchema,
+  ResSchema,
+} from "./types";
 
 export type ParsedNextApiRequest<T> = NextApiRequest & {
   parsedBody: T;
@@ -10,23 +14,19 @@ export const createNextHandler = <
   ApiSchemaType extends AbstractApiSchemaType,
   MethodType extends keyof ApiSchemaType
 >(
-  schema: ApiSchemaType,
-  methodName: MethodType,
   handler: (
-    body: ReqSchema<ApiSchemaType, typeof methodName>,
+    body: ReqSchema<ApiSchemaType, MethodType>,
     req: NextApiRequest
-  ) => Promise<ResSchema<ApiSchemaType, typeof methodName>>
+  ) => Promise<HandlerResult<ResSchema<ApiSchemaType, MethodType>>>
 ): ((
   req: NextApiRequest,
-  resp: NextApiResponse<ResSchema<ApiSchemaType, typeof methodName>>
+  resp: NextApiResponse<ResSchema<ApiSchemaType, MethodType>>
 ) => void) => {
   const wrappedHandler = async (
     req: NextApiRequest,
-    res: NextApiResponse<ResSchema<ApiSchemaType, typeof methodName>>
+    res: NextApiResponse<ResSchema<ApiSchemaType, MethodType>>
   ) => {
-    console.log(req, res);
-    debugger;
-    const resp = await callHandler(schema, methodName, req.body, req, handler);
+    const resp = await handler(req.body, req);
     if (resp.success) {
       res.status(resp.status);
       res.json(resp.body);

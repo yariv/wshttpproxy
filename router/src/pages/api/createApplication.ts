@@ -1,14 +1,16 @@
+import { IncomingMessage } from "http";
 import { authorize } from "../../middleware";
-import { typedApiSchema } from "../../typedApiSchema";
-import { ApiHttpError } from "../../typedApi/types";
 import { prisma } from "../../prisma";
-import { genNewToken } from "../../utils";
 import { createNextHandler } from "../../typedApi/nextServer";
+import { wrapHandler } from "../../typedApi/server";
+import { ApiHttpError } from "../../typedApi/types";
+import { typedApiSchema } from "../../typedApiSchema";
+import { genNewToken } from "../../utils";
 
-export default createNextHandler(
+const wrappedHandler = wrapHandler(
   typedApiSchema,
   "createApplication",
-  async (body, req) => {
+  async (body, req: IncomingMessage) => {
     const session = await authorize(req);
 
     const ownerId = (session.user as any).id;
@@ -39,3 +41,5 @@ export default createNextHandler(
     return { secret };
   }
 );
+
+export default createNextHandler(wrappedHandler);
