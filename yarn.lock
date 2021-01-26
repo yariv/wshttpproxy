@@ -552,6 +552,17 @@
     "@types/yargs" "^15.0.0"
     chalk "^4.0.0"
 
+"@koa/router@^10.0.0":
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/@koa/router/-/router-10.0.0.tgz#699115561afbd2740e2848ba299fc76b9e058ad6"
+  integrity sha512-z9ytrKWn/j/qUApMSJzZbUwkbLcN2ZXGq6UsqWkZb50Us+/Qpu0RwgZ6ytawVOhfFBZ1ai5iVWeD2Dcu0qcnJw==
+  dependencies:
+    debug "^4.1.1"
+    http-errors "^1.7.3"
+    koa-compose "^4.1.0"
+    methods "^1.1.2"
+    path-to-regexp "^6.1.0"
+
 "@next/env@10.0.5":
   version "10.0.5"
   resolved "https://registry.yarnpkg.com/@next/env/-/env-10.0.5.tgz#446e59ee7a8d05061be784b24732c369653038ab"
@@ -1046,6 +1057,13 @@
     "@types/keygrip" "*"
     "@types/koa-compose" "*"
     "@types/node" "*"
+
+"@types/koa__router@^8.0.4":
+  version "8.0.4"
+  resolved "https://registry.yarnpkg.com/@types/koa__router/-/koa__router-8.0.4.tgz#0b754a5e5be3262fc649afc7e93800f30cfc5fe0"
+  integrity sha512-SXpZy6ICU/bsTZbNhg7QMNUQuNE7ka94zeLPHXhej2QZ09u2tz5S3WlBRB85HLSUosUZFbIRgfrFtu+PSIAUVA==
+  dependencies:
+    "@types/koa" "*"
 
 "@types/mime@^1":
   version "1.3.2"

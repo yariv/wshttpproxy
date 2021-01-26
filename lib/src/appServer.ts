@@ -1,6 +1,7 @@
 import Koa from "koa";
 import util from "util";
 import { Server } from "http";
+import route from "koa-route";
 
 export interface Closeable {
   close(): Promise<void>;

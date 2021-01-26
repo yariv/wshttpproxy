@@ -4,10 +4,13 @@ import {
 } from "dev-in-prod-lib/src/appServer";
 import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 import Koa from "koa";
+import bodyParser from "koa-bodyparser";
 import route from "koa-route";
+import Router from "koa-router";
 import websockify from "koa-websocket";
 import next from "next";
 import { log } from "../../lib/src/log";
+import { router as apiRouter } from "./routes/api";
 
 export const start = async (
   port: number,
@@ -18,6 +21,10 @@ export const start = async (
 
 const initKoaApp = async (): Promise<Koa> => {
   const koa = new Koa();
+  koa.use(bodyParser());
+  koa.use(apiRouter.allowedMethods());
+  koa.use(apiRouter.routes());
+
   koa.use(async (ctx, next) => {
     if (ctx.header[globalConfig.sidecarProxyHeader]) {
       // handle proxy request

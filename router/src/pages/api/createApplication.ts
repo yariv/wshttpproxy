@@ -1,13 +1,15 @@
 import { authorize } from "../../middleware";
 import { typedApiSchema } from "../../typedApiSchema";
-import { createHandler, ApiHttpError } from "../../typedApi/server";
+import { ApiHttpError } from "../../typedApi/types";
 import { prisma } from "../../prisma";
 import { genNewToken } from "../../utils";
+import { createNextHandler } from "../../typedApi/nextServer";
+import { NextApiRequest } from "next";
 
-export default createHandler(
+export default createNextHandler(
   typedApiSchema,
   "createApplication",
-  async (req) => {
+  async (body, req) => {
     const session = await authorize(req);
 
     const ownerId = (session.user as any).id;
@@ -15,7 +17,7 @@ export default createHandler(
       where: {
         ownerId_name: {
           ownerId: ownerId,
-          name: req.parsedBody.name,
+          name: body.name,
         },
       },
     });
@@ -29,7 +31,7 @@ export default createHandler(
     const secret = genNewToken();
     await prisma.application.create({
       data: {
-        name: req.parsedBody.name,
+        name: body.name,
         owner: { connect: { id: ownerId } },
         secret,
       },

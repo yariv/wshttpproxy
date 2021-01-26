@@ -1,14 +1,13 @@
-import * as z from "zod";
 import { AbstractApiSchemaType, ReqSchema, ResSchema } from "./types";
 
-type BaseResponse = { response?: Response };
+type BaseHttpResponse = { response?: Response };
 
 export type ResponseType<ParsedBodyType> =
-  | (BaseResponse & {
+  | (BaseHttpResponse & {
       success: true;
       parsedBody: ParsedBodyType;
     })
-  | (BaseResponse & {
+  | (BaseHttpResponse & {
       success: false;
       error: any;
     });
@@ -27,12 +26,22 @@ export class TypedClient<ApiSchemaType extends AbstractApiSchemaType> {
     reqBody: ReqSchema<ApiSchemaType, typeof methodName>
   ): Promise<ResponseType<ResSchema<ApiSchemaType, typeof methodName>>> {
     try {
+      console.log("VSDF", methodName);
       const res = await fetch(this.baseUrl + methodName, {
         method: "POST",
         body: JSON.stringify(reqBody),
         headers: { "content-type": "application/json" },
       });
+      console.log("asdfasdf2", methodName, res);
       const respBody = await res.text();
+      console.log("asdfasdf", methodName, respBody);
+      if (!respBody) {
+        return {
+          response: res,
+          success: false,
+          error: "Server returned empty response",
+        };
+      }
       const respJson = JSON.parse(respBody);
       if (res.status === 200) {
         const parseResult = this.schema[methodName].resSchema.safeParse(
@@ -61,7 +70,7 @@ export class TypedClient<ApiSchemaType extends AbstractApiSchemaType> {
         error: respJson.error,
       };
     } catch (e) {
-      console.error(e);
+      console.error("FFF", e);
       // An error occurred in sending the request or processing the response.
       return {
         success: false,

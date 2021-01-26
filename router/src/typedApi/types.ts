@@ -12,3 +12,20 @@ export type ResSchema<
   SchemaType extends AbstractApiSchemaType,
   MethodName extends keyof SchemaType
 > = z.infer<SchemaType[MethodName]["resSchema"]>;
+
+export class ApiHttpError extends Error {
+  status: number;
+
+  constructor(message: string, status?: number) {
+    super(message);
+    this.status = status || 500;
+  }
+}
+
+export type HandlerResult<ParsedBodyType> =
+  | { success: true; body: ParsedBodyType; status: number }
+  | { success: false; error: any; status: number };
+
+export type HttpResponse<ParsedBodyType> = HandlerResult<ParsedBodyType> & {
+  response?: Response;
+};

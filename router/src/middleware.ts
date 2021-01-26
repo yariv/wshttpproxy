@@ -1,9 +1,8 @@
-import { NextApiRequest } from "next";
 import { getSession, Session } from "next-auth/client";
+import { IncomingMessage } from "http";
+import { ApiHttpError } from "./typedApi/types";
 
-import { ApiHttpError } from "./typedApi/server";
-
-export const authorize = async (req: NextApiRequest): Promise<Session> => {
+export const authorize = async (req: IncomingMessage): Promise<Session> => {
   if (req.method != "POST") {
     throw new ApiHttpError("Invalid method", 405);
   }

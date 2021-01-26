@@ -34,7 +34,7 @@ const options: InitOptions = {
       from: "<no-reply@example.com>",
     }),
   ],
-  adapter: Adapters.Prisma.Adapter({ prisma }),
+  //adapter: Adapters.Prisma.Adapter({ prisma }),
   callbacks: {
     session: async (session, user) => {
       // hack to add the user id to the session object
