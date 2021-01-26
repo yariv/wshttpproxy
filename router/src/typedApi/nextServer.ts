@@ -32,7 +32,7 @@ export const createNextHandler = <
       res.json(resp.body);
     } else {
       res.status(resp.status);
-      res.write(resp.error);
+      res.json({ error: resp.error });
     }
     res.end();
   };

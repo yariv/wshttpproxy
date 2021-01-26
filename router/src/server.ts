@@ -21,9 +21,9 @@ export const start = async (
 
 const initKoaApp = async (): Promise<Koa> => {
   const koa = new Koa();
-  koa.use(bodyParser());
-  koa.use(apiRouter.allowedMethods());
-  koa.use(apiRouter.routes());
+  // koa.use(bodyParser());
+  // koa.use(apiRouter.allowedMethods());
+  // koa.use(apiRouter.routes());
 
   koa.use(async (ctx, next) => {
     if (ctx.header[globalConfig.sidecarProxyHeader]) {
