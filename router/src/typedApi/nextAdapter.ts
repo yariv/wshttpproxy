@@ -27,11 +27,12 @@ export const createNextHandler = <
     res: NextApiResponse<ResSchema<ApiSchemaType, MethodType>>
   ) => {
     const resp = await handler(req.body, req);
+    debugger;
     if (resp.success) {
-      res.status(resp.status);
+      res.status(200);
       res.json(resp.body);
     } else {
-      res.status(resp.status);
+      res.status(resp.error.status || 500);
       res.json({ error: resp.error });
     }
     res.end();

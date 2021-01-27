@@ -35,6 +35,7 @@ export class TypedClient<ApiSchemaType extends AbstractApiSchemaType> {
       console.log("asdfasdf2", methodName, res);
       const respBody = await res.text();
       console.log("asdfasdf", methodName, respBody);
+      debugger;
       if (!respBody) {
         return {
           response: res,
@@ -42,8 +43,8 @@ export class TypedClient<ApiSchemaType extends AbstractApiSchemaType> {
           error: "Server returned empty response",
         };
       }
-      const respJson = JSON.parse(respBody);
       if (res.status === 200) {
+        const respJson = JSON.parse(respBody);
         const parseResult = this.schema[methodName].resSchema.safeParse(
           respJson
         );
@@ -67,7 +68,7 @@ export class TypedClient<ApiSchemaType extends AbstractApiSchemaType> {
       return {
         response: res,
         success: false,
-        error: respJson.error,
+        error: respBody,
       };
     } catch (e) {
       console.error("FFF", e);

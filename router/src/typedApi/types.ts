@@ -23,8 +23,8 @@ export class ApiHttpError extends Error {
 }
 
 export type HandlerResult<ParsedBodyType> =
-  | { success: true; body: ParsedBodyType; status: number }
-  | { success: false; error: any; status: number };
+  | { success: true; body: ParsedBodyType }
+  | { success: false; error: any };
 
 export type HttpResponse<ParsedBodyType> = HandlerResult<ParsedBodyType> & {
   response?: Response;

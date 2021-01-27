@@ -13,7 +13,7 @@ describe("createRoute", () => {
   let closeable: Closeable;
 
   const client = new TypedClient(
-    globalConfig.routerUrl + "/api/",
+    globalConfig.routerUrl + "/api2/",
     typedApiSchema
   );
 

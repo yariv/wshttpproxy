@@ -33,6 +33,7 @@
     "dotenv-cli": "^4.0.0",
     "googleapis": "^65.0.0",
     "koa": "^2.13.1",
+    "koa-body": "^4.2.0",
     "koa-bodyparser": "^4.3.0",
     "koa-mount": "^4.0.0",
     "koa-oauth-server": "^1.0.1",
