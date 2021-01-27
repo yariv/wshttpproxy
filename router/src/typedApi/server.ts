@@ -4,6 +4,8 @@ import {
   HandlerResult,
   ReqSchema,
   ResSchema,
+  HandlerHttpResult,
+  HttpHandler,
 } from "./types";
 
 export const callHandler = async <
@@ -29,15 +31,8 @@ export const callHandler = async <
     };
   }
 
-  try {
-    const handlerResult = await handler(parseResult.data, req);
-    return { success: true, body: handlerResult };
-  } catch (err) {
-    return {
-      success: false,
-      error: err,
-    };
-  }
+  const handlerResult = await handler(parseResult.data, req);
+  return { success: true, body: handlerResult };
 };
 
 export const wrapHandler = <
@@ -60,5 +55,36 @@ export const wrapHandler = <
     req: ReqType
   ): Promise<HandlerResult<ResSchema<ApiSchemaType, typeof methodName>>> => {
     return callHandler(schema, methodName, reqBody, req, handler);
+  };
+};
+
+export const createHttpHandler = <
+  ApiSchemaType extends AbstractApiSchemaType,
+  MethodType extends keyof ApiSchemaType,
+  ReqType
+>(
+  schema: ApiSchemaType,
+  methodName: MethodType,
+  handler: (
+    params: ReqSchema<ApiSchemaType, typeof methodName>,
+    req: ReqType
+  ) => Promise<ResSchema<ApiSchemaType, typeof methodName>>
+): HttpHandler<ApiSchemaType, typeof methodName, ReqType> => {
+  return async (
+    reqBody: ReqSchema<ApiSchemaType, typeof methodName>,
+    req: ReqType
+  ): Promise<HandlerHttpResult> => {
+    try {
+      const resp = await callHandler(schema, methodName, reqBody, req, handler);
+      if (resp.success) {
+        return { status: 200, body: resp.body };
+      }
+      return { status: 400, body: resp.error };
+    } catch (err) {
+      if (!err.status) {
+        console.error("Unexpected error", err);
+      }
+      return { status: err.status || 500, body: { error: err.message } };
+    }
   };
 };
