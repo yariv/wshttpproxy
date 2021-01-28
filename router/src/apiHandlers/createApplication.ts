@@ -1,10 +1,10 @@
+import { IncomingMessage } from "http";
 import { authorize } from "../middleware";
 import { prisma } from "../prisma";
-import { wrapHandler, createHttpHandler } from "../typedApi/server";
+import { createHttpHandler } from "../typedApi/server";
 import { ApiHttpError } from "../typedApi/types";
 import { typedApiSchema } from "../typedApiSchema";
 import { genNewToken } from "../utils";
-import { IncomingMessage } from "http";
 
 export const createApplicationHandler = createHttpHandler(
   typedApiSchema,

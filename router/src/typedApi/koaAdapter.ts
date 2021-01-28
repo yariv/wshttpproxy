@@ -14,6 +14,7 @@ export const createKoaRoute = <
   // TODO remove hardcoded prefix
   router.post(("/api2/" + methodName) as string, bodyParser(), async (ctx) => {
     const resp = await handler(ctx.request.body, ctx.req);
+    debugger;
     ctx.status = resp.status;
     ctx.body = JSON.stringify(resp.body);
   });

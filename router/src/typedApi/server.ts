@@ -8,6 +8,15 @@ import {
   HttpHandler,
 } from "./types";
 
+export type HandlerType<
+  ApiSchemaType extends AbstractApiSchemaType,
+  MethodType extends keyof ApiSchemaType,
+  ReqType
+> = (
+  params: ReqSchema<ApiSchemaType, MethodType>,
+  req: ReqType
+) => Promise<ResSchema<ApiSchemaType, MethodType>>;
+
 export const callHandler = async <
   ApiSchemaType extends AbstractApiSchemaType,
   MethodType extends keyof ApiSchemaType,
@@ -16,11 +25,8 @@ export const callHandler = async <
   schema: ApiSchemaType,
   methodName: MethodType,
   reqBody: any,
-  req: any,
-  handler: (
-    params: ReqSchema<ApiSchemaType, typeof methodName>,
-    req: ReqType
-  ) => Promise<ResSchema<ApiSchemaType, typeof methodName>>
+  req: ReqType,
+  handler: HandlerType<ApiSchemaType, MethodType, ReqType>
 ): Promise<HandlerResult<ResSchema<ApiSchemaType, typeof methodName>>> => {
   const schemaType = schema[methodName].reqSchema;
   const parseResult = schemaType.safeParse(reqBody);
@@ -35,29 +41,6 @@ export const callHandler = async <
   return { success: true, body: handlerResult };
 };
 
-export const wrapHandler = <
-  ApiSchemaType extends AbstractApiSchemaType,
-  MethodType extends keyof ApiSchemaType,
-  ReqType
->(
-  schema: ApiSchemaType,
-  methodName: MethodType,
-  handler: (
-    params: ReqSchema<ApiSchemaType, typeof methodName>,
-    req: ReqType
-  ) => Promise<ResSchema<ApiSchemaType, typeof methodName>>
-): ((
-  body: ReqSchema<ApiSchemaType, typeof methodName>,
-  req: ReqType
-) => Promise<HandlerResult<ResSchema<ApiSchemaType, typeof methodName>>>) => {
-  return (
-    reqBody: ReqSchema<ApiSchemaType, typeof methodName>,
-    req: ReqType
-  ): Promise<HandlerResult<ResSchema<ApiSchemaType, typeof methodName>>> => {
-    return callHandler(schema, methodName, reqBody, req, handler);
-  };
-};
-
 export const createHttpHandler = <
   ApiSchemaType extends AbstractApiSchemaType,
   MethodType extends keyof ApiSchemaType,
@@ -65,10 +48,7 @@ export const createHttpHandler = <
 >(
   schema: ApiSchemaType,
   methodName: MethodType,
-  handler: (
-    params: ReqSchema<ApiSchemaType, typeof methodName>,
-    req: ReqType
-  ) => Promise<ResSchema<ApiSchemaType, typeof methodName>>
+  handler: HandlerType<ApiSchemaType, typeof methodName, ReqType>
 ): HttpHandler<ApiSchemaType, typeof methodName, ReqType> => {
   return async (
     reqBody: ReqSchema<ApiSchemaType, typeof methodName>,
@@ -81,7 +61,7 @@ export const createHttpHandler = <
       }
       return { status: 400, body: resp.error };
     } catch (err) {
-      if (!err.status) {
+      if (!err.status || err.status === 500) {
         console.error("Unexpected error", err);
       }
       return { status: err.status || 500, body: { error: err.message } };

@@ -3,7 +3,7 @@ import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 import { main } from "../../../../main";
 import { prisma } from "../../../prisma";
 // TODO fix import
-import { TypedClient } from "../../../typedApi/client";
+import { TypedClient } from "../../../typedApi/httpClient";
 import { initTestDb } from "../../db";
 import { setupMockSession } from "../../testLib";
 import { typedApiSchema } from "../../../typedApiSchema";

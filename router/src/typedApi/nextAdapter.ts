@@ -10,7 +10,7 @@ export const createNextHandler = <
   req: NextApiRequest,
   resp: NextApiResponse<ResSchema<ApiSchemaType, MethodType>>
 ) => void) => {
-  const wrappedHandler = async (
+  return async (
     req: NextApiRequest,
     res: NextApiResponse<ResSchema<ApiSchemaType, MethodType>>
   ) => {
@@ -18,5 +18,4 @@ export const createNextHandler = <
     res.status(resp.status);
     res.json(resp.body);
   };
-  return wrappedHandler;
 };

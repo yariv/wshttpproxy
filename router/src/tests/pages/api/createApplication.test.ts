@@ -2,7 +2,7 @@ import { Closeable } from "dev-in-prod-lib/src/appServer";
 import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 import { main } from "../../../../main";
 import { prisma } from "../../../prisma";
-import { TypedClient } from "../../../typedApi/client";
+import { TypedClient } from "../../../typedApi/httpClient";
 import { initTestDb } from "../../db";
 import { setupMockSession } from "../../testLib";
 import { typedApiSchema } from "../../../typedApiSchema";
@@ -38,7 +38,7 @@ describe("createApplication", () => {
     const res = await client.post("createApplication", { name: "foo" });
     expect(res.response?.status).toBe(200);
     if (res.success) {
-      expect(res.parsedBody.secret).toBeDefined();
+      expect(res.body.secret).toBeDefined();
     } else {
       fail();
     }
@@ -69,7 +69,6 @@ describe("createApplication", () => {
     if (res.success) {
       fail();
     } else {
-      console.error(res);
       expect(res.response?.status).toBe(401);
       expect(res.error).toBe("Not logged in");
     }
