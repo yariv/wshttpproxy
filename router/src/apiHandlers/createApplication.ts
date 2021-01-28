@@ -1,12 +1,12 @@
 import { IncomingMessage } from "http";
 import { authorize } from "../middleware";
 import { prisma } from "../prisma";
-import { createHttpHandler } from "../typedApi/httpApi";
+import { typedServerFunc } from "../typedApi/baseApi";
 import { ApiHttpError } from "../typedApi/types";
 import { typedApiSchema } from "../typedApiSchema";
 import { genNewToken } from "../utils";
 
-export const createApplicationHandler = createHttpHandler(
+export const createApplicationHandler = typedServerFunc(
   typedApiSchema,
   "createApplication",
   async (body, req: IncomingMessage) => {

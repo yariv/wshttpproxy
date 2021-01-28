@@ -13,5 +13,7 @@
     "koa": "^2.13.1",
     "koa-better-http-proxy": "^0.2.5"
   },
-  "dependencies": {}
+  "dependencies": {
+    "dotenv": "^8.2.0"
+  }
 }

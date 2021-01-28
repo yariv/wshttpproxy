@@ -21,3 +21,8 @@ export const globalConfig = {
   devInProdHeader: "dev-in-prod-enabled",
   sidecarProxyHeader: "dev-in-prod-sidecar",
 };
+
+export const getApiUrl = (baseUrl: string): string => {
+  // TODO revise
+  return baseUrl + "/api2/";
+};

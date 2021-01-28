@@ -6,7 +6,7 @@ import { Closeable, listenOnPort } from "dev-in-prod-lib/src/appServer";
 
 import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 
-export const start = async (
+export const startSidecar = async (
   port: number,
   appSecret: string
 ): Promise<Closeable> => {

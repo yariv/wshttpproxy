@@ -2,11 +2,11 @@ import { IncomingMessage } from "http";
 import ShortUniqueId from "short-unique-id";
 import { authorize } from "../middleware";
 import { prisma } from "../prisma";
-import { createHttpHandler } from "../typedApi/httpApi";
+import { typedServerFunc } from "../typedApi/baseApi";
 import { ApiHttpError } from "../typedApi/types";
 import { typedApiSchema } from "../typedApiSchema";
 
-export const createRouteHandler = createHttpHandler(
+export const createRouteHandler = typedServerFunc(
   typedApiSchema,
   "createRoute",
   async (body, req: IncomingMessage) => {

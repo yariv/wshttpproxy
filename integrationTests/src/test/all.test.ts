@@ -1,13 +1,18 @@
 import { main as exampleMain } from "dev-in-prod-example/main";
-import { main as sidecarMain } from "dev-in-prod-sidecar/main";
+import { startSidecar } from "dev-in-prod-sidecar/src/server";
 import { main as routerMain } from "dev-in-prod-router/main";
 import { main as localProxyMain } from "dev-in-prod-local-proxy/main";
-import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
-import { CloseableContainer, Closeable } from "dev-in-prod-lib/src/appServer";
+import { getApiUrl, globalConfig } from "dev-in-prod-lib/src/globalConfig";
+import {
+  CloseableContainer,
+  Closeable,
+  start,
+} from "dev-in-prod-lib/src/appServer";
 import axios, { AxiosPromise } from "axios";
 // TODO fix import
-import { TypedClient } from "../../../typedApi/src/client";
+import { TypedHttpClient } from "../../../router/src/typedApi/httpApi";
 import { typedApiSchema } from "dev-in-prod-router/src/typedApiSchema";
+import { router } from "dev-in-prod-router/src/routes/api";
 
 describe("integration", () => {
   let closeables: Closeable[];
@@ -50,7 +55,7 @@ describe("integration", () => {
 
   it("sidecar works", async () => {
     // sidecar should return 500 if the prod service is offline
-    deferClose(await sidecarMain(globalConfig.sidecarPort, "secret"));
+    deferClose(await startSidecar(globalConfig.sidecarPort, "secret"));
     await expectHttpError(axios(globalConfig.sidecarUrl), 500);
 
     deferClose(exampleMain(globalConfig.exampleProdPort));
@@ -64,24 +69,25 @@ describe("integration", () => {
   it("routing works", async () => {
     deferClose(await routerMain(globalConfig.routerPort));
 
-    const res = await new TypedClient(
-      globalConfig.routerUrl,
+    const routerClient = new TypedHttpClient(
+      getApiUrl(globalConfig.routerUrl),
       typedApiSchema
-    ).post("createApplication", {
+    );
+    const res = await routerClient.post("createApplication", {
       name: "foo",
     });
-    let secret: string;
-    if (res.success) {
-      secret = res.parsedBody.secret;
-    } else {
-      fail();
-    }
+    const secret = res.secret;
 
-    deferClose(await sidecarMain(globalConfig.sidecarPort, secret));
+    deferClose(await startSidecar(globalConfig.sidecarPort, secret));
+
+    const res2 = await routerClient.post("createRoute", {
+      applicationSecret: secret,
+    });
+    const routeKey = res2.routeKey;
 
     const sendDevRequest = (): AxiosPromise => {
       return axios(globalConfig.sidecarUrl, {
-        headers: { [globalConfig.devInProdHeader]: secret },
+        headers: { [globalConfig.devInProdHeader]: routeKey },
       });
     };
     // send a dev request, verify it fails because the router hasn't been started
@@ -96,7 +102,7 @@ describe("integration", () => {
     const mainPromises: Promise<any>[] = [];
     exampleMain(globalConfig.exampleDevPort);
     exampleMain(globalConfig.exampleProdPort);
-    sidecarMain(globalConfig.sidecarPort, "secret");
+    startSidecar(globalConfig.sidecarPort, "secret");
     mainPromises.push(routerMain(globalConfig.routerPort));
     mainPromises.push(localProxyMain(globalConfig.localProxyPort));
 
