@@ -16,6 +16,6 @@ export const createKoaRoute = <
   router.post(("/api2/" + methodName) as string, bodyParser(), async (ctx) => {
     const resp = await handler(ctx.request.body, ctx.req);
     ctx.status = resp.status;
-    ctx.body = JSON.stringify(resp.body);
+    ctx.body = resp.body;
   });
 };

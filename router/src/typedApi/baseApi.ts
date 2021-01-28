@@ -1,3 +1,4 @@
+import { parse } from "dotenv/types";
 import {
   AbstractApiSchemaType,
   HandlerResult,
@@ -5,35 +6,24 @@ import {
   ResSchema,
 } from "./types";
 
-export const typedFunc = <
+export const typedClientFunc = <
   ApiSchemaType extends AbstractApiSchemaType,
   MethodName extends keyof ApiSchemaType
 >(
   schema: ApiSchemaType,
   methodName: MethodName,
-  untypedFunc: (req: any) => Promise<ResSchema<ApiSchemaType, MethodName>>
+  untypedClientFunc: (req: any) => Promise<ResSchema<ApiSchemaType, MethodName>>
 ): ((
   reqBody: ReqSchema<ApiSchemaType, MethodName>
 ) => Promise<ResSchema<ApiSchemaType, MethodName>>) => {
   return async (reqBody: ReqSchema<ApiSchemaType, MethodName>) => {
-    const respBody = await untypedFunc(reqBody);
-    const parseResult = schema[methodName].res.safeParse(respBody);
-    if (parseResult.success) {
-      // The server returned a successful response
-      return {
-        success: true,
-        body: parseResult.data,
-      };
-    }
-    // The result from the server failed to pass the schema check
-    return {
-      success: false,
-      error: parseResult.error,
-    };
+    const respBody = await untypedClientFunc(reqBody);
+    const parseResult = schema[methodName].res.parse(respBody);
+    return parseResult;
   };
 };
 
-export type HandlerType<
+export type TypedServerFunc<
   ApiSchemaType extends AbstractApiSchemaType,
   MethodType extends keyof ApiSchemaType,
   ReqType
@@ -42,7 +32,7 @@ export type HandlerType<
   req: ReqType
 ) => Promise<ResSchema<ApiSchemaType, MethodType>>;
 
-export const callHandler = async <
+export const callTypedServerFunc = async <
   ApiSchemaType extends AbstractApiSchemaType,
   MethodType extends keyof ApiSchemaType,
   ReqType
@@ -51,7 +41,7 @@ export const callHandler = async <
   methodName: MethodType,
   reqBody: any,
   req: ReqType,
-  handler: HandlerType<ApiSchemaType, MethodType, ReqType>
+  handler: TypedServerFunc<ApiSchemaType, MethodType, ReqType>
 ): Promise<HandlerResult<ResSchema<ApiSchemaType, typeof methodName>>> => {
   const reqSchemaType = schema[methodName]["req"];
   const parseResult = reqSchemaType.safeParse(reqBody);

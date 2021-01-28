@@ -63,6 +63,7 @@ describe("createRoute", () => {
       name: "foo",
     });
 
+    debugger;
     const secret = res.secret;
     const res2 = await client.post("createRoute", {
       applicationSecret: secret,

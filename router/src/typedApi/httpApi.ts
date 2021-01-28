@@ -1,4 +1,8 @@
-import { callHandler, HandlerType, typedFunc } from "./baseApi";
+import {
+  callTypedServerFunc,
+  TypedServerFunc,
+  typedClientFunc,
+} from "./baseApi";
 import {
   AbstractApiSchemaType,
   ReqSchema,
@@ -37,7 +41,7 @@ export class TypedHttpClient<ApiSchemaType extends AbstractApiSchemaType> {
     methodName: MethodName,
     reqBody: ReqSchema<ApiSchemaType, typeof methodName>
   ): Promise<ResSchema<ApiSchemaType, typeof methodName>> {
-    return typedFunc(this.schema, methodName, async (reqBody) => {
+    return typedClientFunc(this.schema, methodName, async (reqBody) => {
       const res = await fetch(this.baseUrl + methodName, {
         method: "POST",
         body: JSON.stringify(reqBody),
@@ -60,16 +64,22 @@ export const createHttpHandler = <
 >(
   schema: ApiSchemaType,
   methodName: MethodType,
-  handler: HandlerType<ApiSchemaType, typeof methodName, ReqType>
+  handler: TypedServerFunc<ApiSchemaType, typeof methodName, ReqType>
 ): HttpHandler<ApiSchemaType, typeof methodName, ReqType> => {
   return async (
     reqBody: ReqSchema<ApiSchemaType, typeof methodName>,
     req: ReqType
   ): Promise<HandlerHttpResult> => {
     try {
-      const resp = await callHandler(schema, methodName, reqBody, req, handler);
+      const resp = await callTypedServerFunc(
+        schema,
+        methodName,
+        reqBody,
+        req,
+        handler
+      );
       if (resp.success) {
-        return { status: 200, body: resp.body };
+        return { status: 200, body: JSON.stringify(resp.body) };
       }
       return { status: 400, body: resp.error };
     } catch (err) {
