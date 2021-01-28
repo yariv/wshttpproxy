@@ -1,12 +1,40 @@
 import {
   AbstractApiSchemaType,
-  ApiHttpError,
   HandlerResult,
   ReqSchema,
   ResSchema,
-  HandlerHttpResult,
-  HttpHandler,
 } from "./types";
+
+export const typedCall = <
+  ApiSchemaType extends AbstractApiSchemaType,
+  MethodName extends keyof ApiSchemaType,
+  RespType
+>(
+  schema: ApiSchemaType,
+  methodName: MethodName,
+  untypedCall: (req: any) => Promise<[resp: RespType, respBody: any]>
+): ((
+  reqBody: ReqSchema<ApiSchemaType, MethodName>
+) => Promise<ResSchema<ApiSchemaType, MethodName>>) => {
+  return async (reqBody: ReqSchema<ApiSchemaType, MethodName>) => {
+    const [resp, respBody] = await untypedCall(reqBody);
+    const parseResult = schema[methodName].res.safeParse(respBody);
+    if (parseResult.success) {
+      // The server returned a successful response
+      return {
+        response: resp,
+        success: true,
+        body: parseResult.data,
+      };
+    }
+    // The result from the server failed to pass the schema check
+    return {
+      response: resp,
+      success: false,
+      error: parseResult.error,
+    };
+  };
+};
 
 export type HandlerType<
   ApiSchemaType extends AbstractApiSchemaType,
@@ -39,32 +67,4 @@ export const callHandler = async <
 
   const handlerResult = await handler(parseResult.data, req);
   return { success: true, body: handlerResult };
-};
-
-export const createHttpHandler = <
-  ApiSchemaType extends AbstractApiSchemaType,
-  MethodType extends keyof ApiSchemaType,
-  ReqType
->(
-  schema: ApiSchemaType,
-  methodName: MethodType,
-  handler: HandlerType<ApiSchemaType, typeof methodName, ReqType>
-): HttpHandler<ApiSchemaType, typeof methodName, ReqType> => {
-  return async (
-    reqBody: ReqSchema<ApiSchemaType, typeof methodName>,
-    req: ReqType
-  ): Promise<HandlerHttpResult> => {
-    try {
-      const resp = await callHandler(schema, methodName, reqBody, req, handler);
-      if (resp.success) {
-        return { status: 200, body: resp.body };
-      }
-      return { status: 400, body: resp.error };
-    } catch (err) {
-      if (!err.status || err.status === 500) {
-        console.error("Unexpected error", err);
-      }
-      return { status: err.status || 500, body: err.message };
-    }
-  };
 };

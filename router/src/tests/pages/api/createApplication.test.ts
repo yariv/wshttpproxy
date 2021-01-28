@@ -2,7 +2,7 @@ import { Closeable } from "dev-in-prod-lib/src/appServer";
 import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 import { main } from "../../../../main";
 import { prisma } from "../../../prisma";
-import { TypedHttpClient } from "../../../typedApi/httpClient";
+import { TypedHttpClient } from "../../../typedApi/httpApi";
 import { initTestDb } from "../../db";
 import { setupMockSession } from "../../testLib";
 import { typedApiSchema } from "../../../typedApiSchema";

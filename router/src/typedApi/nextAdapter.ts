@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { AbstractApiSchemaType, HttpHandler, ResSchema } from "./types";
+import { HttpHandler } from "./httpApi";
+import { AbstractApiSchemaType, ResSchema } from "./types";
 
 export const createNextHandler = <
   ApiSchemaType extends AbstractApiSchemaType,

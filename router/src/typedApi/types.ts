@@ -22,23 +22,19 @@ export class ApiHttpError extends Error {
     this.status = status || 500;
   }
 }
-export type HttpHandler<
-  ApiSchemaType extends AbstractApiSchemaType,
-  MethodType extends keyof ApiSchemaType,
-  ReqType
-> = (
-  body: ReqSchema<ApiSchemaType, MethodType>,
-  req: ReqType
-) => Promise<HandlerHttpResult>;
+
 export type HandlerResult<ParsedBodyType> =
   | { success: true; body: ParsedBodyType }
   | { success: false; error: ZodError };
 
-export type HandlerHttpResult = {
-  status: number;
-  body: any;
-};
-
-export type HttpResponse<ParsedBodyType> = HandlerResult<ParsedBodyType> & {
-  response?: Response;
-};
+export type ClientResponseType<ResType, ResponseBodyType> =
+  | {
+      success: true;
+      response: ResType;
+      body: ResponseBodyType;
+    }
+  | {
+      success: false;
+      response: ResType;
+      error: any;
+    };
