@@ -44,17 +44,8 @@ describe("createApplication", () => {
       const res = await client.post("createApplication", {} as any);
       fail();
     } catch (err) {
-      expect(err.message).toStrictEqual({
-        errors: [
-          {
-            code: "invalid_type",
-            expected: "string",
-            received: "undefined",
-            path: ["name"],
-            message: "Required",
-          },
-        ],
-      });
+      // TODO refine error message
+      expect(err.message).toStrictEqual("Invalid request");
     }
   });
 

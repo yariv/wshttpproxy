@@ -25,7 +25,7 @@ export class ApiHttpError extends Error {
 
 export type HandlerResult<ParsedBodyType> =
   | { success: true; body: ParsedBodyType }
-  | { success: false; error: ZodError };
+  | { success: false; error: string };
 
 export type HandlerHttpResult = {
   status: number;

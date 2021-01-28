@@ -44,11 +44,14 @@ export const callTypedServerFunc = async <
   handler: TypedServerFunc<ApiSchemaType, MethodType, ReqType>
 ): Promise<HandlerResult<ResSchema<ApiSchemaType, typeof methodName>>> => {
   const reqSchemaType = schema[methodName]["req"];
+  // TODO switch to parse() for consistency?
   const parseResult = reqSchemaType.safeParse(reqBody);
   if (!parseResult.success) {
     return {
       success: false,
-      error: parseResult.error,
+      // TODO return more informative error messages
+      // (see https://github.com/colinhacks/zod/blob/master/ERROR_HANDLING.md)
+      error: "Invalid request",
     };
   }
 
