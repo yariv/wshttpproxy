@@ -3,8 +3,8 @@ import {
   AbstractApiSchemaType,
   ReqSchema,
   ResSchema,
-  ClientResponseType,
   HandlerResult,
+  ApiHttpError,
 } from "./types";
 
 export type HandlerHttpResult = {
@@ -36,9 +36,7 @@ export class TypedHttpClient<ApiSchemaType extends AbstractApiSchemaType> {
   async post<MethodName extends keyof ApiSchemaType>(
     methodName: MethodName,
     reqBody: ReqSchema<ApiSchemaType, typeof methodName>
-  ): Promise<
-    ClientResponseType<Response, ResSchema<ApiSchemaType, typeof methodName>>
-  > {
+  ): Promise<ResSchema<ApiSchemaType, typeof methodName>> {
     return typedFunc(this.schema, methodName, async (reqBody) => {
       const res = await fetch(this.baseUrl + methodName, {
         method: "POST",
@@ -46,8 +44,11 @@ export class TypedHttpClient<ApiSchemaType extends AbstractApiSchemaType> {
         headers: { "content-type": "application/json" },
       });
       const respText = await res.text();
+      if (res.status >= 400 && res.status < 600) {
+        throw new ApiHttpError(respText, res.status);
+      }
       const respBody = JSON.parse(respText);
-      return [res, respBody];
+      return respBody;
     })(reqBody);
   }
 }

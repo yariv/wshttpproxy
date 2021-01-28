@@ -7,29 +7,26 @@ import {
 
 export const typedFunc = <
   ApiSchemaType extends AbstractApiSchemaType,
-  MethodName extends keyof ApiSchemaType,
-  RespType
+  MethodName extends keyof ApiSchemaType
 >(
   schema: ApiSchemaType,
   methodName: MethodName,
-  untypedFunc: (req: any) => Promise<[resp: RespType, respBody: any]>
+  untypedFunc: (req: any) => Promise<ResSchema<ApiSchemaType, MethodName>>
 ): ((
   reqBody: ReqSchema<ApiSchemaType, MethodName>
 ) => Promise<ResSchema<ApiSchemaType, MethodName>>) => {
   return async (reqBody: ReqSchema<ApiSchemaType, MethodName>) => {
-    const [resp, respBody] = await untypedFunc(reqBody);
+    const respBody = await untypedFunc(reqBody);
     const parseResult = schema[methodName].res.safeParse(respBody);
     if (parseResult.success) {
       // The server returned a successful response
       return {
-        response: resp,
         success: true,
         body: parseResult.data,
       };
     }
     // The result from the server failed to pass the schema check
     return {
-      response: resp,
       success: false,
       error: parseResult.error,
     };

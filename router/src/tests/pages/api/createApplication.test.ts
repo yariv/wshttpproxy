@@ -36,21 +36,15 @@ describe("createApplication", () => {
   it("works", async () => {
     await setupMockSession();
     const res = await client.post("createApplication", { name: "foo" });
-    expect(res.response?.status).toBe(200);
-    if (res.success) {
-      expect(res.body.secret).toBeDefined();
-    } else {
-      fail();
-    }
+    expect(res.secret).toBeDefined();
   });
 
   it("requires name", async () => {
-    const res = await client.post("createApplication", {} as any);
-    expect(res.response?.status).toBe(400);
-    if (res.success) {
+    try {
+      const res = await client.post("createApplication", {} as any);
       fail();
-    } else {
-      expect(res.error).toStrictEqual({
+    } catch (err) {
+      expect(err.message).toStrictEqual({
         errors: [
           {
             code: "invalid_type",
@@ -65,28 +59,23 @@ describe("createApplication", () => {
   });
 
   it("requires session", async () => {
-    const res = await client.post("createApplication", { name: "foo" });
-    if (res.success) {
+    try {
+      const res = await client.post("createApplication", { name: "foo" });
       fail();
-    } else {
-      expect(res.response?.status).toBe(401);
-      expect(res.error).toBe("Not logged in");
+    } catch (err) {
+      expect(err.message).toBe("Not logged in");
     }
   });
 
   it("ensures name is unique", async () => {
     await setupMockSession();
     const res = await client.post("createApplication", { name: "foo" });
-    if (!res.success) {
-      fail();
-    }
 
-    const res2 = await client.post("createApplication", { name: "foo" });
-    if (res2.success) {
+    try {
+      const res2 = await client.post("createApplication", { name: "foo" });
       fail();
-    } else {
-      expect(res2.response?.status).toBe(400);
-      expect(res2.error).toStrictEqual(
+    } catch (err) {
+      expect(err.message).toStrictEqual(
         "An application with the same name already exists."
       );
     }

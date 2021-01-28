@@ -36,22 +36,24 @@ describe("createRoute", () => {
 
   it("requires valid application secret", async () => {
     await setupMockSession();
-    const res = await client.post("createRoute", { applicationSecret: "foo" });
-    expect(res.response?.status).toBe(400);
-    if (res.success) {
+    try {
+      const res = await client.post("createRoute", {
+        applicationSecret: "foo",
+      });
       fail();
-    } else {
-      expect(res.error).toBe("Invalid application secret");
+    } catch (err) {
+      expect(err.message).toBe("Invalid application secret");
     }
   });
 
   it("requires session", async () => {
-    const res = await client.post("createRoute", { applicationSecret: "foo" });
-    expect(res.response?.status).toBe(401);
-    if (res.success) {
+    try {
+      const res = await client.post("createRoute", {
+        applicationSecret: "foo",
+      });
       fail();
-    } else {
-      expect(res.error).toBe("Not logged in");
+    } catch (err) {
+      expect(err.message).toBe("Not logged in");
     }
   });
 
@@ -60,17 +62,11 @@ describe("createRoute", () => {
     const res = await client.post("createApplication", {
       name: "foo",
     });
-    if (!res.success) {
-      fail();
-    }
-    const secret = res.success && res.body.secret;
+
+    const secret = res.secret;
     const res2 = await client.post("createRoute", {
       applicationSecret: secret,
     });
-    if (!res2.success) {
-      fail();
-    }
-    const routeKey = res2.success && res2.body.routeKey;
-    expect(routeKey.length).toBe(6);
+    expect(res2.routeKey.length).toBe(6);
   });
 });

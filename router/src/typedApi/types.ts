@@ -27,7 +27,16 @@ export type HandlerResult<ParsedBodyType> =
   | { success: true; body: ParsedBodyType }
   | { success: false; error: ZodError };
 
-export type ClientResponseType<ResType, ResponseBodyType> =
+export type HandlerHttpResult = {
+  status: number;
+  body: any;
+};
+
+export type HttpResponse<ParsedBodyType> = HandlerResult<ParsedBodyType> & {
+  response?: Response;
+};
+
+export type ResponseType<ResType, ResponseBodyType> =
   | {
       success: true;
       response: ResType;
