@@ -5,19 +5,19 @@ import {
   ResSchema,
 } from "./types";
 
-export const typedCall = <
+export const typedFunc = <
   ApiSchemaType extends AbstractApiSchemaType,
   MethodName extends keyof ApiSchemaType,
   RespType
 >(
   schema: ApiSchemaType,
   methodName: MethodName,
-  untypedCall: (req: any) => Promise<[resp: RespType, respBody: any]>
+  untypedFunc: (req: any) => Promise<[resp: RespType, respBody: any]>
 ): ((
   reqBody: ReqSchema<ApiSchemaType, MethodName>
 ) => Promise<ResSchema<ApiSchemaType, MethodName>>) => {
   return async (reqBody: ReqSchema<ApiSchemaType, MethodName>) => {
-    const [resp, respBody] = await untypedCall(reqBody);
+    const [resp, respBody] = await untypedFunc(reqBody);
     const parseResult = schema[methodName].res.safeParse(respBody);
     if (parseResult.success) {
       // The server returned a successful response

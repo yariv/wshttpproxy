@@ -1,4 +1,4 @@
-import { callHandler, HandlerType, typedCall } from "./baseApi";
+import { callHandler, HandlerType, typedFunc } from "./baseApi";
 import {
   AbstractApiSchemaType,
   ReqSchema,
@@ -39,7 +39,7 @@ export class TypedHttpClient<ApiSchemaType extends AbstractApiSchemaType> {
   ): Promise<
     ClientResponseType<Response, ResSchema<ApiSchemaType, typeof methodName>>
   > {
-    return typedCall(this.schema, methodName, async (reqBody) => {
+    return typedFunc(this.schema, methodName, async (reqBody) => {
       const res = await fetch(this.baseUrl + methodName, {
         method: "POST",
         body: JSON.stringify(reqBody),

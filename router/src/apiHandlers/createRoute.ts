@@ -2,7 +2,7 @@ import { IncomingMessage } from "http";
 import ShortUniqueId from "short-unique-id";
 import { authorize } from "../middleware";
 import { prisma } from "../prisma";
-import { createHttpHandler } from "../typedApi/server";
+import { createHttpHandler } from "../typedApi/httpApi";
 import { ApiHttpError } from "../typedApi/types";
 import { typedApiSchema } from "../typedApiSchema";
 
