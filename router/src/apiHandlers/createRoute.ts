@@ -24,7 +24,7 @@ export const createRouteHandler = createHttpHandler(
         key: routeKey,
         owner: {
           connect: {
-            id: 1,
+            id: session.user.id,
           },
         },
         application: {

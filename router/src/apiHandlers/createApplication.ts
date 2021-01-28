@@ -12,7 +12,7 @@ export const createApplicationHandler = createHttpHandler(
   async (body, req: IncomingMessage) => {
     const session = await authorize(req);
 
-    const ownerId = (session.user as any).id;
+    const ownerId = session.user.id;
     const application = await prisma.application.findUnique({
       where: {
         ownerId_name: {

@@ -57,35 +57,23 @@ describe("createRoute", () => {
 
   it("works", async () => {
     await setupMockSession();
-    try {
-      const res = await client.post("createApplication", {
-        name: "foo",
+    const res = await client.post("createApplication", {
+      name: "foo",
+    });
+    if (res.success) {
+      const secret = res.body.secret;
+      const res2 = await client.post("createRoute", {
+        applicationSecret: secret,
       });
-    } catch (e) {
-      console.error("VDSFSD", e);
+      if (res2.success) {
+        const routeKey = res2.body.routeKey;
+        debugger;
+        console.log(res2.body);
+      } else {
+        fail();
+      }
+    } else {
+      fail();
     }
-    try {
-      const res1 = await fetch("http://localhost:3000/api/createRoute");
-      console.log("ASDFASDF", res1);
-    } catch (e) {
-      console.error("BFDBDFGB", e);
-    }
-    // const res = await client.post("createApplication", {
-    //   name: "foo",
-    // });
-    // if (res.success) {
-    //   const secret = res.parsedBody.secret;
-    //   const res2 = await client.post("createRoute", {
-    //     applicationSecret: secret,
-    //   });
-    //   if (res2.success) {
-    //     const routeKey = res2.parsedBody.routeKey;
-    //     console.log(routeKey);
-    //   } else {
-    //     fail();
-    //   }
-    // } else {
-    //   fail();
-    // }
   });
 });

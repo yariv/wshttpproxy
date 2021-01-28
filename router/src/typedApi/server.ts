@@ -59,7 +59,7 @@ export const createHttpHandler = <
       if (resp.success) {
         return { status: 200, body: resp.body };
       }
-      return { status: 400, body: resp.error };
+      return { status: 400, body: { error: resp.error } };
     } catch (err) {
       if (!err.status || err.status === 500) {
         console.error("Unexpected error", err);
