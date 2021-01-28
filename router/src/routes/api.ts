@@ -5,5 +5,10 @@ import { createKoaRoute } from "../typedApi/koaAdapter";
 import { typedApiSchema } from "../typedApiSchema";
 
 export const router = new Router();
-createKoaRoute("createApplication", router, createApplicationHandler);
-createKoaRoute("createRoute", router, createRouteHandler);
+createKoaRoute(
+  typedApiSchema,
+  "createApplication",
+  router,
+  createApplicationHandler
+);
+createKoaRoute(typedApiSchema, "createRoute", router, createRouteHandler);

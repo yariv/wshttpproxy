@@ -2,6 +2,7 @@ import {
   callTypedServerFunc,
   TypedServerFunc,
   typedClientFunc,
+  typedServerFunc,
 } from "./baseApi";
 import {
   AbstractApiSchemaType,
@@ -66,18 +67,15 @@ export const createHttpHandler = <
   methodName: MethodType,
   handler: TypedServerFunc<ApiSchemaType, typeof methodName, ReqType>
 ): HttpHandler<ApiSchemaType, typeof methodName, ReqType> => {
-  return async (
-    reqBody: ReqSchema<ApiSchemaType, typeof methodName>,
-    req: ReqType
-  ): Promise<HandlerHttpResult> => {
+  const typedFunc = typedServerFunc<ApiSchemaType, MethodType, ReqType>(
+    schema,
+    methodName,
+    handler
+  );
+
+  return async (reqBody, req) => {
     try {
-      const resp = await callTypedServerFunc(
-        schema,
-        methodName,
-        reqBody,
-        req,
-        handler
-      );
+      const resp = await typedFunc(reqBody, req);
       if (resp.success) {
         return { status: 200, body: JSON.stringify(resp.body) };
       }

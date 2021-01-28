@@ -16,7 +16,7 @@ export const typedClientFunc = <
 ): ((
   reqBody: ReqSchema<ApiSchemaType, MethodName>
 ) => Promise<ResSchema<ApiSchemaType, MethodName>>) => {
-  return async (reqBody: ReqSchema<ApiSchemaType, MethodName>) => {
+  return async (reqBody) => {
     const respBody = await untypedClientFunc(reqBody);
     const parseResult = schema[methodName].res.parse(respBody);
     return parseResult;
@@ -57,4 +57,34 @@ export const callTypedServerFunc = async <
 
   const handlerResult = await handler(parseResult.data, req);
   return { success: true, body: handlerResult };
+};
+
+export const typedServerFunc = <
+  ApiSchemaType extends AbstractApiSchemaType,
+  MethodType extends keyof ApiSchemaType,
+  ReqType
+>(
+  schema: ApiSchemaType,
+  methodName: MethodType,
+  handler: TypedServerFunc<ApiSchemaType, MethodType, ReqType>
+): ((
+  reqBody: any,
+  req: ReqType
+) => Promise<HandlerResult<ResSchema<ApiSchemaType, typeof methodName>>>) => {
+  return async (reqBody, req) => {
+    const reqSchemaType = schema[methodName]["req"];
+    // TODO switch to parse() for consistency?
+    const parseResult = reqSchemaType.safeParse(reqBody);
+    if (!parseResult.success) {
+      return {
+        success: false,
+        // TODO return more informative error messages
+        // (see https://github.com/colinhacks/zod/blob/master/ERROR_HANDLING.md)
+        error: "Invalid request",
+      };
+    }
+
+    const handlerResult = await handler(parseResult.data, req);
+    return { success: true, body: handlerResult };
+  };
 };

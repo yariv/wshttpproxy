@@ -8,6 +8,7 @@ export const createKoaRoute = <
   ApiSchemaType extends AbstractApiSchemaType,
   MethodType extends keyof ApiSchemaType
 >(
+  schema: ApiSchemaType,
   methodName: MethodType,
   router: Router,
   handler: HttpHandler<ApiSchemaType, MethodType, IncomingMessage>
