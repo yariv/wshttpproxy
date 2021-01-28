@@ -18,7 +18,7 @@ export const createRouteHandler = createHttpHandler(
     if (!application) {
       throw new ApiHttpError("Invalid application secret", 400);
     }
-    const routeKey = new ShortUniqueId().toString();
+    const routeKey = new ShortUniqueId().randomUUID();
     await prisma.route.create({
       data: {
         key: routeKey,

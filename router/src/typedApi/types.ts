@@ -3,16 +3,16 @@ import { ZodError } from "zod";
 
 export type AbstractApiSchemaType = Record<
   string,
-  { reqSchema: z.ZodType<any>; resSchema: z.ZodType<any> }
+  { req: z.ZodType<any>; res: z.ZodType<any> }
 >;
 export type ReqSchema<
   SchemaType extends AbstractApiSchemaType,
   MethodName extends keyof SchemaType
-> = z.infer<SchemaType[MethodName]["reqSchema"]>;
+> = z.infer<SchemaType[MethodName]["req"]>;
 export type ResSchema<
   SchemaType extends AbstractApiSchemaType,
   MethodName extends keyof SchemaType
-> = z.infer<SchemaType[MethodName]["resSchema"]>;
+> = z.infer<SchemaType[MethodName]["res"]>;
 
 export class ApiHttpError extends Error {
   status: number;
@@ -30,7 +30,6 @@ export type HttpHandler<
   body: ReqSchema<ApiSchemaType, MethodType>,
   req: ReqType
 ) => Promise<HandlerHttpResult>;
-
 export type HandlerResult<ParsedBodyType> =
   | { success: true; body: ParsedBodyType }
   | { success: false; error: ZodError };

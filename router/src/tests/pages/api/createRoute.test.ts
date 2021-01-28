@@ -3,7 +3,7 @@ import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 import { main } from "../../../../main";
 import { prisma } from "../../../prisma";
 // TODO fix import
-import { TypedClient } from "../../../typedApi/httpClient";
+import { TypedHttpClient } from "../../../typedApi/httpClient";
 import { initTestDb } from "../../db";
 import { setupMockSession } from "../../testLib";
 import { typedApiSchema } from "../../../typedApiSchema";
@@ -12,7 +12,7 @@ jest.mock("next-auth/client");
 describe("createRoute", () => {
   let closeable: Closeable;
 
-  const client = new TypedClient(
+  const client = new TypedHttpClient(
     globalConfig.routerUrl + "/api2/",
     typedApiSchema
   );
@@ -60,20 +60,17 @@ describe("createRoute", () => {
     const res = await client.post("createApplication", {
       name: "foo",
     });
-    if (res.success) {
-      const secret = res.body.secret;
-      const res2 = await client.post("createRoute", {
-        applicationSecret: secret,
-      });
-      if (res2.success) {
-        const routeKey = res2.body.routeKey;
-        debugger;
-        console.log(res2.body);
-      } else {
-        fail();
-      }
-    } else {
+    if (!res.success) {
       fail();
     }
+    const secret = res.success && res.body.secret;
+    const res2 = await client.post("createRoute", {
+      applicationSecret: secret,
+    });
+    if (!res2.success) {
+      fail();
+    }
+    const routeKey = res2.success && res2.body.routeKey;
+    expect(routeKey.length).toBe(6);
   });
 });

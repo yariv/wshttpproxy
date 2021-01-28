@@ -2,18 +2,18 @@ import * as z from "zod";
 
 export const typedApiSchema = {
   createApplication: {
-    reqSchema: z.object({
+    req: z.object({
       name: z.string(),
     }),
-    resSchema: z.object({
+    res: z.object({
       secret: z.string(),
     }),
   },
   createRoute: {
-    reqSchema: z.object({
+    req: z.object({
       applicationSecret: z.string(),
     }),
-    resSchema: z.object({
+    res: z.object({
       routeKey: z.string(),
     }),
   },

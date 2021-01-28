@@ -28,8 +28,8 @@ export const callHandler = async <
   req: ReqType,
   handler: HandlerType<ApiSchemaType, MethodType, ReqType>
 ): Promise<HandlerResult<ResSchema<ApiSchemaType, typeof methodName>>> => {
-  const schemaType = schema[methodName].reqSchema;
-  const parseResult = schemaType.safeParse(reqBody);
+  const reqSchemaType = schema[methodName]["req"];
+  const parseResult = reqSchemaType.safeParse(reqBody);
   if (!parseResult.success) {
     return {
       success: false,
@@ -59,12 +59,12 @@ export const createHttpHandler = <
       if (resp.success) {
         return { status: 200, body: resp.body };
       }
-      return { status: 400, body: { error: resp.error } };
+      return { status: 400, body: resp.error };
     } catch (err) {
       if (!err.status || err.status === 500) {
         console.error("Unexpected error", err);
       }
-      return { status: err.status || 500, body: { error: err.message } };
+      return { status: err.status || 500, body: err.message };
     }
   };
 };
