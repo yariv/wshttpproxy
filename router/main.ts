@@ -1,4 +1,4 @@
-import { start } from "./src/server";
+import { start } from "./src/routerServer";
 import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
 import { Closeable } from "dev-in-prod-lib/src/appServer";
 

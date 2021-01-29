@@ -1,13 +1,8 @@
+import { Closeable, listenOnPort } from "dev-in-prod-lib/src/appServer";
+import { getRouteKeyFromCtx, globalConfig } from "dev-in-prod-lib/src/utils";
 import Koa from "koa";
-
 import proxy from "koa-better-http-proxy";
 import { config } from "./config";
-import { Closeable, listenOnPort } from "dev-in-prod-lib/src/appServer";
-
-import {
-  getRouteKeyFromHostname,
-  globalConfig,
-} from "dev-in-prod-lib/src/utils";
 
 export const startSidecar = async (
   port: number,
@@ -18,7 +13,7 @@ export const startSidecar = async (
   app.use(
     proxy(config.prodServiceUrl, {
       filter: (ctx) => {
-        return !getRouteKey(ctx);
+        return !getRouteKeyFromCtx(ctx);
       },
     })
   );
@@ -27,21 +22,14 @@ export const startSidecar = async (
     proxy(config.routerUrl, {
       // TODO remove?
       filter: (ctx) => {
-        return getRouteKey(ctx) != null;
+        return getRouteKeyFromCtx(ctx) != null;
       },
       proxyReqOptDecorator: (opts, ctx) => {
         opts.headers[globalConfig.appSecretHeader] = appSecret;
-        opts.headers[globalConfig.routeKeyHeader] = getRouteKey(ctx);
+        opts.headers[globalConfig.routeKeyHeader] = getRouteKeyFromCtx(ctx);
         return opts;
       },
     })
   );
   return listenOnPort(app, port);
-};
-
-const getRouteKey = (ctx: Koa.Context): string => {
-  return (
-    ctx.headers[globalConfig.routeKeyHeader] ||
-    getRouteKeyFromHostname(ctx.hostname)
-  );
 };

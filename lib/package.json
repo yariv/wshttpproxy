@@ -7,8 +7,5 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "yarivsadan@gmail.com",
-  "dependencies": {
-    "@types/koa": "^2.11.6",
-    "koa": "^2.13.1"
-  }
+  "dependencies": {}
 }
