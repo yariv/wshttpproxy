@@ -14,7 +14,7 @@ export const createNextHandler = <
   req: NextApiRequest,
   resp: NextApiResponse<ResSchema<ApiSchemaType, MethodType>>
 ) => void) => {
-  const httpHandler = createHttpHandler(schema, methodName, handler);
+  const httpHandler = createHttpHandler(handler);
   return async (
     req: NextApiRequest,
     res: NextApiResponse<ResSchema<ApiSchemaType, MethodType>>

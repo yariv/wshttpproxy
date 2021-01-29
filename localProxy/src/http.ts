@@ -2,6 +2,7 @@ interface HttpResponse<T> extends Response {
   parsedBody?: T;
 }
 
+// TODO replace
 export async function http<T>(request: RequestInfo): Promise<HttpResponse<T>> {
   const response: HttpResponse<T> = await fetch(request);
 

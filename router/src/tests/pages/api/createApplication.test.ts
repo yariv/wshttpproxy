@@ -12,7 +12,7 @@ describe("createApplication", () => {
   let closeable: Closeable;
 
   const client = new TypedHttpClient(
-    globalConfig.routerUrl + "/api/",
+    globalConfig.routerUrl + "/api2/",
     typedApiSchema
   );
 

@@ -1,10 +1,4 @@
-import { parse } from "dotenv/types";
-import {
-  AbstractApiSchemaType,
-  HandlerResult,
-  ReqSchema,
-  ResSchema,
-} from "./types";
+import { AbstractApiSchemaType, ReqSchema, ResSchema } from "./types";
 
 export const typedClientFunc = <
   ApiSchemaType extends AbstractApiSchemaType,
@@ -12,7 +6,7 @@ export const typedClientFunc = <
 >(
   schema: ApiSchemaType,
   methodName: MethodName,
-  untypedClientFunc: (req: any) => Promise<ResSchema<ApiSchemaType, MethodName>>
+  untypedClientFunc: (req: ReqSchema<ApiSchemaType, MethodName>) => Promise<any>
 ): ((
   reqBody: ReqSchema<ApiSchemaType, MethodName>
 ) => Promise<ResSchema<ApiSchemaType, MethodName>>) => {
@@ -32,32 +26,14 @@ export type TypedServerFunc<
   req: ReqType
 ) => Promise<ResSchema<ApiSchemaType, MethodType>>;
 
-export const callTypedServerFunc = async <
+export type UntypedServerFunc<
   ApiSchemaType extends AbstractApiSchemaType,
   MethodType extends keyof ApiSchemaType,
   ReqType
->(
-  schema: ApiSchemaType,
-  methodName: MethodType,
+> = (
   reqBody: any,
-  req: ReqType,
-  handler: TypedServerFunc<ApiSchemaType, MethodType, ReqType>
-): Promise<HandlerResult<ResSchema<ApiSchemaType, typeof methodName>>> => {
-  const reqSchemaType = schema[methodName]["req"];
-  // TODO switch to parse() for consistency?
-  const parseResult = reqSchemaType.safeParse(reqBody);
-  if (!parseResult.success) {
-    return {
-      success: false,
-      // TODO return more informative error messages
-      // (see https://github.com/colinhacks/zod/blob/master/ERROR_HANDLING.md)
-      error: "Invalid request",
-    };
-  }
-
-  const handlerResult = await handler(parseResult.data, req);
-  return { success: true, body: handlerResult };
-};
+  req: ReqType
+) => Promise<ResSchema<ApiSchemaType, MethodType>>;
 
 export const typedServerFunc = <
   ApiSchemaType extends AbstractApiSchemaType,
@@ -67,24 +43,10 @@ export const typedServerFunc = <
   schema: ApiSchemaType,
   methodName: MethodType,
   handler: TypedServerFunc<ApiSchemaType, MethodType, ReqType>
-): ((
-  reqBody: any,
-  req: ReqType
-) => Promise<HandlerResult<ResSchema<ApiSchemaType, typeof methodName>>>) => {
+): UntypedServerFunc<ApiSchemaType, MethodType, ReqType> => {
   return async (reqBody, req) => {
     const reqSchemaType = schema[methodName]["req"];
-    // TODO switch to parse() for consistency?
-    const parseResult = reqSchemaType.safeParse(reqBody);
-    if (!parseResult.success) {
-      return {
-        success: false,
-        // TODO return more informative error messages
-        // (see https://github.com/colinhacks/zod/blob/master/ERROR_HANDLING.md)
-        error: "Invalid request",
-      };
-    }
-
-    const handlerResult = await handler(parseResult.data, req);
-    return { success: true, body: handlerResult };
+    const parsedBody = reqSchemaType.parse(reqBody);
+    return handler(parsedBody, req);
   };
 };

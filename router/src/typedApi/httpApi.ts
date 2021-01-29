@@ -1,33 +1,20 @@
-import {
-  callTypedServerFunc,
-  TypedServerFunc,
-  typedClientFunc,
-  typedServerFunc,
-} from "./baseApi";
+import { ZodError } from "zod";
+import { typedClientFunc, TypedServerFunc, UntypedServerFunc } from "./baseApi";
 import {
   AbstractApiSchemaType,
+  ApiHttpError,
+  HandlerResult,
   ReqSchema,
   ResSchema,
-  HandlerResult,
-  ApiHttpError,
 } from "./types";
-
-export type HandlerHttpResult = {
-  status: number;
-  body: any;
-};
 
 export type HttpResponse<ParsedBodyType> = HandlerResult<ParsedBodyType> & {
   response?: Response;
 };
-export type HttpHandler<
-  ApiSchemaType extends AbstractApiSchemaType,
-  MethodType extends keyof ApiSchemaType,
-  ReqType
-> = (
-  body: ReqSchema<ApiSchemaType, MethodType>,
+export type HttpHandler<ReqType> = (
+  body: any,
   req: ReqType
-) => Promise<HandlerHttpResult>;
+) => Promise<{ status: number; body: any }>;
 
 export class TypedHttpClient<ApiSchemaType extends AbstractApiSchemaType> {
   baseUrl: string;
@@ -63,24 +50,17 @@ export const createHttpHandler = <
   MethodType extends keyof ApiSchemaType,
   ReqType
 >(
-  schema: ApiSchemaType,
-  methodName: MethodType,
-  handler: TypedServerFunc<ApiSchemaType, typeof methodName, ReqType>
-): HttpHandler<ApiSchemaType, typeof methodName, ReqType> => {
-  const typedFunc = typedServerFunc<ApiSchemaType, MethodType, ReqType>(
-    schema,
-    methodName,
-    handler
-  );
-
+  typedFunc: TypedServerFunc<ApiSchemaType, MethodType, ReqType>
+): HttpHandler<ReqType> => {
   return async (reqBody, req) => {
     try {
       const resp = await typedFunc(reqBody, req);
-      if (resp.success) {
-        return { status: 200, body: JSON.stringify(resp.body) };
-      }
-      return { status: 400, body: resp.error };
+      return { status: 200, body: JSON.stringify(resp.body) };
     } catch (err) {
+      if (err instanceof ZodError) {
+        // TODO send more informative error messages
+        return { status: 400, body: "Invalid request" };
+      }
       if (!err.status || err.status === 500) {
         console.error("Unexpected error", err);
       }

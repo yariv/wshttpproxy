@@ -27,11 +27,6 @@ export type HandlerResult<ParsedBodyType> =
   | { success: true; body: ParsedBodyType }
   | { success: false; error: string };
 
-export type HandlerHttpResult = {
-  status: number;
-  body: any;
-};
-
 export type HttpResponse<ParsedBodyType> = HandlerResult<ParsedBodyType> & {
   response?: Response;
 };

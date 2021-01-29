@@ -1,7 +1,7 @@
 import { IncomingMessage } from "http";
 import bodyParser from "koa-bodyparser";
 import Router from "koa-router";
-import { TypedServerFunc } from "./baseApi";
+import { TypedServerFunc, UntypedServerFunc } from "./baseApi";
 import { createHttpHandler, HttpHandler } from "./httpApi";
 import { AbstractApiSchemaType } from "./types";
 
@@ -12,9 +12,10 @@ export const createKoaRoute = <
   schema: ApiSchemaType,
   methodName: MethodType,
   router: Router,
-  handler: TypedServerFunc<ApiSchemaType, typeof methodName, IncomingMessage>
+  handler: TypedServerFunc<ApiSchemaType, MethodType, IncomingMessage>
 ) => {
-  const httpHandler = createHttpHandler(schema, methodName, handler);
+  console.log(methodName, handler);
+  const httpHandler = createHttpHandler(handler);
   // TODO remove hardcoded prefix
   router.post(("/api2/" + methodName) as string, bodyParser(), async (ctx) => {
     const resp = await httpHandler(ctx.request.body, ctx.req);
