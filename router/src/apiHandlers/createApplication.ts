@@ -1,12 +1,14 @@
 import { IncomingMessage } from "http";
 import { authorize } from "../middleware";
 import { prisma } from "../prisma";
-import { typedServerFunc } from "../typedApi/baseApi";
+import { createKoaRoute } from "../typedApi/koaAdapter";
 import { ApiHttpError } from "../typedApi/types";
 import { typedApiSchema } from "../typedApiSchema";
 import { genNewToken } from "../utils";
+import { router } from "./router";
 
-export const createApplicationHandler = typedServerFunc(
+createKoaRoute(
+  router,
   typedApiSchema,
   "createApplication",
   async (body, req: IncomingMessage) => {

@@ -11,7 +11,7 @@ import next from "next";
 import * as ws from "ws";
 import * as z from "zod";
 import { prisma } from "./prisma";
-import { router as apiRouter } from "./routes/api";
+import { router as apiRouter } from "./apiHandlers/router";
 import { sha256 } from "./utils";
 
 export const start = async (
