@@ -13,6 +13,7 @@ import * as z from "zod";
 import { prisma } from "./prisma";
 import { router as apiRouter } from "./apiHandlers/router";
 import { sha256 } from "./utils";
+import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
 
 export const start = async (
   port: number,
@@ -40,10 +41,10 @@ const initKoaApp = async (): Promise<Koa> => {
       const sendMsg = (msg: z.infer<typeof serverSchema>) => {
         ctx.websocket.send(JSON.stringify(msg));
       };
-      ctx.websocket.on("open", () => {
+      ctx.websocket.onopen = () => {
         log("open");
-      });
-      ctx.websocket.on("message", (message) => {
+      };
+      ctx.websocket.onmessage = (message) => {
         log("message", message);
 
         const parseResult = clientSchema.safeParse(message);
@@ -71,13 +72,13 @@ const initKoaApp = async (): Promise<Koa> => {
           sendMsg({ type: "invalidMessage", message: message });
         }
         // when the ws authenticates, map it to the route key
-      });
-      ctx.websocket.on("close", () => {
+      };
+      ctx.websocket.onclose = () => {
         log("close");
-      });
-      ctx.websocket.on("error", () => {
+      };
+      ctx.websocket.onerror = () => {
         log("error");
-      });
+      };
     })
   );
   return app;
@@ -127,27 +128,3 @@ const proxyMiddleware = async (ctx: Koa.Context, next: Koa.Next) => {
   liveWebSockets[routeKey].send(JSON.stringify(message));
   ctx.status = 200;
 };
-
-const clientSchema = z.object({
-  type: z.literal("authorize"),
-  authToken: z.string(),
-});
-
-const serverSchema = z.union([
-  z.object({
-    type: z.literal("authorized"),
-  }),
-  z.object({
-    type: z.literal("unauthorized"),
-  }),
-  z.object({
-    type: z.literal("proxy"),
-    method: z.string(),
-    headers: z.record(z.string()),
-    body: z.string(),
-  }),
-  z.object({
-    type: z.literal("invalidMessage"),
-    message: z.any(),
-  }),
-]);

@@ -1,8 +1,11 @@
 import * as z from "zod";
 // TODO fix import
-import { typedServerFunc } from "../../../router/src/typedApi/baseApi";
+import { createKoaRoute } from "../../../router/src/typedApi/koaAdapter";
 import storage from "node-persist";
 import { initWsClient } from "../wsClient";
+import Router from "@koa/router";
+
+const apiRouter = new Router();
 
 const schema = {
   setToken: {
@@ -12,11 +15,8 @@ const schema = {
     res: z.void(),
   },
 };
-export const setToken = typedServerFunc(
-  schema,
-  "setToken",
-  async ({ token }) => {
-    await storage.set("token", token);
-    const wsClient = initWsClient(token);
-  }
-);
+
+createKoaRoute(apiRouter, schema, "setToken", async ({ token }) => {
+  await storage.set("token", token);
+  const wsClient = initWsClient(token);
+});
