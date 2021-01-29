@@ -4,38 +4,44 @@ import proxy from "koa-better-http-proxy";
 import { config } from "./config";
 import { Closeable, listenOnPort } from "dev-in-prod-lib/src/appServer";
 
-import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
+import {
+  getRouteKeyFromHostname,
+  globalConfig,
+} from "dev-in-prod-lib/src/utils";
 
 export const startSidecar = async (
   port: number,
   appSecret: string
 ): Promise<Closeable> => {
   const app = new Koa();
-  const sidecarHeaders = {
-    [globalConfig.sidecarProxyHeader]: appSecret,
-  };
 
   app.use(
     proxy(config.prodServiceUrl, {
       filter: (ctx) => {
-        return !isDevRequest(ctx);
+        return !getRouteKey(ctx);
       },
-      headers: sidecarHeaders,
     })
   );
 
   app.use(
     proxy(config.routerUrl, {
+      // TODO remove?
       filter: (ctx) => {
-        return isDevRequest(ctx);
+        return getRouteKey(ctx) != null;
       },
-      headers: sidecarHeaders,
+      proxyReqOptDecorator: (opts, ctx) => {
+        opts.headers[globalConfig.appSecretHeader] = appSecret;
+        opts.headers[globalConfig.routeKeyHeader] = getRouteKey(ctx);
+        return opts;
+      },
     })
   );
-
-  const isDevRequest = (ctx: Koa.Context): boolean => {
-    return globalConfig.devInProdHeader in ctx.headers;
-  };
-
   return listenOnPort(app, port);
+};
+
+const getRouteKey = (ctx: Koa.Context): string => {
+  return (
+    ctx.headers[globalConfig.routeKeyHeader] ||
+    getRouteKeyFromHostname(ctx.hostname)
+  );
 };
