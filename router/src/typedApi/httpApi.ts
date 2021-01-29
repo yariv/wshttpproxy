@@ -55,7 +55,7 @@ export const createHttpHandler = <
   return async (reqBody, req) => {
     try {
       const resp = await typedFunc(reqBody, req);
-      return { status: 200, body: JSON.stringify(resp.body) };
+      return { status: 200, body: JSON.stringify(resp) };
     } catch (err) {
       if (err instanceof ZodError) {
         // TODO send more informative error messages
