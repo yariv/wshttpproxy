@@ -39,7 +39,7 @@ const initKoaApp = async (): Promise<Koa> => {
   const app = websockify(koa);
   app.ws.use(
     route.all("/ws", (ctx) => {
-      initWebsocket(ctx.websocket, serverSchema, clientSchema);
+      initWebsocket(ctx.websocket, clientSchema, serverSchema, serverHandler);
     })
   );
   return app;
@@ -47,19 +47,14 @@ const initKoaApp = async (): Promise<Koa> => {
 
 type WsSchema = Record<string, z.ZodType<any>>;
 
-const initWebsocket = (
+const initWebsocket = <
+  IncomingSchemaType extends WsSchema,
+  OutgoingSchemaType extends WsSchema
+>(
   ws: ws,
-  incomingSchema: WsSchema,
-  outgoingSchema: WsSchema,
-  handler: (
-    ws: ws,
-    sendMsg: (
-      outgoingMsgType: keyof typeof outgoingSchema,
-      body: z.infer<typeof outgoingSchema[typeof outgoingMsgType]>
-    ) => void,
-    msgType: keyof typeof incomingSchema,
-    body: z.infer<typeof incomingSchema[typeof msgType]>
-  ) => Promise<void>
+  incomingSchema: IncomingSchemaType,
+  outgoingSchema: OutgoingSchemaType,
+  handler: HandlerType<typeof incomingSchema, typeof outgoingSchema>
 ) => {
   const sendMsg = (
     type: keyof typeof outgoingSchema,
@@ -121,12 +116,10 @@ type HandlerType<
   body: z.infer<IncomingSchemaType[typeof msgType]>
 ) => Promise<void>;
 
-const handler: HandlerType<typeof clientSchema, typeof serverSchema> = async (
-  ws,
-  sendMsg,
-  msgType,
-  body
-) => {
+const serverHandler: HandlerType<
+  typeof clientSchema,
+  typeof serverSchema
+> = async (ws, sendMsg, msgType, body) => {
   switch (msgType) {
     case "authorize":
       prisma.oAuthToken
