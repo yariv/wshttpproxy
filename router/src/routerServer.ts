@@ -9,7 +9,12 @@ import {
   WsWrapper,
 } from "dev-in-prod-lib/src/typedWs";
 import { getRouteKeyFromCtx, globalConfig } from "dev-in-prod-lib/src/utils";
-import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
+import {
+  clientSchema,
+  clientSchema2,
+  serverSchema,
+  serverSchema2,
+} from "dev-in-prod-lib/src/wsSchema";
 import Koa from "koa";
 import route from "koa-route";
 import websockify from "koa-websocket";
@@ -27,7 +32,7 @@ export const start = async (
 
 const originalHostHeader = "X-Forwarded-Host";
 
-const liveWebSockets: Record<string, WsWrapper<typeof serverSchema>> = {};
+const liveWebSockets: Record<string, WsWrapper<typeof serverSchema2>> = {};
 
 const initKoaApp = async (): Promise<Koa> => {
   const koa = new Koa();
@@ -41,20 +46,20 @@ const initKoaApp = async (): Promise<Koa> => {
   const app = websockify(koa);
   app.ws.use(
     route.all("/ws", (ctx) => {
-      initWebsocket(ctx.websocket, clientSchema, serverHandler);
+      initWebsocket(ctx.websocket, clientSchema2, serverHandler);
     })
   );
   return app;
 };
 
 const serverHandler: HandlerType<
-  typeof clientSchema,
-  typeof serverSchema
-> = async (wsWrapper, msgType, body) => {
-  switch (msgType) {
+  typeof clientSchema2,
+  typeof serverSchema2
+> = async (wsWrapper, msg) => {
+  switch (msg.type) {
     case "authorize":
       const result = await prisma.oAuthToken.findUnique({
-        where: { tokenHash: sha256(body.authToken) },
+        where: { tokenHash: sha256(msg.body.authToken) },
       });
       if (result) {
         liveWebSockets[result.tokenHash] = wsWrapper;
@@ -63,7 +68,7 @@ const serverHandler: HandlerType<
           delete liveWebSockets[result.tokenHash];
         });
       } else {
-        wsWrapper.sendMsg("unauthorized");
+        wsWrapper.sendMsg({ type: "unauthorized" });
         wsWrapper.ws.close();
       }
   }
@@ -104,10 +109,13 @@ const proxyMiddleware = async (ctx: Koa.Context, next: Koa.Next) => {
     ctx.throw(400, "Route isn't connected");
   }
 
-  liveWebSockets[routeKey].sendMsg("proxy", {
-    method: ctx.method,
-    headers: ctx.headers,
-    body: ctx.body,
+  liveWebSockets[routeKey].sendMsg({
+    type: "proxy",
+    body: {
+      method: ctx.method,
+      headers: ctx.headers,
+      body: ctx.body,
+    },
   });
   ctx.status = 200;
 };

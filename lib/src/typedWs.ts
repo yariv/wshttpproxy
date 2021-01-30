@@ -2,16 +2,13 @@ import * as z from "zod";
 import WebSocket from "ws";
 import { log } from "./log";
 
-export type WsSchema = Record<string, z.ZodType<any>>;
+export type WsSchema = z.ZodType<any>;
 export type HandlerType<
   IncomingSchemaType extends WsSchema,
   OutgoingSchemaType extends WsSchema
 > = (
   wsWrapper: WsWrapper<OutgoingSchemaType>,
-  msgType: keyof IncomingSchemaType,
-  body: (
-    incomingMessageType: typeof msgType
-  ) => z.infer<IncomingSchemaType[typeof incomingMessageType]>
+  msg: z.infer<IncomingSchemaType>
 ) => Promise<void>;
 
 export const initWebsocket = <
@@ -39,15 +36,9 @@ export const initWebsocket = <
       return;
     }
 
-    const msgType = unserialized.type;
-    if (!msgType || !(msgType in incomingSchema)) {
-      log("Missing message type", msgStr);
-      return;
-    }
-
-    const parseResult = incomingSchema[msgType].safeParse(unserialized);
+    const parseResult = incomingSchema.safeParse(unserialized);
     if (parseResult.success) {
-      handler(wrapper, msgType, parseResult.data).catch((err) => {
+      handler(wrapper, parseResult.data).catch((err) => {
         log("Error in handling message", message, err.message);
       });
     } else {
@@ -70,10 +61,7 @@ export class WsWrapper<OutgoingSchemaType extends WsSchema> {
     this.ws = ws;
   }
 
-  sendMsg(
-    outgoingMsgType: keyof OutgoingSchemaType,
-    body: z.infer<OutgoingSchemaType[typeof outgoingMsgType]>
-  ) {
-    this.ws.send(JSON.stringify({ outgoingMsgType, body }));
+  sendMsg(msg: z.infer<OutgoingSchemaType>) {
+    this.ws.send(JSON.stringify(msg));
   }
 }

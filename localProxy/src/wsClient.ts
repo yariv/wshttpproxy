@@ -1,41 +1,18 @@
-import {
-  clientSchema,
-  ServerMsg,
-  serverSchema,
-} from "dev-in-prod-lib/src/wsSchema";
-import {
-  HandlerType,
-  initWebsocket,
-  WsSchema,
-} from "dev-in-prod-lib/src/typedWs";
-import { globalConfig } from "../../lib/src/utils";
+import { HandlerType, initWebsocket } from "dev-in-prod-lib/src/typedWs";
+import { clientSchema2, serverSchema2 } from "dev-in-prod-lib/src/wsSchema";
 import WebSocket from "ws";
-import * as z from "zod";
+import { globalConfig } from "../../lib/src/utils";
 
-type Handler<
-  IncomingSchemaType extends WsSchema,
-  MsgType extends keyof IncomingSchemaType,
-  BodyType extends z.infer<IncomingSchemaType[MsgType]> = z.infer<
-    IncomingSchemaType[MsgType]
-  >
-> = (msgType: MsgType, bodyType: BodyType) => {};
-
-const foo: Handler<typeof serverSchema, "proxy"> = (msgType, bodyType) => {
-  msgType == "proxy";
-  bodyType.body;
-};
-
-const handler: HandlerType<typeof serverSchema, typeof clientSchema> = async (
+const handler: HandlerType<typeof serverSchema2, typeof clientSchema2> = async (
   wsWrapper,
-  msgType,
-  body
+  msg
 ) => {
-  switch (msgType) {
+  switch (msg.type) {
     case "proxy":
       const res = await fetch(globalConfig.exampleDevUrl, {
-        headers: body("proxy").headers,
-        method: body.method,
-        body: body.body,
+        headers: msg.body.headers,
+        method: msg.body.method,
+        body: msg.body.body,
       });
       break;
     case "unauthorized":
@@ -45,5 +22,5 @@ const handler: HandlerType<typeof serverSchema, typeof clientSchema> = async (
 
 export const initWsClient = (token: string) => {
   const ws = new WebSocket(globalConfig.routerWsUrl);
-  initWebsocket(ws, serverSchema, handler);
+  initWebsocket(ws, serverSchema2, handler);
 };

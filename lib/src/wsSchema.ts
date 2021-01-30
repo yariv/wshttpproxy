@@ -6,6 +6,11 @@ export const clientSchema = {
   }),
 };
 
+export const clientSchema2 = z.object({
+  type: z.literal("authorize"),
+  body: z.object({ authToken: z.string() }),
+});
+
 export const serverSchema = {
   unauthorized: z.void(),
   proxy: z.object({
