@@ -1,202 +1,49 @@
-import WebSocket, { CloseEvent, ErrorEvent, MessageEvent, OpenEvent } from "ws";
-import { globalConfig } from "../../lib/src/utils";
-import { log } from "dev-in-prod-lib/src/log";
 import {
-  ClientMsg,
   clientSchema,
   ServerMsg,
   serverSchema,
 } from "dev-in-prod-lib/src/wsSchema";
-import { Zlib } from "zlib";
+import {
+  HandlerType,
+  initWebsocket,
+  WsSchema,
+} from "dev-in-prod-lib/src/typedWs";
+import { globalConfig } from "../../lib/src/utils";
+import WebSocket from "ws";
+import * as z from "zod";
 
-enum MsgType {
-  hello = "hello",
-  authorized = "authorized",
-  invalidToken = "invalidToken",
-  error = "error",
-  proxyRequest = "proxyRequest",
-  proxyResponse = "proxyResponse",
-}
+type Handler<
+  IncomingSchemaType extends WsSchema,
+  MsgType extends keyof IncomingSchemaType,
+  BodyType extends z.infer<IncomingSchemaType[MsgType]> = z.infer<
+    IncomingSchemaType[MsgType]
+  >
+> = (msgType: MsgType, bodyType: BodyType) => {};
 
-enum WsClientState {
-  connecting,
-  authorizing,
-  listening,
-  closed,
-  error,
-}
-
-class WsClient {
-  // TODO add ping/pong
-  ws: WebSocket;
-  state: WsClientState;
-
-  constructor(wsUrl: string, token: string) {
-    this.ws = new WebSocket(wsUrl);
-    this.state = WsClientState.connecting;
-
-    this.ws.onopen = (event: OpenEvent) => {
-      this.state = WsClientState.authorizing;
-      this.send({ type: "authorize", authToken: token });
-    };
-    this.ws.onmessage = (event: MessageEvent) => {
-      log("messsage", event);
-      const parseResult = serverSchema.safeParse(event.data);
-      if (parseResult.success) {
-        const msg = parseResult.data;
-        switch (msg.type) {
-          case "proxy":
-            proxyRequest(msg);
-
-            break;
-          case "unauthorized":
-            break;
-        }
-      }
-      // TODO await promise somehow
-    };
-    this.ws.onerror = (event: ErrorEvent) => {
-      log("error", event);
-      this.state = WsClientState.error;
-    };
-
-    this.ws.onclose = (event: CloseEvent) => {
-      log("close", event);
-      this.state = WsClientState.closed;
-    };
-  }
-
-  send(msg: ClientMsg) {
-    this.ws.send(JSON.stringify(msg));
-  }
-
-  async proxyRequest(msg: ServerMsg["type"]) {
-    const res = await fetch(globalConfig.exampleDevUrl, {
-      headers: msg.headers,
-      method: msg.method,
-      body: msg.body,
-    }).then((resp) => {
-      resp.body;
-      resp.status;
-      resp.statusText;
-      resp.headers;
-    });
-  }
-  handleMessage(event: MessageEvent): boolean {
-    const msg = parse(event);
-    log("message", msg);
-    const msgType = msg.type;
-    const msgBody = msg.body;
-
-    switch (this.state) {
-      case WsClientState.authorizing:
-        if (msgType == MsgType.authorized) {
-          this.state = WsClientState.listening;
-          return true;
-        } else if (msgType == MsgType.error) {
-          requireLogin();
-          return true;
-        }
-        break;
-      case WsClientState.listening:
-        if (msgType == MsgType.proxyRequest) {
-          const promise = (async () => {
-            const resp = await fetch(globalConfig.exampleProdUrl, msgBody);
-            this.send(MsgType.proxyResponse, resp);
-          })();
-          // TODO handle promise
-          return true;
-        }
-        break;
-    }
-    return false;
-  }
-}
-
-const requireLogin = () => {};
-
-type WsMessage = {
-  type: MsgType;
-  body: any;
+const foo: Handler<typeof serverSchema, "proxy"> = (msgType, bodyType) => {
+  msgType == "proxy";
+  bodyType.body;
 };
 
-const send = (ws: WebSocket, type: MsgType, msg: any) => {
-  ws.send(JSON.stringify({ type: type, msg }));
-};
-const parse = (event: MessageEvent): WsMessage => {
-  const parsed = JSON.parse(event.data.toString());
-  // TODO type check
-  return parsed;
-};
-
-enum WsServerState {
-  listening,
-  authorized,
-  closed,
-}
-
-class WsServer {
-  ws: WebSocket;
-  state: WsServerState;
-  promises: Promise<void>[];
-
-  constructor(ws: WebSocket) {
-    this.ws = ws;
-    this.state = WsServerState.listening;
-    this.promises = [];
-
-    this.ws.onmessage = (event: MessageEvent) => {
-      const handled = this.handleMessage(event);
-      if (!handled) {
-        throw new Error(`Invalid message ${event.data}`);
-      }
-    };
-    this.ws.onerror = (event: ErrorEvent) => {
-      log("error", event);
-    };
-    this.ws.onclose = (event: CloseEvent) => {
-      log("close", event);
-      this.state = WsServerState.closed;
-    };
+const handler: HandlerType<typeof serverSchema, typeof clientSchema> = async (
+  wsWrapper,
+  msgType,
+  body
+) => {
+  switch (msgType) {
+    case "proxy":
+      const res = await fetch(globalConfig.exampleDevUrl, {
+        headers: body("proxy").headers,
+        method: body.method,
+        body: body.body,
+      });
+      break;
+    case "unauthorized":
+      break;
   }
-
-  handleMessage(event: MessageEvent): boolean {
-    log("message", event);
-    const msg = parse(event);
-    switch (this.state) {
-      case WsServerState.listening:
-        if (msg.type == MsgType.hello) {
-          // TODO static typing
-          const token = msg.body.token;
-          const promise = (async () => {
-            const res = await checkToken(token);
-            if (res) {
-              this.send(MsgType.authorized);
-              this.state = WsServerState.authorized;
-            } else {
-              this.send(MsgType.invalidToken);
-            }
-          })();
-
-          // TODO handle promise
-          return true;
-        }
-        break;
-    }
-    return false;
-  }
-
-  send(type: MsgType, body?: any) {
-    send(this.ws, type, body);
-  }
-}
-
-const checkToken = async (token: string): Promise<boolean> => {
-  return false;
 };
-
-let wsClient;
 
 export const initWsClient = (token: string) => {
-  wsClient = new WsClient(globalConfig.routerWsUrl, token);
+  const ws = new WebSocket(globalConfig.routerWsUrl);
+  initWebsocket(ws, serverSchema, handler);
 };

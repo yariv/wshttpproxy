@@ -15,6 +15,21 @@ export const serverSchema = {
   }),
 };
 
+export const serverSchema2 = z.union([
+  z.object({
+    type: z.literal("unauthorized"),
+    body: z.void(),
+  }),
+  z.object({
+    type: z.literal("proxy"),
+    body: z.object({
+      method: z.string(),
+      headers: z.record(z.string()),
+      body: z.string(),
+    }),
+  }),
+]);
+
 export type ClientMsg<msgName extends keyof typeof clientSchema> = z.infer<
   typeof clientSchema[msgName]
 >;

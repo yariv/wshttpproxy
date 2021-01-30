@@ -3,18 +3,20 @@ import {
   start as appServerStart,
 } from "dev-in-prod-lib/src/appServer";
 import { log } from "dev-in-prod-lib/src/log";
+import {
+  HandlerType,
+  initWebsocket,
+  WsWrapper,
+} from "dev-in-prod-lib/src/typedWs";
 import { getRouteKeyFromCtx, globalConfig } from "dev-in-prod-lib/src/utils";
+import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
 import Koa from "koa";
 import route from "koa-route";
 import websockify from "koa-websocket";
 import next from "next";
-import * as ws from "ws";
-import * as z from "zod";
-import { prisma } from "./prisma";
 import { router as apiRouter } from "./apiHandlers/router";
+import { prisma } from "./prisma";
 import { sha256 } from "./utils";
-import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
-import { ZodError } from "zod";
 
 export const start = async (
   port: number,
@@ -44,81 +46,6 @@ const initKoaApp = async (): Promise<Koa> => {
   );
   return app;
 };
-
-type WsSchema = Record<string, z.ZodType<any>>;
-
-const initWebsocket = <
-  IncomingSchemaType extends WsSchema,
-  OutgoingSchemaType extends WsSchema
->(
-  ws: ws,
-  incomingSchema: IncomingSchemaType,
-  handler: HandlerType<typeof incomingSchema, OutgoingSchemaType>
-) => {
-  const wrapper = new WsWrapper<OutgoingSchemaType>(ws);
-
-  ws.onopen = () => {
-    log("open");
-  };
-
-  ws.onmessage = (message) => {
-    log("message", message);
-    const msgStr = message.data.toString("utf-8");
-    let unserialized;
-    try {
-      unserialized = JSON.parse(msgStr);
-    } catch (e) {
-      log("Invalid message", msgStr);
-      return;
-    }
-
-    const msgType = unserialized.type;
-    if (!msgType || !(msgType in incomingSchema)) {
-      log("Invalid message", msgStr);
-      return;
-    }
-
-    const parseResult = incomingSchema[msgType].safeParse(unserialized);
-    if (parseResult.success) {
-      handler(wrapper, msgType, parseResult.data).catch((err) => {
-        log("Error in handling message", message, err.message);
-      });
-    } else {
-      log("Invalid message", message);
-    }
-    // when the ws authenticates, map it to the route key
-  };
-
-  ws.onclose = () => {
-    console.log("close");
-  };
-  ws.onerror = (err) => {
-    console.error("error");
-  };
-};
-
-class WsWrapper<OutgoingSchemaType extends WsSchema> {
-  ws: ws;
-  constructor(ws: ws) {
-    this.ws = ws;
-  }
-
-  sendMsg(
-    outgoingMsgType: keyof OutgoingSchemaType,
-    body: z.infer<OutgoingSchemaType[typeof outgoingMsgType]>
-  ) {
-    this.ws.send(JSON.stringify({ outgoingMsgType, body }));
-  }
-}
-
-type HandlerType<
-  IncomingSchemaType extends WsSchema,
-  OutgoingSchemaType extends WsSchema
-> = (
-  wsWrapper: WsWrapper<OutgoingSchemaType>,
-  msgType: keyof IncomingSchemaType,
-  body: z.infer<IncomingSchemaType[typeof msgType]>
-) => Promise<void>;
 
 const serverHandler: HandlerType<
   typeof clientSchema,
