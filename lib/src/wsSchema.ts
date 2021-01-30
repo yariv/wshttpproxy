@@ -9,7 +9,6 @@ export const clientSchema = {
 export const serverSchema = {
   unauthorized: z.void(),
   proxy: z.object({
-    type: z.literal("proxy"),
     method: z.string(),
     headers: z.record(z.string()),
     body: z.string(),

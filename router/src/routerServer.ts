@@ -25,7 +25,10 @@ export const start = async (
 
 const originalHostHeader = "X-Forwarded-Host";
 
-const liveWebSockets: Record<string, ws> = {};
+const liveWebSockets: Record<
+  string,
+  WsWrapper<typeof clientSchema, typeof serverSchema>
+> = {};
 
 const initKoaApp = async (): Promise<Koa> => {
   const koa = new Koa();
@@ -56,12 +59,7 @@ const initWebsocket = <
   outgoingSchema: OutgoingSchemaType,
   handler: HandlerType<typeof incomingSchema, typeof outgoingSchema>
 ) => {
-  const sendMsg = (
-    type: keyof typeof outgoingSchema,
-    body: z.infer<typeof outgoingSchema[typeof type]>
-  ) => {
-    ws.send(JSON.stringify({ type, body }));
-  };
+  const wrapper = new WsWrapper<IncomingSchemaType, OutgoingSchemaType>(ws);
 
   ws.onopen = () => {
     log("open");
@@ -86,7 +84,7 @@ const initWebsocket = <
 
     const parseResult = incomingSchema[msgType].safeParse(unserialized);
     if (parseResult.success) {
-      handler(ws, sendMsg, msgType, parseResult.data).catch((err) => {
+      handler(wrapper, msgType, parseResult.data).catch((err) => {
         log("Error in handling message", message, err.message);
       });
     } else {
@@ -103,23 +101,37 @@ const initWebsocket = <
   };
 };
 
+class WsWrapper<
+  IncomingSchemaType extends WsSchema,
+  OutgoingSchemaType extends WsSchema
+> {
+  ws: ws;
+  constructor(ws: ws) {
+    this.ws = ws;
+  }
+
+  sendMsg(
+    outgoingMsgType: keyof OutgoingSchemaType,
+    body: z.infer<OutgoingSchemaType[typeof outgoingMsgType]>
+  ) {
+    this.ws.send(JSON.stringify({ outgoingMsgType, body }));
+  }
+}
+
 type HandlerType<
   IncomingSchemaType extends WsSchema,
   OutgoingSchemaType extends WsSchema
 > = (
-  ws: ws,
-  sendMsg: (
-    outgoingMsgType: keyof OutgoingSchemaType,
-    body: z.infer<OutgoingSchemaType[typeof outgoingMsgType]>
-  ) => void,
+  wsWrapper: WsWrapper<IncomingSchemaType, OutgoingSchemaType>,
   msgType: keyof IncomingSchemaType,
   body: z.infer<IncomingSchemaType[typeof msgType]>
-) => Promise<void>;
+) => void;
 
-const serverHandler: HandlerType<
-  typeof clientSchema,
-  typeof serverSchema
-> = async (ws, sendMsg, msgType, body) => {
+const serverHandler: HandlerType<typeof clientSchema, typeof serverSchema> = (
+  wsWrapper,
+  msgType,
+  body
+) => {
   switch (msgType) {
     case "authorize":
       prisma.oAuthToken
@@ -128,17 +140,18 @@ const serverHandler: HandlerType<
         })
         .then((result) => {
           if (result) {
-            liveWebSockets[result.tokenHash] = ws;
-            ws.on("close", () => {
+            liveWebSockets[result.tokenHash] = wsWrapper;
+            wsWrapper.ws.on("close", () => {
               log("close2", result.tokenHash);
               delete liveWebSockets[result.tokenHash];
             });
           } else {
-            sendMsg("unauthorized");
+            wsWrapper.sendMsg("unauthorized");
           }
         });
   }
 };
+
 const proxyMiddleware = async (ctx: Koa.Context, next: Koa.Next) => {
   const appSecret = ctx.header[globalConfig.appSecretHeader];
   if (!appSecret) {
@@ -174,12 +187,10 @@ const proxyMiddleware = async (ctx: Koa.Context, next: Koa.Next) => {
     ctx.throw(400, "Route isn't connected");
   }
 
-  const message: z.infer<typeof serverSchema> = {
-    type: "proxy",
+  liveWebSockets[routeKey].sendMsg("proxy", {
     method: ctx.method,
     headers: ctx.headers,
     body: ctx.body,
-  };
-  liveWebSockets[routeKey].send(JSON.stringify(message));
+  });
   ctx.status = 200;
 };
