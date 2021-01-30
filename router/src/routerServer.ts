@@ -125,30 +125,26 @@ type HandlerType<
   wsWrapper: WsWrapper<IncomingSchemaType, OutgoingSchemaType>,
   msgType: keyof IncomingSchemaType,
   body: z.infer<IncomingSchemaType[typeof msgType]>
-) => void;
+) => Promise<void>;
 
-const serverHandler: HandlerType<typeof clientSchema, typeof serverSchema> = (
-  wsWrapper,
-  msgType,
-  body
-) => {
+const serverHandler: HandlerType<
+  typeof clientSchema,
+  typeof serverSchema
+> = async (wsWrapper, msgType, body) => {
   switch (msgType) {
     case "authorize":
-      prisma.oAuthToken
-        .findUnique({
-          where: { tokenHash: sha256(body.authToken) },
-        })
-        .then((result) => {
-          if (result) {
-            liveWebSockets[result.tokenHash] = wsWrapper;
-            wsWrapper.ws.on("close", () => {
-              log("close2", result.tokenHash);
-              delete liveWebSockets[result.tokenHash];
-            });
-          } else {
-            wsWrapper.sendMsg("unauthorized");
-          }
+      const result = await prisma.oAuthToken.findUnique({
+        where: { tokenHash: sha256(body.authToken) },
+      });
+      if (result) {
+        liveWebSockets[result.tokenHash] = wsWrapper;
+        wsWrapper.ws.on("close", () => {
+          log("close2", result.tokenHash);
+          delete liveWebSockets[result.tokenHash];
         });
+      } else {
+        wsWrapper.sendMsg("unauthorized");
+      }
   }
 };
 
