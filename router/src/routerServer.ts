@@ -25,10 +25,7 @@ export const start = async (
 
 const originalHostHeader = "X-Forwarded-Host";
 
-const liveWebSockets: Record<
-  string,
-  WsWrapper<typeof clientSchema, typeof serverSchema>
-> = {};
+const liveWebSockets: Record<string, WsWrapper<typeof serverSchema>> = {};
 
 const initKoaApp = async (): Promise<Koa> => {
   const koa = new Koa();
@@ -42,7 +39,7 @@ const initKoaApp = async (): Promise<Koa> => {
   const app = websockify(koa);
   app.ws.use(
     route.all("/ws", (ctx) => {
-      initWebsocket(ctx.websocket, clientSchema, serverSchema, serverHandler);
+      initWebsocket(ctx.websocket, clientSchema, serverHandler);
     })
   );
   return app;
@@ -56,10 +53,9 @@ const initWebsocket = <
 >(
   ws: ws,
   incomingSchema: IncomingSchemaType,
-  outgoingSchema: OutgoingSchemaType,
-  handler: HandlerType<typeof incomingSchema, typeof outgoingSchema>
+  handler: HandlerType<typeof incomingSchema, OutgoingSchemaType>
 ) => {
-  const wrapper = new WsWrapper<IncomingSchemaType, OutgoingSchemaType>(ws);
+  const wrapper = new WsWrapper<OutgoingSchemaType>(ws);
 
   ws.onopen = () => {
     log("open");
@@ -101,10 +97,7 @@ const initWebsocket = <
   };
 };
 
-class WsWrapper<
-  IncomingSchemaType extends WsSchema,
-  OutgoingSchemaType extends WsSchema
-> {
+class WsWrapper<OutgoingSchemaType extends WsSchema> {
   ws: ws;
   constructor(ws: ws) {
     this.ws = ws;
@@ -122,7 +115,7 @@ type HandlerType<
   IncomingSchemaType extends WsSchema,
   OutgoingSchemaType extends WsSchema
 > = (
-  wsWrapper: WsWrapper<IncomingSchemaType, OutgoingSchemaType>,
+  wsWrapper: WsWrapper<OutgoingSchemaType>,
   msgType: keyof IncomingSchemaType,
   body: z.infer<IncomingSchemaType[typeof msgType]>
 ) => Promise<void>;
@@ -144,6 +137,7 @@ const serverHandler: HandlerType<
         });
       } else {
         wsWrapper.sendMsg("unauthorized");
+        wsWrapper.ws.close();
       }
   }
 };
