@@ -1,6 +1,13 @@
 import WebSocket, { CloseEvent, ErrorEvent, MessageEvent, OpenEvent } from "ws";
-import { globalConfig } from "../../lib/src/globalConfig";
-import { log } from "../../lib/src/log";
+import { globalConfig } from "../../lib/src/utils";
+import { log } from "dev-in-prod-lib/src/log";
+import {
+  ClientMsg,
+  clientSchema,
+  ServerMsg,
+  serverSchema,
+} from "dev-in-prod-lib/src/wsSchema";
+import { Zlib } from "zlib";
 
 enum MsgType {
   hello = "hello",
@@ -30,12 +37,21 @@ class WsClient {
 
     this.ws.onopen = (event: OpenEvent) => {
       this.state = WsClientState.authorizing;
-      this.send(MsgType.hello, token);
+      this.send({ type: "authorize", authToken: token });
     };
     this.ws.onmessage = (event: MessageEvent) => {
-      const res = this.handleMessage(event);
-      if (!res) {
-        throw new Error(`Invalid message ${event.data}`);
+      log("messsage", event);
+      const parseResult = serverSchema.safeParse(event.data);
+      if (parseResult.success) {
+        const msg = parseResult.data;
+        switch (msg.type) {
+          case "proxy":
+            proxyRequest(msg);
+
+            break;
+          case "unauthorized":
+            break;
+        }
       }
       // TODO await promise somehow
     };
@@ -50,10 +66,22 @@ class WsClient {
     };
   }
 
-  send(type: MsgType, body: any) {
-    send(this.ws, type, body);
+  send(msg: ClientMsg) {
+    this.ws.send(JSON.stringify(msg));
   }
 
+  async proxyRequest(msg: ServerMsg["type"]) {
+    const res = await fetch(globalConfig.exampleDevUrl, {
+      headers: msg.headers,
+      method: msg.method,
+      body: msg.body,
+    }).then((resp) => {
+      resp.body;
+      resp.status;
+      resp.statusText;
+      resp.headers;
+    });
+  }
   handleMessage(event: MessageEvent): boolean {
     const msg = parse(event);
     log("message", msg);

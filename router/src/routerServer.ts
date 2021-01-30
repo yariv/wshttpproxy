@@ -14,6 +14,7 @@ import { prisma } from "./prisma";
 import { router as apiRouter } from "./apiHandlers/router";
 import { sha256 } from "./utils";
 import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
+import { ZodError } from "zod";
 
 export const start = async (
   port: number,
@@ -38,52 +39,113 @@ const initKoaApp = async (): Promise<Koa> => {
   const app = websockify(koa);
   app.ws.use(
     route.all("/ws", (ctx) => {
-      const sendMsg = (msg: z.infer<typeof serverSchema>) => {
-        ctx.websocket.send(JSON.stringify(msg));
-      };
-      ctx.websocket.onopen = () => {
-        log("open");
-      };
-      ctx.websocket.onmessage = (message) => {
-        log("message", message);
-
-        const parseResult = clientSchema.safeParse(message);
-        if (parseResult.success) {
-          switch (parseResult.data.type) {
-            case "authorize":
-              prisma.oAuthToken
-                .findUnique({
-                  where: { tokenHash: sha256(parseResult.data.authToken) },
-                })
-                .then((result) => {
-                  if (result) {
-                    liveWebSockets[result.tokenHash] = ctx.websocket;
-                    ctx.websocket.on("close", () => {
-                      log("close2", result.tokenHash);
-                      delete liveWebSockets[result.tokenHash];
-                    });
-                    sendMsg({ type: "authorized" });
-                  } else {
-                    sendMsg({ type: "unauthorized" });
-                  }
-                });
-          }
-        } else {
-          sendMsg({ type: "invalidMessage", message: message });
-        }
-        // when the ws authenticates, map it to the route key
-      };
-      ctx.websocket.onclose = () => {
-        log("close");
-      };
-      ctx.websocket.onerror = () => {
-        log("error");
-      };
+      initWebsocket(ctx.websocket, serverSchema, clientSchema);
     })
   );
   return app;
 };
 
+type WsSchema = Record<string, z.ZodType<any>>;
+
+const initWebsocket = (
+  ws: ws,
+  incomingSchema: WsSchema,
+  outgoingSchema: WsSchema,
+  handler: (
+    ws: ws,
+    sendMsg: (
+      outgoingMsgType: keyof typeof outgoingSchema,
+      body: z.infer<typeof outgoingSchema[typeof outgoingMsgType]>
+    ) => void,
+    msgType: keyof typeof incomingSchema,
+    body: z.infer<typeof incomingSchema[typeof msgType]>
+  ) => Promise<void>
+) => {
+  const sendMsg = (
+    type: keyof typeof outgoingSchema,
+    body: z.infer<typeof outgoingSchema[typeof type]>
+  ) => {
+    ws.send(JSON.stringify({ type, body }));
+  };
+
+  ws.onopen = () => {
+    log("open");
+  };
+
+  ws.onmessage = (message) => {
+    log("message", message);
+    const msgStr = message.data.toString("utf-8");
+    let unserialized;
+    try {
+      unserialized = JSON.parse(msgStr);
+    } catch (e) {
+      log("Invalid message", msgStr);
+      return;
+    }
+
+    const msgType = unserialized.type;
+    if (!msgType || !(msgType in incomingSchema)) {
+      log("Invalid message", msgStr);
+      return;
+    }
+
+    const parseResult = incomingSchema[msgType].safeParse(unserialized);
+    if (parseResult.success) {
+      handler(ws, sendMsg, msgType, parseResult.data).catch((err) => {
+        log("Error in handling message", message, err.message);
+      });
+    } else {
+      log("Invalid message", message);
+    }
+    // when the ws authenticates, map it to the route key
+  };
+
+  ws.onclose = () => {
+    console.log("close");
+  };
+  ws.onerror = (err) => {
+    console.error("error");
+  };
+};
+
+type HandlerType<
+  IncomingSchemaType extends WsSchema,
+  OutgoingSchemaType extends WsSchema
+> = (
+  ws: ws,
+  sendMsg: (
+    outgoingMsgType: keyof OutgoingSchemaType,
+    body: z.infer<OutgoingSchemaType[typeof outgoingMsgType]>
+  ) => void,
+  msgType: keyof IncomingSchemaType,
+  body: z.infer<IncomingSchemaType[typeof msgType]>
+) => Promise<void>;
+
+const handler: HandlerType<typeof clientSchema, typeof serverSchema> = async (
+  ws,
+  sendMsg,
+  msgType,
+  body
+) => {
+  switch (msgType) {
+    case "authorize":
+      prisma.oAuthToken
+        .findUnique({
+          where: { tokenHash: sha256(body.authToken) },
+        })
+        .then((result) => {
+          if (result) {
+            liveWebSockets[result.tokenHash] = ws;
+            ws.on("close", () => {
+              log("close2", result.tokenHash);
+              delete liveWebSockets[result.tokenHash];
+            });
+          } else {
+            sendMsg("unauthorized");
+          }
+        });
+  }
+};
 const proxyMiddleware = async (ctx: Koa.Context, next: Koa.Next) => {
   const appSecret = ctx.header[globalConfig.appSecretHeader];
   if (!appSecret) {
