@@ -4,15 +4,15 @@ import {
 } from "dev-in-prod-lib/src/appServer";
 import { log } from "dev-in-prod-lib/src/log";
 import {
-  HandlerType,
+  WsHandlerType,
   initWebsocket,
   WsWrapper,
+  getMsgHandler,
 } from "dev-in-prod-lib/src/typedWs";
 import { getRouteKeyFromCtx, globalConfig } from "dev-in-prod-lib/src/utils";
 import {
   clientSchema,
   clientSchema2,
-  serverSchema,
   serverSchema2,
 } from "dev-in-prod-lib/src/wsSchema";
 import Koa from "koa";
@@ -22,6 +22,7 @@ import next from "next";
 import { router as apiRouter } from "./apiHandlers/router";
 import { prisma } from "./prisma";
 import { sha256 } from "./utils";
+import WebSocket from "ws";
 
 export const start = async (
   port: number,
@@ -46,32 +47,38 @@ const initKoaApp = async (): Promise<Koa> => {
   const app = websockify(koa);
   app.ws.use(
     route.all("/ws", (ctx) => {
-      initWebsocket(ctx.websocket, clientSchema2, serverHandler);
+      initWebsocket(ctx.websocket);
+      ctx.websocket.onmessage = getMsgHandler(
+        clientSchema2,
+        makeWsServerHandler(ctx.websocket)
+      );
     })
   );
   return app;
 };
 
-const serverHandler: HandlerType<
-  typeof clientSchema2,
-  typeof serverSchema2
-> = async (wsWrapper, msg) => {
-  switch (msg.type) {
-    case "authorize":
-      const result = await prisma.oAuthToken.findUnique({
-        where: { tokenHash: sha256(msg.body.authToken) },
-      });
-      if (result) {
-        liveWebSockets[result.tokenHash] = wsWrapper;
-        wsWrapper.ws.on("close", () => {
-          log("close2", result.tokenHash);
-          delete liveWebSockets[result.tokenHash];
+const makeWsServerHandler = (
+  ws: WebSocket
+): WsHandlerType<typeof clientSchema2> => {
+  const wsWrapper = new WsWrapper<typeof serverSchema2>(ws);
+  return async (msg) => {
+    switch (msg.type) {
+      case "authorize":
+        const result = await prisma.oAuthToken.findUnique({
+          where: { tokenHash: sha256(msg.body.authToken) },
         });
-      } else {
-        wsWrapper.sendMsg({ type: "unauthorized" });
-        wsWrapper.ws.close();
-      }
-  }
+        if (result) {
+          liveWebSockets[result.tokenHash] = wsWrapper;
+          wsWrapper.ws.on("close", () => {
+            log("close2", result.tokenHash);
+            delete liveWebSockets[result.tokenHash];
+          });
+        } else {
+          wsWrapper.sendMsg({ type: "unauthorized" });
+          wsWrapper.ws.close();
+        }
+    }
+  };
 };
 
 const proxyMiddleware = async (ctx: Koa.Context, next: Koa.Next) => {
