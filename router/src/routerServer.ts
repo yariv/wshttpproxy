@@ -9,12 +9,12 @@ import {
   WsWrapper,
   getMsgHandler,
 } from "dev-in-prod-lib/src/typedWs";
-import { getRouteKeyFromCtx, globalConfig } from "dev-in-prod-lib/src/utils";
 import {
-  clientSchema,
-  clientSchema2,
-  serverSchema2,
-} from "dev-in-prod-lib/src/wsSchema";
+  genNewToken,
+  getRouteKeyFromCtx,
+  globalConfig,
+} from "dev-in-prod-lib/src/utils";
+import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
 import Koa from "koa";
 import route from "koa-route";
 import websockify from "koa-websocket";
@@ -33,7 +33,13 @@ export const start = async (
 
 const originalHostHeader = "X-Forwarded-Host";
 
-const liveWebSockets: Record<string, WsWrapper<typeof serverSchema2>> = {};
+const proxyTimeout = 10000;
+
+const liveWebSockets: Record<string, WsWrapper<typeof serverSchema>> = {};
+const proxyRequests: Record<
+  string,
+  { timeoutId: NodeJS.Timeout; ctx: Koa.Context }
+> = {};
 
 const initKoaApp = async (): Promise<Koa> => {
   const koa = new Koa();
@@ -49,7 +55,7 @@ const initKoaApp = async (): Promise<Koa> => {
     route.all("/ws", (ctx) => {
       initWebsocket(ctx.websocket);
       ctx.websocket.onmessage = getMsgHandler(
-        clientSchema2,
+        clientSchema,
         makeWsServerHandler(ctx.websocket)
       );
     })
@@ -57,11 +63,24 @@ const initKoaApp = async (): Promise<Koa> => {
   return app;
 };
 
+const sendProxyResponse = (
+  requestId: string,
+  handler: (ctx: Koa.Context) => void
+) => {
+  if (!(requestId in proxyRequests)) {
+    return;
+  }
+  handler(proxyRequests[requestId].ctx);
+  clearTimeout(proxyRequests[requestId].timeoutId);
+  delete proxyRequests[requestId];
+};
+
 const makeWsServerHandler = (
   ws: WebSocket
-): WsHandlerType<typeof clientSchema2> => {
-  const wsWrapper = new WsWrapper<typeof serverSchema2>(ws);
+): WsHandlerType<typeof clientSchema> => {
+  const wsWrapper = new WsWrapper<typeof serverSchema>(ws);
   return async (msg) => {
+    console.log("got message", msg);
     switch (msg.type) {
       case "authorize":
         const result = await prisma.oAuthToken.findUnique({
@@ -77,6 +96,19 @@ const makeWsServerHandler = (
           wsWrapper.sendMsg({ type: "unauthorized" });
           wsWrapper.ws.close();
         }
+        break;
+      case "proxyError":
+        sendProxyResponse(msg.body.requestId, (ctx) => {
+          ctx.status = 500;
+          ctx.body = msg.body.message;
+        });
+        break;
+      case "proxyResult":
+        sendProxyResponse(msg.body.requestId, (ctx) => {
+          ctx.status = 500;
+          ctx.body = msg.body.body;
+        });
+        break;
     }
   };
 };
@@ -115,14 +147,23 @@ const proxyMiddleware = async (ctx: Koa.Context, next: Koa.Next) => {
   if (!(routeKey in liveWebSockets)) {
     ctx.throw(400, "Route isn't connected");
   }
+  const requestId = genNewToken();
 
   liveWebSockets[routeKey].sendMsg({
     type: "proxy",
     body: {
+      requestId: requestId,
       method: ctx.method,
       headers: ctx.headers,
       body: ctx.body,
     },
   });
-  ctx.status = 200;
+
+  const timeoutId = setTimeout(() => {
+    sendProxyResponse(requestId, (ctx) => {
+      ctx.status = 500;
+      ctx.body = "Request timed out";
+    });
+  }, proxyTimeout);
+  proxyRequests[requestId] = { timeoutId, ctx };
 };

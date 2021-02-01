@@ -4,13 +4,13 @@ import {
   WsWrapper,
   getMsgHandler,
 } from "dev-in-prod-lib/src/typedWs";
-import { clientSchema2, serverSchema2 } from "dev-in-prod-lib/src/wsSchema";
+import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
 import WebSocket from "ws";
 import { globalConfig } from "../../lib/src/utils";
 
 const getHandler = (
-  wsWrapper: WsWrapper<typeof clientSchema2>
-): WsHandlerType<typeof serverSchema2> => {
+  wsWrapper: WsWrapper<typeof clientSchema>
+): WsHandlerType<typeof serverSchema> => {
   return async (msg) => {
     console.log("got message", msg);
     switch (msg.type) {
@@ -29,6 +29,7 @@ const getHandler = (
           wsWrapper.sendMsg({
             type: "proxyResult",
             body: {
+              requestId: msg.body.requestId,
               status: res.status,
               headers: headersMap,
               body: body,
@@ -39,6 +40,7 @@ const getHandler = (
           wsWrapper.sendMsg({
             type: "proxyError",
             body: {
+              requestId: msg.body.requestId,
               message: err.message,
             },
           });
@@ -54,5 +56,5 @@ const getHandler = (
 export const initWsClient = (token: string) => {
   const ws = new WebSocket(globalConfig.routerWsUrl);
   initWebsocket(ws);
-  ws.onmessage = getMsgHandler(serverSchema2, getHandler(new WsWrapper(ws)));
+  ws.onmessage = getMsgHandler(serverSchema, getHandler(new WsWrapper(ws)));
 };
