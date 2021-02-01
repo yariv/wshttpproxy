@@ -38,7 +38,7 @@ const proxyTimeout = 10000;
 const liveWebSockets: Record<string, WsWrapper<typeof serverSchema>> = {};
 const proxyRequests: Record<
   string,
-  { timeoutId: number; ctx: Koa.Context }
+  { timeoutId: NodeJS.Timeout; ctx: Koa.Context }
 > = {};
 
 const initKoaApp = async (): Promise<Koa> => {
@@ -107,6 +107,9 @@ const makeWsServerHandler = (
         sendProxyResponse(msg.body.requestId, (ctx) => {
           ctx.status = 500;
           ctx.body = msg.body.body;
+          ctx.status = msg.body.status;
+          ctx.statusText = msg.body.statusText;
+          ctx.headers = msg.body.headers;
         });
         break;
     }

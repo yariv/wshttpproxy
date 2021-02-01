@@ -31,6 +31,7 @@ const getHandler = (
             body: {
               requestId: msg.body.requestId,
               status: res.status,
+              statusText: res.statusText,
               headers: headersMap,
               body: body,
             },
