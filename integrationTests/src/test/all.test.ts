@@ -2,7 +2,7 @@ import { main as exampleMain } from "dev-in-prod-example/main";
 import { startSidecar } from "dev-in-prod-sidecar/src/server";
 import { main as routerMain } from "dev-in-prod-router/main";
 import { main as localProxyMain } from "dev-in-prod-local-proxy/main";
-import { getApiUrl, globalConfig } from "dev-in-prod-lib/src/utils";
+import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/src/utils";
 import {
   CloseableContainer,
   Closeable,
@@ -69,7 +69,7 @@ describe("integration", () => {
     deferClose(await routerMain(globalConfig.routerPort));
 
     const routerClient = new TypedHttpClient(
-      getApiUrl(globalConfig.routerUrl),
+      getRouterApiUrl(globalConfig.routerUrl),
       typedApiSchema
     );
     const res = await routerClient.post("createApplication", {

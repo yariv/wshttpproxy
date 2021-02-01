@@ -1,3 +1,4 @@
+import { globalConfig } from "dev-in-prod-lib/src/utils";
 import { IncomingMessage } from "http";
 import bodyParser from "koa-bodyparser";
 import Router from "koa-router";
@@ -21,7 +22,7 @@ export const createKoaRoute = <
     const httpHandler = createHttpHandler(handler);
     // TODO remove hardcoded prefix
     router.post(
-      ("/api2/" + methodName) as string,
+      (globalConfig.routerApiPathPrefix + methodName) as string,
       bodyParser(),
       async (ctx) => {
         const resp = await httpHandler(ctx.request.body, ctx.req);

@@ -1,5 +1,5 @@
 import { Closeable } from "dev-in-prod-lib/src/appServer";
-import { globalConfig } from "dev-in-prod-lib/src/utils";
+import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/src/utils";
 import { main } from "../../../../main";
 import { prisma } from "../../../prisma";
 // TODO fix import
@@ -12,10 +12,7 @@ jest.mock("next-auth/client");
 describe("createRoute", () => {
   let closeable: Closeable;
 
-  const client = new TypedHttpClient(
-    globalConfig.routerUrl + "/api2/",
-    typedApiSchema
-  );
+  const client = new TypedHttpClient(getRouterApiUrl(), typedApiSchema);
 
   beforeAll(async () => {
     closeable = await main(globalConfig.routerPort);

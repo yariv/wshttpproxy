@@ -21,11 +21,12 @@ export const globalConfig = {
   routeKeyHeader: "dev-in-prod-router-key",
   appSecretHeader: "dev-in-prod-app-secret",
   routeKeySubdomainPrefix: "rk-",
+  routerApiPathPrefix: "/api/",
 };
 
-export const getApiUrl = (baseUrl: string): string => {
+export const getRouterApiUrl = (): string => {
   // TODO revise
-  return baseUrl + "/api2/";
+  return globalConfig.routerUrl + globalConfig.routerApiPathPrefix;
 };
 
 // TODO move to a different file?
