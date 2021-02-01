@@ -6,10 +6,24 @@ export const clientSchema = {
   }),
 };
 
-export const clientSchema2 = z.object({
-  type: z.literal("authorize"),
-  body: z.object({ authToken: z.string() }),
-});
+export const clientSchema2 = z.union([
+  z.object({
+    type: z.literal("authorize"),
+    body: z.object({ authToken: z.string() }),
+  }),
+  z.object({
+    type: z.literal("proxyError"),
+    body: z.object({ message: z.string() }),
+  }),
+  z.object({
+    type: z.literal("proxyResult"),
+    body: z.object({
+      status: z.number(),
+      headers: z.record(z.string()),
+      body: z.string(),
+    }),
+  }),
+]);
 
 export const serverSchema = {
   unauthorized: z.void(),
@@ -23,7 +37,7 @@ export const serverSchema = {
 export const serverSchema2 = z.union([
   z.object({
     type: z.literal("unauthorized"),
-    body: z.void(),
+    body: z.object({}),
   }),
   z.object({
     type: z.literal("proxy"),

@@ -2,7 +2,11 @@ import * as z from "zod";
 import WebSocket from "ws";
 import { log } from "./log";
 
-export type WsSchema = z.ZodType<any>;
+export type WsMsg = z.ZodObject<{
+  type: z.ZodLiteral<string>;
+  body: z.ZodObject<any>;
+}>;
+export type WsSchema = WsMsg | z.ZodUnion<[WsMsg, WsMsg, ...WsMsg[]]>;
 export type WsHandlerType<IncomingSchemaType extends WsSchema> = (
   msg: z.infer<IncomingSchemaType>
 ) => Promise<void>;
