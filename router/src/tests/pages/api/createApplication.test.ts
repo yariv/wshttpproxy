@@ -37,6 +37,7 @@ describe("createApplication", () => {
   });
 
   it("requires name", async () => {
+    await setupMockSession();
     try {
       const res = await client.post("createApplication", {} as any);
       fail();

@@ -19,7 +19,6 @@ export const authorize = async (
 
   const session = await getSession({ req });
   if (!session) {
-    console.log("DFBDF");
     throw new ApiHttpError("Not logged in", 401);
   }
   // TODO clean up?
