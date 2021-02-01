@@ -1,4 +1,4 @@
-import { IncomingMessage } from "http";
+import { Request } from "koa";
 import ShortUniqueId from "short-unique-id";
 import { authorize } from "../middleware";
 import { prisma } from "../prisma";
@@ -9,8 +9,10 @@ import { typedApiSchema } from "../typedApiSchema";
 export const createRouteHandler = createKoaRoute(
   typedApiSchema,
   "createRoute",
-  async (body, req: IncomingMessage) => {
-    const session = await authorize(req);
+  async (body, req: Request) => {
+    const userId = await authorize(req.method, body.oauthToken);
+
+    // TODO replace with routingSecret
     const secret = body.applicationSecret;
     const application = await prisma.application.findUnique({
       where: { secret: secret },
@@ -24,7 +26,7 @@ export const createRouteHandler = createKoaRoute(
         key: routeKey,
         owner: {
           connect: {
-            id: session.user.id,
+            id: userId,
           },
         },
         application: {

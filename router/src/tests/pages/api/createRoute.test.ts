@@ -5,7 +5,7 @@ import { prisma } from "../../../prisma";
 // TODO fix import
 import { TypedHttpClient } from "../../../typedApi/httpApi";
 import { initTestDb } from "../../db";
-import { setupMockSession } from "../../testLib";
+import { createTestOAuthToken } from "../../testLib";
 import { typedApiSchema } from "../../../typedApiSchema";
 jest.mock("next-auth/client");
 
@@ -32,9 +32,10 @@ describe("createRoute", () => {
   });
 
   it("requires valid application secret", async () => {
-    await setupMockSession();
+    const oauthToken = await createTestOAuthToken();
     try {
       const res = await client.post("createRoute", {
+        oauthToken,
         applicationSecret: "foo",
       });
       fail();
@@ -43,26 +44,27 @@ describe("createRoute", () => {
     }
   });
 
-  it("requires session", async () => {
+  it("requires oauthToken", async () => {
     try {
       const res = await client.post("createRoute", {
         applicationSecret: "foo",
-      });
+      } as any);
       fail();
     } catch (err) {
-      expect(err.message).toBe("Not logged in");
+      expect(err.message).toBe("Invalid request");
     }
   });
 
   it("works", async () => {
-    await setupMockSession();
+    const oauthToken = await createTestOAuthToken();
     const res = await client.post("createApplication", {
+      oauthToken,
       name: "foo",
     });
 
-    debugger;
     const secret = res.secret;
     const res2 = await client.post("createRoute", {
+      oauthToken,
       applicationSecret: secret,
     });
     expect(res2.routeKey.length).toBe(6);

@@ -1,5 +1,6 @@
 import { globalConfig } from "dev-in-prod-lib/src/utils";
 import { IncomingMessage } from "http";
+import { Request } from "koa";
 import bodyParser from "koa-bodyparser";
 import Router from "koa-router";
 import { typedServerFunc, TypedServerFunc } from "./baseApi";
@@ -12,7 +13,7 @@ export const createKoaRoute = <
 >(
   schema: ApiSchemaType,
   methodName: MethodType,
-  handler: TypedServerFunc<ApiSchemaType, MethodType, IncomingMessage>
+  handler: TypedServerFunc<ApiSchemaType, MethodType, Request>
 ): ((router: Router) => void) => {
   return (router) => {
     const httpHandler = createHttpHandler(
@@ -23,7 +24,7 @@ export const createKoaRoute = <
       (globalConfig.routerApiPathPrefix + methodName) as string,
       bodyParser(),
       async (ctx) => {
-        const resp = await httpHandler(ctx.request.body, ctx.req);
+        const resp = await httpHandler(ctx.request.body, ctx.request);
         ctx.status = resp.status;
         ctx.body = resp.body;
       }

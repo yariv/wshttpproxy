@@ -71,6 +71,7 @@ model VerificationRequest {
 model Application {
   id String @default(cuid()) @id
   name String
+  // TODO replace with proxySecret and routingSecret
   secret String @unique
   createdAt DateTime @default(now()) @map(name: "created_at")
   updatedAt DateTime @updatedAt @map(name: "updated_at")
@@ -105,7 +106,6 @@ model OAuthToken {
   userId Int
   user User @relation(fields:[userId], references: [id])
 
-  @@unique([tokenHash, clientId])
   @@unique([userId, clientId])
   @@map(name: "oauth_token")
 } 

@@ -5,6 +5,7 @@ import * as React from "react";
 import * as z from "zod";
 import { genNewToken } from "dev-in-prod-lib/src/utils";
 import { prisma } from "../../prisma";
+import { createOAuthToken } from "../../utils";
 
 const AuthorizePage = () => {
   const [session, loading] = useSession();
@@ -45,17 +46,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 
   const userId = (session.user as any).id;
 
-  const token = genNewToken();
-  const tokenHash = createHash("sha256").update(token).digest("hex");
-
-  // we use deleteMany to avoid
-  await prisma.oAuthToken.deleteMany({
-    where: { userId, clientId: client_id },
-  });
-
-  await prisma.oAuthToken.create({
-    data: { clientId: client_id, tokenHash, user: { connect: { id: userId } } },
-  });
+  const token = await createOAuthToken(userId, client_id);
 
   const redirectUrl = new URL(redirect_uri);
   redirectUrl.hash = "token=" + token;

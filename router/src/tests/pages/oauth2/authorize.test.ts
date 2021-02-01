@@ -3,7 +3,7 @@ import { getServerSideProps } from "../../../pages/oauth2/authorize";
 import { sha256 } from "../../../utils";
 import { initTestDb } from "../../db";
 import { prisma } from "../../../prisma";
-import { setupMockSession } from "../../testLib";
+import { createTestOAuthToken } from "../../testLib";
 import client from "next-auth/client";
 jest.mock("next-auth/client");
 
@@ -25,7 +25,12 @@ describe("authorize", () => {
   };
 
   it("works", async () => {
-    await setupMockSession();
+    const user = await prisma.user.create({ data: {} });
+    const mockSession = {
+      expires: "1",
+      user: { email: "email", name: "name", image: "image", id: user.id },
+    };
+    (client.getSession as jest.Mock).mockReturnValue(mockSession);
 
     expect(await prisma.oAuthToken.count()).toStrictEqual(0);
     const res = (await getServerSideProps({

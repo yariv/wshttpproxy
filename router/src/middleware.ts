@@ -1,26 +1,19 @@
-import { getSession, Session } from "next-auth/client";
-import { IncomingMessage } from "http";
+import { prisma } from "./prisma";
 import { ApiHttpError } from "./typedApi/types";
-import { User } from "next-auth";
-
-type ExpandedSession = Session & {
-  user: User & {
-    id: number;
-  };
-};
+import { sha256 } from "./utils";
 
 export const authorize = async (
-  req: IncomingMessage
-): Promise<ExpandedSession> => {
-  if (req.method != "POST") {
-    console.log("FDFVD");
+  method: string,
+  oauthToken: string
+): Promise<number> => {
+  if (method != "POST") {
     throw new ApiHttpError("Invalid method", 405);
   }
-
-  const session = await getSession({ req });
-  if (!session) {
-    throw new ApiHttpError("Not logged in", 401);
+  const token = await prisma.oAuthToken.findUnique({
+    where: { tokenHash: sha256(oauthToken) },
+  });
+  if (!token) {
+    throw new ApiHttpError("Invalid oauth token", 401);
   }
-  // TODO clean up?
-  return session as ExpandedSession;
+  return token.userId;
 };

@@ -68,10 +68,7 @@ describe("integration", () => {
   it("routing works", async () => {
     deferClose(await routerMain(globalConfig.routerPort));
 
-    const routerClient = new TypedHttpClient(
-      getRouterApiUrl(globalConfig.routerUrl),
-      typedApiSchema
-    );
+    const routerClient = new TypedHttpClient(getRouterApiUrl(), typedApiSchema);
     const res = await routerClient.post("createApplication", {
       name: "foo",
     });

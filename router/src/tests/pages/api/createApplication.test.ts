@@ -4,7 +4,7 @@ import { main } from "../../../../main";
 import { prisma } from "../../../prisma";
 import { TypedHttpClient } from "../../../typedApi/httpApi";
 import { initTestDb } from "../../db";
-import { setupMockSession } from "../../testLib";
+import { createTestOAuthToken } from "../../testLib";
 import { typedApiSchema } from "../../../typedApiSchema";
 jest.mock("next-auth/client");
 
@@ -31,15 +31,18 @@ describe("createApplication", () => {
   });
 
   it("works", async () => {
-    await setupMockSession();
-    const res = await client.post("createApplication", { name: "foo" });
+    const oauthToken = await createTestOAuthToken();
+    const res = await client.post("createApplication", {
+      oauthToken,
+      name: "foo",
+    });
     expect(res.secret).toBeDefined();
   });
 
   it("requires name", async () => {
-    await setupMockSession();
+    const oauthToken = await createTestOAuthToken();
     try {
-      const res = await client.post("createApplication", {} as any);
+      const res = await client.post("createApplication", { oauthToken } as any);
       fail();
     } catch (err) {
       // TODO refine error message
@@ -47,21 +50,29 @@ describe("createApplication", () => {
     }
   });
 
-  it("requires session", async () => {
+  it("requires oauth token", async () => {
     try {
-      const res = await client.post("createApplication", { name: "foo" });
+      const res = await client.post("createApplication", {
+        name: "foo",
+      } as any);
       fail();
     } catch (err) {
-      expect(err.message).toBe("Not logged in");
+      expect(err.message).toBe("Invalid request");
     }
   });
 
   it("ensures name is unique", async () => {
-    await setupMockSession();
-    const res = await client.post("createApplication", { name: "foo" });
+    const oauthToken = await createTestOAuthToken();
+    const res = await client.post("createApplication", {
+      oauthToken,
+      name: "foo",
+    });
 
     try {
-      const res2 = await client.post("createApplication", { name: "foo" });
+      const res2 = await client.post("createApplication", {
+        oauthToken,
+        name: "foo",
+      });
       fail();
     } catch (err) {
       expect(err.message).toStrictEqual(
