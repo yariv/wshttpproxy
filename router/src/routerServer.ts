@@ -164,6 +164,7 @@ const proxyMiddleware = async (ctx: Koa.Context, next: Koa.Next) => {
       ctx.status = 500;
       ctx.body = "Request timed out";
     });
-  }, proxyTimeout);
+  }, proxyTimeout) as any;
+
   proxyRequests[requestId] = { timeoutId, ctx };
 };
