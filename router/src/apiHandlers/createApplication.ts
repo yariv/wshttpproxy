@@ -1,14 +1,12 @@
+import { genNewToken } from "dev-in-prod-lib/src/utils";
 import { IncomingMessage } from "http";
 import { authorize } from "../middleware";
 import { prisma } from "../prisma";
 import { createKoaRoute } from "../typedApi/koaAdapter";
 import { ApiHttpError } from "../typedApi/types";
 import { typedApiSchema } from "../typedApiSchema";
-import { genNewToken } from "../utils";
-import { router } from "./router";
 
-createKoaRoute(
-  router,
+export const createApplicationHandler = createKoaRoute(
   typedApiSchema,
   "createApplication",
   async (body, req: IncomingMessage) => {

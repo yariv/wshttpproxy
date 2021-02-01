@@ -2,13 +2,11 @@ import { IncomingMessage } from "http";
 import ShortUniqueId from "short-unique-id";
 import { authorize } from "../middleware";
 import { prisma } from "../prisma";
-import { router } from "./router";
 import { createKoaRoute } from "../typedApi/koaAdapter";
 import { ApiHttpError } from "../typedApi/types";
 import { typedApiSchema } from "../typedApiSchema";
 
-createKoaRoute(
-  router,
+export const createRouteHandler = createKoaRoute(
   typedApiSchema,
   "createRoute",
   async (body, req: IncomingMessage) => {

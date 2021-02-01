@@ -1,5 +1,5 @@
 import { Closeable } from "dev-in-prod-lib/src/appServer";
-import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
+import { globalConfig } from "dev-in-prod-lib/src/utils";
 import { main } from "../../../../main";
 import { prisma } from "../../../prisma";
 // TODO fix import

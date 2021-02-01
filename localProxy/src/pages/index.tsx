@@ -1,4 +1,4 @@
-import { globalConfig } from "dev-in-prod-lib/src/globalConfig";
+import { globalConfig } from "dev-in-prod-lib/src/utils";
 import { GetServerSideProps } from "next";
 import * as React from "react";
 

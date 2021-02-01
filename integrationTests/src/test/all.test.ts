@@ -77,6 +77,7 @@ describe("integration", () => {
     });
     const secret = res.secret;
 
+    debugger;
     deferClose(await startSidecar(globalConfig.sidecarPort, secret));
 
     const res2 = await routerClient.post("createRoute", {
