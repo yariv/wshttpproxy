@@ -2,7 +2,7 @@ import { Closeable } from "dev-in-prod-lib/src/appServer";
 import Koa from "koa";
 import Router from "koa-router";
 import util from "util";
-import { globalConfig } from "../lib/src/globalConfig";
+import { globalConfig } from "../lib/src/utils";
 
 export const main = (port: number): Closeable => {
   const app = new Koa();

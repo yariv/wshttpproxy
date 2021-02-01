@@ -2,7 +2,7 @@ import { main as exampleMain } from "dev-in-prod-example/main";
 import { startSidecar } from "dev-in-prod-sidecar/src/server";
 import { main as routerMain } from "dev-in-prod-router/main";
 import { main as localProxyMain } from "dev-in-prod-local-proxy/main";
-import { getApiUrl, globalConfig } from "dev-in-prod-lib/src/globalConfig";
+import { getApiUrl, globalConfig } from "dev-in-prod-lib/src/utils";
 import {
   CloseableContainer,
   Closeable,
@@ -12,7 +12,6 @@ import axios, { AxiosPromise } from "axios";
 // TODO fix import
 import { TypedHttpClient } from "../../../router/src/typedApi/httpApi";
 import { typedApiSchema } from "dev-in-prod-router/src/typedApiSchema";
-import { router } from "dev-in-prod-router/src/routes/api";
 
 describe("integration", () => {
   let closeables: Closeable[];
@@ -87,7 +86,7 @@ describe("integration", () => {
 
     const sendDevRequest = (): AxiosPromise => {
       return axios(globalConfig.sidecarUrl, {
-        headers: { [globalConfig.devInProdHeader]: routeKey },
+        headers: { [globalConfig.routeKeyHeader]: routeKey },
       });
     };
     // send a dev request, verify it fails because the router hasn't been started
@@ -95,21 +94,5 @@ describe("integration", () => {
 
     deferClose(await routerMain(globalConfig.routerPort));
     await expectHttpError(sendDevRequest(), 404);
-  });
-
-  it("works", async () => {
-    return;
-    const mainPromises: Promise<any>[] = [];
-    exampleMain(globalConfig.exampleDevPort);
-    exampleMain(globalConfig.exampleProdPort);
-    startSidecar(globalConfig.sidecarPort, "secret");
-    mainPromises.push(routerMain(globalConfig.routerPort));
-    mainPromises.push(localProxyMain(globalConfig.localProxyPort));
-
-    const cloeasbles = await Promise.all(mainPromises);
-
-    const resp = await fetch(globalConfig.sidecarUrl);
-    console.log(resp);
-    await new CloseableContainer(cloeasbles).close();
   });
 });
