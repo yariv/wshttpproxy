@@ -44,14 +44,15 @@ describe("createRoute", () => {
     }
   });
 
-  it("requires oauthToken", async () => {
+  it("requires valid oauthToken", async () => {
     try {
       const res = await client.post("createRoute", {
+        oauthToken: "foo",
         applicationSecret: "foo",
-      } as any);
+      });
       fail();
     } catch (err) {
-      expect(err.message).toBe("Invalid request");
+      expect(err.message).toBe("Invalid oauth token");
     }
   });
 

@@ -12,6 +12,7 @@ import axios, { AxiosPromise } from "axios";
 // TODO fix import
 import { TypedHttpClient } from "../../../router/src/typedApi/httpApi";
 import { typedApiSchema } from "dev-in-prod-router/src/typedApiSchema";
+import { createTestOAuthToken } from "dev-in-prod-router/src/tests/testLib";
 
 describe("integration", () => {
   let closeables: Closeable[];
@@ -69,15 +70,17 @@ describe("integration", () => {
     deferClose(await routerMain(globalConfig.routerPort));
 
     const routerClient = new TypedHttpClient(getRouterApiUrl(), typedApiSchema);
+    const oauthToken = await createTestOAuthToken();
     const res = await routerClient.post("createApplication", {
+      oauthToken,
       name: "foo",
     });
     const secret = res.secret;
 
-    debugger;
     deferClose(await startSidecar(globalConfig.sidecarPort, secret));
 
     const res2 = await routerClient.post("createRoute", {
+      oauthToken,
       applicationSecret: secret,
     });
     const routeKey = res2.routeKey;

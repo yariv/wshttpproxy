@@ -61,6 +61,18 @@ describe("createApplication", () => {
     }
   });
 
+  it("requires valid oauth token", async () => {
+    try {
+      const res = await client.post("createApplication", {
+        oauthToken: "foo",
+        name: "foo",
+      });
+      fail();
+    } catch (err) {
+      expect(err.message).toBe("Invalid oauth token");
+    }
+  });
+
   it("ensures name is unique", async () => {
     const oauthToken = await createTestOAuthToken();
     const res = await client.post("createApplication", {
