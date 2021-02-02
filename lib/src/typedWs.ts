@@ -1,11 +1,12 @@
 import * as z from "zod";
 import WebSocket from "ws";
 import { log } from "./log";
+import { serverSchema } from "./wsSchema";
 
 export type WsMsg =
   | z.ZodObject<{
       type: z.ZodLiteral<string>;
-      body: z.ZodObject<any>;
+      params: z.ZodObject<any>;
     }>
   | z.ZodObject<{ type: z.ZodLiteral<string> }>;
 export type WsSchema = WsMsg | z.ZodUnion<[WsMsg, WsMsg, ...WsMsg[]]>;
@@ -29,7 +30,7 @@ export const getMsgHandler = <IncomingSchemaType extends WsSchema>(
   handler: (message: z.infer<IncomingSchemaType>) => Promise<void>
 ): ((event: WebSocket.MessageEvent) => void) => {
   return (event) => {
-    log("message", event);
+    log("message", event.data);
     const msgStr = event.data.toString("utf-8");
     let unserialized;
     try {
@@ -41,13 +42,24 @@ export const getMsgHandler = <IncomingSchemaType extends WsSchema>(
     }
 
     const parseResult = incomingSchema.safeParse(unserialized);
+    const e1 = {
+      type: unserialized.type,
+      body: {
+        body: "",
+        headers: unserialized.body.headers,
+        method: unserialized.body.method,
+        requestId: unserialized.body.requestId,
+      },
+    };
+    const res2 = serverSchema.safeParse(e1);
     if (parseResult.success) {
       handler(parseResult.data).catch((err) => {
         log("Error in handling message", event, err.message);
         // TODO close?
       });
     } else {
-      log("Invalid message", event, parseResult);
+      log("Invalid message", event.data, parseResult);
+      debugger;
       // TODO close?
     }
   };

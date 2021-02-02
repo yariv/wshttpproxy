@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-export const typedApiSchema = {
+export const routerApiSchema = {
   createApplication: {
     req: z.object({
       oauthToken: z.string(),

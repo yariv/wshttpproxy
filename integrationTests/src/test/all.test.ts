@@ -10,9 +10,11 @@ import {
 } from "dev-in-prod-lib/src/appServer";
 // TODO fix import
 import { TypedHttpClient } from "../../../router/src/typedApi/httpApi";
-import { typedApiSchema } from "dev-in-prod-router/src/typedApiSchema";
+import { routerApiSchema } from "dev-in-prod-router/src/routerApiSchema";
 import { createTestOAuthToken } from "dev-in-prod-router/src/tests/testLib";
 import { prisma } from "dev-in-prod-router/src/prisma";
+import { localProxyApiSchema } from "dev-in-prod-local-proxy/src/localProxyApiSchema";
+import { log } from "dev-in-prod-lib/src/log";
 
 describe("integration", () => {
   let closeables: Closeable[];
@@ -71,7 +73,7 @@ describe("integration", () => {
 
     const resp2 = await sendRequest(globalConfig.exampleProdUrl);
     expect(resp2.status).toBe(200);
-    expect(resp2.body).toBe(globalConfig.exampleProdPort);
+    expect(resp2.body).toBe("" + globalConfig.exampleProdPort);
   });
 
   it("sidecar works", async () => {
@@ -84,28 +86,33 @@ describe("integration", () => {
     // sidecar should forward standard requests to prod service
     const resp3 = await sendRequest(globalConfig.sidecarUrl);
     expect(resp3.status).toBe(200);
-    expect(resp3.body).toBe(globalConfig.exampleProdPort);
+    expect(resp3.body).toBe("" + globalConfig.exampleProdPort);
   });
 
   it("routing works", async () => {
     deferClose(await routerMain(globalConfig.routerPort));
 
-    const routerClient = new TypedHttpClient(getRouterApiUrl(), typedApiSchema);
+    const routerClient = new TypedHttpClient(
+      getRouterApiUrl(),
+      routerApiSchema
+    );
     const oauthToken = await createTestOAuthToken();
-    const res = await routerClient.post("createApplication", {
-      oauthToken,
-      name: "foo",
-    });
-    const secret = res.secret;
+    const { secret: applicationSecret } = await routerClient.post(
+      "createApplication",
+      {
+        oauthToken,
+        name: "foo",
+      }
+    );
 
     const res2 = await routerClient.post("createRoute", {
       oauthToken,
-      applicationSecret: secret,
+      applicationSecret,
     });
     const routeKey = res2.routeKey;
 
     deferClose(await exampleMain(globalConfig.exampleProdPort));
-    deferClose(await startSidecar(globalConfig.sidecarPort, secret));
+    deferClose(await startSidecar(globalConfig.sidecarPort, applicationSecret));
 
     const resp = await sendRequest(globalConfig.sidecarUrl);
     expect(resp.status).toBe(200);
@@ -119,7 +126,21 @@ describe("integration", () => {
     // send a dev request, verify it fails because the local proxy isn't connected
     // to the route
     await expectHttpError(sendDevRequest(), 400, "Route isn't connected");
-    //deferClose(await routerMain(globalConfig.routerPort));
+
+    deferClose(
+      await localProxyMain(globalConfig.localProxyPort, applicationSecret)
+    );
+
+    const localProxyClient = new TypedHttpClient(
+      globalConfig.localProxyUrl + globalConfig.apiPathPrefix,
+      localProxyApiSchema
+    );
+    await localProxyClient.post("setToken", { token: oauthToken });
+    await localProxyClient.post("setRouteKey", { routeKey });
+
+    const resp2 = await sendDevRequest();
+    log(resp2);
+
     //await expectHttpError(sendDevRequest(), 404);
   });
 });

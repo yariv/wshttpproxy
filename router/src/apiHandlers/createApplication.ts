@@ -5,10 +5,10 @@ import { authorize } from "../middleware";
 import { prisma } from "../prisma";
 import { createKoaRoute } from "../typedApi/koaAdapter";
 import { ApiHttpError } from "../typedApi/types";
-import { typedApiSchema } from "../typedApiSchema";
+import { routerApiSchema } from "../routerApiSchema";
 
 export const createApplicationHandler = createKoaRoute(
-  typedApiSchema,
+  routerApiSchema,
   "createApplication",
   async (body, req: Request) => {
     const ownerId = await authorize(req.method, body.oauthToken);

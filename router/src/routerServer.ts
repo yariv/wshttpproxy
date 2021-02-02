@@ -104,12 +104,12 @@ const makeWsServerHandler = (
         const sendErrMsg = (message: string) => {
           wsWrapper.sendMsg({
             type: "connection_error",
-            body: { message },
+            params: { message },
           });
           wsWrapper.ws.close();
         };
         const token = await prisma.oAuthToken.findUnique({
-          where: { tokenHash: sha256(msg.body.authToken) },
+          where: { tokenHash: sha256(msg.params.authToken) },
         });
         if (!token) {
           sendErrMsg("Invalid oauth token");
@@ -117,14 +117,14 @@ const makeWsServerHandler = (
         }
         // TODO use a different secret
         const application = await prisma.application.findUnique({
-          where: { secret: msg.body.applicationSecret },
+          where: { secret: msg.params.applicationSecret },
         });
         if (!application) {
           sendErrMsg("Invalid application secret");
           return;
         }
 
-        const routeKey = msg.body.routeKey;
+        const routeKey = msg.params.routeKey;
         const route = await prisma.route.findUnique({
           where: {
             applicationId_key: { applicationId: application.id, key: routeKey },
@@ -152,18 +152,18 @@ const makeWsServerHandler = (
         });
         break;
       case "proxyError":
-        sendProxyResponse(msg.body.requestId, (ctx) => {
+        sendProxyResponse(msg.params.requestId, (ctx) => {
           ctx.status = 500;
-          ctx.body = msg.body.message;
+          ctx.body = msg.params.message;
         });
         break;
       case "proxyResult":
-        sendProxyResponse(msg.body.requestId, (ctx) => {
+        sendProxyResponse(msg.params.requestId, (ctx) => {
           ctx.status = 500;
-          ctx.body = msg.body.body;
-          ctx.status = msg.body.status;
-          ctx.statusText = msg.body.statusText;
-          ctx.headers = msg.body.headers;
+          ctx.body = msg.params.body;
+          ctx.status = msg.params.status;
+          ctx.statusText = msg.params.statusText;
+          ctx.headers = msg.params.headers;
         });
         break;
     }
@@ -193,10 +193,6 @@ const proxyMiddleware = async (ctx: Koa.Context, next: Koa.Next) => {
     ctx.throw(400, "Invalid application secret.");
   }
 
-  if (!(application.id in liveWebSockets)) {
-    ctx.throw(400, "Route isn't connected");
-  }
-
   const route = await prisma.route.findUnique({
     where: {
       applicationId_key: { applicationId: application.id, key: routeKey },
@@ -213,13 +209,15 @@ const proxyMiddleware = async (ctx: Koa.Context, next: Koa.Next) => {
 
   const requestId = genNewToken();
 
+  debugger;
   liveWebSockets[webSocketKey].sendMsg({
     type: "proxy",
-    body: {
+    params: {
       requestId: requestId,
       method: ctx.method,
       headers: ctx.headers,
-      body: ctx.body,
+      body: ctx.request.rawBody,
+      path: ctx.path,
     },
   });
 

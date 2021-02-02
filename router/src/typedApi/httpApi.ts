@@ -1,3 +1,4 @@
+import { resolveTripleslashReference } from "typescript";
 import { ZodError } from "zod";
 import { typedClientFunc, TypedServerFunc, UntypedServerFunc } from "./baseApi";
 import {
@@ -39,8 +40,10 @@ export class TypedHttpClient<ApiSchemaType extends AbstractApiSchemaType> {
       if (res.status >= 400 && res.status < 600) {
         throw new ApiHttpError(respText, res.status);
       }
-      const respBody = JSON.parse(respText);
-      return respBody;
+      if (respText) {
+        return JSON.parse(respText);
+      }
+      return;
     })(reqBody);
   }
 }

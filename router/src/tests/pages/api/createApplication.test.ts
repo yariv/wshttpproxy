@@ -5,13 +5,13 @@ import { prisma } from "../../../prisma";
 import { TypedHttpClient } from "../../../typedApi/httpApi";
 import { initTestDb } from "../../db";
 import { createTestOAuthToken } from "../../testLib";
-import { typedApiSchema } from "../../../typedApiSchema";
+import { routerApiSchema } from "../../../routerApiSchema";
 jest.mock("next-auth/client");
 
 describe("createApplication", () => {
   let closeable: Closeable;
 
-  const client = new TypedHttpClient(getRouterApiUrl(), typedApiSchema);
+  const client = new TypedHttpClient(getRouterApiUrl(), routerApiSchema);
 
   beforeAll(async () => {
     closeable = await main(globalConfig.routerPort);

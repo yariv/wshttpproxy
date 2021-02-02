@@ -1,16 +1,25 @@
 import { Closeable, start } from "dev-in-prod-lib/src/appServer";
-import { globalConfig } from "../lib/src/utils";
-import next from "next";
 import dotenv from "dotenv";
-import { initKoaApp as initKoaApp } from "./src/app";
+import next from "next";
+import { globalConfig } from "../lib/src/utils";
+import { initKoaApp as initKoaApp, openWebSocket } from "./src/app";
 dotenv.config();
 
-export const main = (
+export const main = async (
   port: number,
   applicationSecret: string
 ): Promise<Closeable> => {
   // TODO create local client id
-  return start(port, __dirname, next, initKoaApp(applicationSecret));
+  const app = await initKoaApp(applicationSecret);
+  const closeable = await start(port, __dirname, next, app);
+  return {
+    close: async () => {
+      if (openWebSocket) {
+        openWebSocket.ws.close();
+      }
+      return closeable.close();
+    },
+  };
 };
 
 if (require.main == module) {

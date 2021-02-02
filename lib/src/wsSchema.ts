@@ -3,7 +3,7 @@ import * as z from "zod";
 export const clientSchema = z.union([
   z.object({
     type: z.literal("connect"),
-    body: z.object({
+    params: z.object({
       authToken: z.string(),
       applicationSecret: z.string(),
       routeKey: z.string(),
@@ -11,11 +11,11 @@ export const clientSchema = z.union([
   }),
   z.object({
     type: z.literal("proxyError"),
-    body: z.object({ requestId: z.string(), message: z.string() }),
+    params: z.object({ requestId: z.string(), message: z.string() }),
   }),
   z.object({
     type: z.literal("proxyResult"),
-    body: z.object({
+    params: z.object({
       requestId: z.string(),
       status: z.number(),
       statusText: z.string(),
@@ -27,18 +27,19 @@ export const clientSchema = z.union([
 
 export const serverSchema = z.union([
   z.object({
-    type: z.literal("connection_error"),
-    body: z.object({
-      message: z.string(),
-    }),
-  }),
-  z.object({
     type: z.literal("proxy"),
-    body: z.object({
+    params: z.object({
+      path: z.string(),
       requestId: z.string(),
       method: z.string(),
       headers: z.record(z.string()),
       body: z.string(),
+    }),
+  }),
+  z.object({
+    type: z.literal("connection_error"),
+    params: z.object({
+      message: z.string(),
     }),
   }),
 ]);

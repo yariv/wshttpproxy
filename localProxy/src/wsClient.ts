@@ -17,11 +17,14 @@ const getHandler = (
     switch (msg.type) {
       case "proxy":
         try {
-          const res = await fetch(globalConfig.exampleDevUrl, {
-            headers: msg.body.headers,
-            method: msg.body.method,
-            body: msg.body.body,
-          });
+          const res = await fetch(
+            globalConfig.exampleDevUrl + "/" + msg.params.path,
+            {
+              headers: msg.params.headers,
+              method: msg.params.method,
+              body: msg.params.body,
+            }
+          );
           const body = await res.text();
           const headersMap: Record<string, string> = {};
           res.headers.forEach((val, key) => {
@@ -29,8 +32,8 @@ const getHandler = (
           });
           wsWrapper.sendMsg({
             type: "proxyResult",
-            body: {
-              requestId: msg.body.requestId,
+            params: {
+              requestId: msg.params.requestId,
               status: res.status,
               statusText: res.statusText,
               headers: headersMap,
@@ -41,8 +44,8 @@ const getHandler = (
           console.error("fetch error", err);
           wsWrapper.sendMsg({
             type: "proxyError",
-            body: {
-              requestId: msg.body.requestId,
+            params: {
+              requestId: msg.params.requestId,
               message: err.message,
             },
           });

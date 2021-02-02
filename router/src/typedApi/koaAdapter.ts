@@ -20,14 +20,10 @@ export const createKoaRoute = <
       typedServerFunc(schema, methodName, handler)
     );
     // TODO remove hardcoded prefix
-    router.post(
-      (globalConfig.routerApiPathPrefix + methodName) as string,
-      bodyParser(),
-      async (ctx) => {
-        const resp = await httpHandler(ctx.request.body, ctx.request);
-        ctx.status = resp.status;
-        ctx.body = resp.body;
-      }
-    );
+    router.post(methodName as string, bodyParser(), async (ctx) => {
+      const resp = await httpHandler(ctx.request.body, ctx.request);
+      ctx.status = resp.status;
+      ctx.body = resp.body;
+    });
   };
 };
