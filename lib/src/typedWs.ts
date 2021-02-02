@@ -42,16 +42,6 @@ export const getMsgHandler = <IncomingSchemaType extends WsSchema>(
     }
 
     const parseResult = incomingSchema.safeParse(unserialized);
-    const e1 = {
-      type: unserialized.type,
-      body: {
-        body: "",
-        headers: unserialized.body.headers,
-        method: unserialized.body.method,
-        requestId: unserialized.body.requestId,
-      },
-    };
-    const res2 = serverSchema.safeParse(e1);
     if (parseResult.success) {
       handler(parseResult.data).catch((err) => {
         log("Error in handling message", event, err.message);
