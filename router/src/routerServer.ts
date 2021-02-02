@@ -209,7 +209,6 @@ const proxyMiddleware = async (ctx: Koa.Context, next: Koa.Next) => {
 
   const requestId = genNewToken();
 
-  debugger;
   liveWebSockets[webSocketKey].sendMsg({
     type: "proxy",
     params: {

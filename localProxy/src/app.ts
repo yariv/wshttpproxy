@@ -1,16 +1,15 @@
-import * as z from "zod";
+import Router from "@koa/router";
+import { WsWrapper } from "dev-in-prod-lib/src/typedWs";
+import { globalConfig } from "dev-in-prod-lib/src/utils";
+import { clientSchema2, serverSchema2 } from "dev-in-prod-lib/src/wsSchema";
+import Koa from "koa";
+import storage from "node-persist";
 // TODO fix import
 import { createKoaRoute } from "../../router/src/typedApi/koaAdapter";
-import storage from "node-persist";
-import { initWsClient } from "./wsClient";
-import Router from "@koa/router";
-import Koa from "koa";
 import { localProxyApiSchema } from "./localProxyApiSchema";
-import { globalConfig } from "dev-in-prod-lib/src/utils";
-import { WsWrapper } from "dev-in-prod-lib/src/typedWs";
-import { clientSchema } from "dev-in-prod-lib/src/wsSchema";
+import { initWsClient } from "./wsClient";
 
-export let openWebSocket: WsWrapper<typeof clientSchema>;
+export let openWebSocket: WsWrapper<typeof serverSchema2, typeof clientSchema2>;
 
 export const initKoaApp = async (applicationSecret: string): Promise<Koa> => {
   await storage.init();
@@ -27,9 +26,10 @@ export const initKoaApp = async (applicationSecret: string): Promise<Koa> => {
     openWebSocket = initWsClient();
     const authToken = await storage.getItem("token");
     openWebSocket.ws.on("open", () => {
-      openWebSocket.sendMsg({
-        type: "connect",
-        params: { authToken, routeKey, applicationSecret },
+      openWebSocket.sendMsg<"connect">({
+        authToken,
+        routeKey,
+        applicationSecret,
       });
     });
   })(apiRouter);

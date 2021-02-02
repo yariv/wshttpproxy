@@ -3,31 +3,86 @@ import WebSocket from "ws";
 import { log } from "./log";
 import { serverSchema } from "./wsSchema";
 
-export type WsMsg =
-  | z.ZodObject<{
-      type: z.ZodLiteral<string>;
-      params: z.ZodObject<any>;
-    }>
-  | z.ZodObject<{ type: z.ZodLiteral<string> }>;
-export type WsSchema = WsMsg | z.ZodUnion<[WsMsg, WsMsg, ...WsMsg[]]>;
+export type WsSchema = Record<string, z.ZodType<any>>;
+
 export type WsHandlerType<IncomingSchemaType extends WsSchema> = (
-  msg: z.infer<IncomingSchemaType>
+  msgType: keyof IncomingSchemaType,
+  msg: z.infer<IncomingSchemaType[typeof msgType]>
 ) => Promise<void>;
 
-export class WsWrapper<OutgoingSchemaType extends WsSchema> {
+export class WsWrapper<
+  IncomingSchemaType extends WsSchema,
+  OutgoingSchemaType extends WsSchema
+> {
   ws: WebSocket;
-  constructor(ws: WebSocket) {
+  handlers: Record<
+    keyof IncomingSchemaType,
+    (msg: IncomingSchemaType[keyof IncomingSchemaType]) => Promise<void>
+  >;
+
+  constructor(ws: WebSocket, incomingSchema: IncomingSchemaType) {
     this.ws = ws;
+    this.handlers = {} as any; // TODO figure out why this casting is necessary
+
+    this.ws.on("message", (event: WebSocket.MessageEvent) => {
+      log("message", event.data);
+      const msgStr = event.data.toString("utf-8");
+      let unserialized;
+      try {
+        unserialized = JSON.parse(msgStr);
+      } catch (e) {
+        log("Error parsing", msgStr);
+        // TODO close?
+        return;
+      }
+      const msgType = unserialized.type;
+      if (!msgType) {
+        log("Missing message type", unserialized);
+        // TODO close?
+        return;
+      }
+      if (!(msgType in this.handlers)) {
+        log("Invalid message type", unserialized);
+        // TODO close?
+        return;
+      }
+
+      const parseResult = incomingSchema[msgType].safeParse(unserialized);
+      if (!parseResult.success) {
+        log("Invalid message", event.data, parseResult);
+        debugger;
+        return;
+      }
+      this.handlers[msgType](parseResult.data).catch((err) => {
+        log("Error in handling message", event, err.message);
+        // TODO close?
+      });
+    });
   }
 
-  sendMsg(msg: z.infer<OutgoingSchemaType>) {
+  setHandler(
+    msgType: keyof IncomingSchemaType,
+    handler: (
+      msg: IncomingSchemaType[keyof IncomingSchemaType]
+    ) => Promise<void>
+  ) {
+    this.handlers[msgType] = handler;
+  }
+
+  sendMsg<MsgType extends keyof OutgoingSchemaType>(
+    msg: z.infer<OutgoingSchemaType[MsgType]>
+  ) {
     this.ws.send(JSON.stringify(msg));
   }
 }
 
-export const getMsgHandler = <IncomingSchemaType extends WsSchema>(
+export const getMsgHandler = <
+  IncomingSchemaType extends WsSchema,
+  MsgType extends keyof IncomingSchemaType
+>(
   incomingSchema: IncomingSchemaType,
-  handler: (message: z.infer<IncomingSchemaType>) => Promise<void>
+  msgType: MsgType,
+  handler: (message: z.infer<IncomingSchemaType[MsgType]>) => Promise<void>
 ): ((event: WebSocket.MessageEvent) => void) => {
   return (event) => {
     log("message", event.data);
@@ -41,7 +96,7 @@ export const getMsgHandler = <IncomingSchemaType extends WsSchema>(
       return;
     }
 
-    const parseResult = incomingSchema.safeParse(unserialized);
+    const parseResult = incomingSchema[msgType].safeParse(unserialized);
     if (parseResult.success) {
       handler(parseResult.data).catch((err) => {
         log("Error in handling message", event, err.message);
