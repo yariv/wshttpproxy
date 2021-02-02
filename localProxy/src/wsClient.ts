@@ -1,3 +1,4 @@
+import { log } from "dev-in-prod-lib/src/log";
 import {
   WsHandlerType,
   initWebsocket,
@@ -12,7 +13,7 @@ const getHandler = (
   wsWrapper: WsWrapper<typeof clientSchema>
 ): WsHandlerType<typeof serverSchema> => {
   return async (msg) => {
-    console.log("got message", msg);
+    log("got message", msg);
     switch (msg.type) {
       case "proxy":
         try {
@@ -37,7 +38,7 @@ const getHandler = (
             },
           });
         } catch (err) {
-          console.error("fetch error");
+          console.error("fetch error", err);
           wsWrapper.sendMsg({
             type: "proxyError",
             body: {
@@ -48,14 +49,18 @@ const getHandler = (
           return;
         }
         break;
-      case "unauthorized":
+      case "connection_error":
+        log("need to show error to the user");
+        // TODO
         break;
     }
   };
 };
 
-export const initWsClient = (token: string) => {
+export const initWsClient = (): WsWrapper<typeof clientSchema> => {
   const ws = new WebSocket(globalConfig.routerWsUrl);
   initWebsocket(ws);
-  ws.onmessage = getMsgHandler(serverSchema, getHandler(new WsWrapper(ws)));
+  const wrapper = new WsWrapper(ws);
+  ws.onmessage = getMsgHandler(serverSchema, getHandler(wrapper));
+  return wrapper;
 };

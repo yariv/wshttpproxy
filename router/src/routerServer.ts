@@ -1,5 +1,6 @@
 import {
   Closeable,
+  CloseableContainer,
   start as appServerStart,
 } from "dev-in-prod-lib/src/appServer";
 import { log } from "dev-in-prod-lib/src/log";
@@ -28,14 +29,28 @@ export const start = async (
   port: number,
   dirname: string
 ): Promise<Closeable> => {
-  return await appServerStart(port, dirname, next, initKoaApp);
+  const closeable = await appServerStart(port, dirname, next, initKoaApp);
+  const closeable2 = {
+    close: async () => {
+      for (const wsWrapper of Object.values(liveWebSockets)) {
+        wsWrapper.ws.close();
+      }
+      for (const [key, { timeoutId, ctx }] of Object.entries(proxyRequests)) {
+        clearTimeout(timeoutId);
+        // TODO is this needed?
+        ctx.res.end();
+      }
+    },
+  };
+  return new CloseableContainer([closeable, closeable2]);
 };
-
-const originalHostHeader = "X-Forwarded-Host";
 
 const proxyTimeout = 10000;
 
 const liveWebSockets: Record<string, WsWrapper<typeof serverSchema>> = {};
+const getWebSocketKey = (applicationId: string, routeKey: string) =>
+  applicationId + "_" + routeKey;
+
 const proxyRequests: Record<
   string,
   { timeoutId: NodeJS.Timeout; ctx: Koa.Context }
@@ -43,7 +58,10 @@ const proxyRequests: Record<
 
 const initKoaApp = async (): Promise<Koa> => {
   const koa = new Koa();
-
+  koa.use((ctx, next) => {
+    log(ctx.host, ctx.hostname, ctx.headers, ctx.path);
+    return next();
+  });
   koa.use(proxyMiddleware);
 
   koa.use(apiRouter.allowedMethods());
@@ -82,20 +100,56 @@ const makeWsServerHandler = (
   return async (msg) => {
     console.log("got message", msg);
     switch (msg.type) {
-      case "authorize":
-        const result = await prisma.oAuthToken.findUnique({
+      case "connect":
+        const sendErrMsg = (message: string) => {
+          wsWrapper.sendMsg({
+            type: "connection_error",
+            body: { message },
+          });
+          wsWrapper.ws.close();
+        };
+        const token = await prisma.oAuthToken.findUnique({
           where: { tokenHash: sha256(msg.body.authToken) },
         });
-        if (result) {
-          liveWebSockets[result.tokenHash] = wsWrapper;
-          wsWrapper.ws.on("close", () => {
-            log("close2", result.tokenHash);
-            delete liveWebSockets[result.tokenHash];
-          });
-        } else {
-          wsWrapper.sendMsg({ type: "unauthorized" });
-          wsWrapper.ws.close();
+        if (!token) {
+          sendErrMsg("Invalid oauth token");
+          return;
         }
+        // TODO use a different secret
+        const application = await prisma.application.findUnique({
+          where: { secret: msg.body.applicationSecret },
+        });
+        if (!application) {
+          sendErrMsg("Invalid application secret");
+          return;
+        }
+
+        const routeKey = msg.body.routeKey;
+        const route = await prisma.route.findUnique({
+          where: {
+            applicationId_key: { applicationId: application.id, key: routeKey },
+          },
+        });
+        if (!route) {
+          sendErrMsg("Invalid route key");
+          return;
+        }
+
+        const webSocketKey = getWebSocketKey(application.id, routeKey);
+        if (liveWebSockets[webSocketKey]) {
+          console.log("Closing existing websocket with key", webSocketKey);
+          // TODO make sure this doesn't remove the new ws
+          liveWebSockets[webSocketKey].ws.close();
+        }
+        liveWebSockets[webSocketKey] = wsWrapper;
+        wsWrapper.ws.on("close", () => {
+          if (liveWebSockets[webSocketKey] === wsWrapper) {
+            log("deleting ws", webSocketKey);
+            delete liveWebSockets[webSocketKey];
+          } else {
+            log("keeping existing ws", webSocketKey);
+          }
+        });
         break;
       case "proxyError":
         sendProxyResponse(msg.body.requestId, (ctx) => {
@@ -121,10 +175,10 @@ const proxyMiddleware = async (ctx: Koa.Context, next: Koa.Next) => {
   if (!appSecret) {
     return next();
   }
-  const originalHost = ctx.header[originalHostHeader];
+  const originalHost = ctx.header[globalConfig.originalHostHeader];
 
   if (!originalHost) {
-    ctx.throw(400, `Missing ${originalHostHeader} header`);
+    ctx.throw(400, `Missing ${globalConfig.originalHostHeader} header`);
   }
 
   const routeKey = getRouteKeyFromCtx(ctx, originalHost);
@@ -138,6 +192,11 @@ const proxyMiddleware = async (ctx: Koa.Context, next: Koa.Next) => {
   if (!application) {
     ctx.throw(400, "Invalid application secret.");
   }
+
+  if (!(application.id in liveWebSockets)) {
+    ctx.throw(400, "Route isn't connected");
+  }
+
   const route = await prisma.route.findUnique({
     where: {
       applicationId_key: { applicationId: application.id, key: routeKey },
@@ -147,12 +206,14 @@ const proxyMiddleware = async (ctx: Koa.Context, next: Koa.Next) => {
     ctx.throw(400, "Invalid route key");
   }
 
-  if (!(routeKey in liveWebSockets)) {
+  const webSocketKey = getWebSocketKey(application.id, routeKey);
+  if (!liveWebSockets[webSocketKey]) {
     ctx.throw(400, "Route isn't connected");
   }
+
   const requestId = genNewToken();
 
-  liveWebSockets[routeKey].sendMsg({
+  liveWebSockets[webSocketKey].sendMsg({
     type: "proxy",
     body: {
       requestId: requestId,

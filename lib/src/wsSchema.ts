@@ -2,8 +2,12 @@ import * as z from "zod";
 
 export const clientSchema = z.union([
   z.object({
-    type: z.literal("authorize"),
-    body: z.object({ authToken: z.string() }),
+    type: z.literal("connect"),
+    body: z.object({
+      authToken: z.string(),
+      applicationSecret: z.string(),
+      routeKey: z.string(),
+    }),
   }),
   z.object({
     type: z.literal("proxyError"),
@@ -23,7 +27,10 @@ export const clientSchema = z.union([
 
 export const serverSchema = z.union([
   z.object({
-    type: z.literal("unauthorized"),
+    type: z.literal("connection_error"),
+    body: z.object({
+      message: z.string(),
+    }),
   }),
   z.object({
     type: z.literal("proxy"),

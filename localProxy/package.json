@@ -11,12 +11,10 @@
   "license": "",
   "devDependencies": {
     "@types/http-proxy": "^1.17.4",
-    "@types/koa": "^2.11.6",
     "@types/node-persist": "^3.1.0",
     "@types/react": "^17.0.0",
     "@types/ws": "^7.4.0",
     "http-proxy": "^1.18.1",
-    "koa": "^2.13.0",
     "next": "^10.0.3",
     "node-http-proxy": "^0.2.3",
     "node-persist": "^3.1.0",
@@ -29,9 +27,10 @@
     "@types/koa-router": "^7.4.1",
     "@types/node": "^14.14.14",
     "@types/react-dom": "^17.0.0",
+    "dev-in-prod-lib": "1.0.0",
+    "dotenv": "^8.2.0",
     "koa-router": "^10.0.0",
     "react-dom": "^17.0.1",
-    "typescript": "^4.1.3",
-    "dev-in-prod-lib": "1.0.0"
+    "typescript": "^4.1.3"
   }
 }

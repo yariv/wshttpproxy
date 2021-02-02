@@ -1,4 +1,4 @@
-import { startSidecar } from "./src/server";
+import { startSidecar } from "./src/sidecarServer";
 import { globalConfig } from "dev-in-prod-lib/src/utils";
 
 if (require.main == module) {

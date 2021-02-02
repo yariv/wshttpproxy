@@ -22,6 +22,7 @@ export const globalConfig = {
   appSecretHeader: "dev-in-prod-app-secret",
   routeKeySubdomainPrefix: "rk-",
   routerApiPathPrefix: "/api/",
+  originalHostHeader: "x-forwarded-host",
 };
 
 export const getRouterApiUrl = (): string => {

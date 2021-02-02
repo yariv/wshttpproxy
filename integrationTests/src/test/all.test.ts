@@ -1,5 +1,5 @@
 import { main as exampleMain } from "dev-in-prod-example/main";
-import { startSidecar } from "dev-in-prod-sidecar/src/server";
+import { startSidecar } from "dev-in-prod-sidecar/src/sidecarServer";
 import { main as routerMain } from "dev-in-prod-router/main";
 import { main as localProxyMain } from "dev-in-prod-local-proxy/main";
 import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/src/utils";
@@ -8,11 +8,11 @@ import {
   Closeable,
   start,
 } from "dev-in-prod-lib/src/appServer";
-import axios, { AxiosPromise } from "axios";
 // TODO fix import
 import { TypedHttpClient } from "../../../router/src/typedApi/httpApi";
 import { typedApiSchema } from "dev-in-prod-router/src/typedApiSchema";
 import { createTestOAuthToken } from "dev-in-prod-router/src/tests/testLib";
+import { prisma } from "dev-in-prod-router/src/prisma";
 
 describe("integration", () => {
   let closeables: Closeable[];
@@ -27,43 +27,64 @@ describe("integration", () => {
     await new CloseableContainer(closeables).close();
     closeables = [];
     promises = [];
+    await prisma.$disconnect();
   });
 
   const deferClose = (closeable: Closeable) => {
     closeables.push(closeable);
   };
 
-  const expectHttpError = async (promise: AxiosPromise, code: number) => {
-    try {
-      const resp = await promise;
-      console.log(resp.status);
-      console.log(resp.data);
-      fail();
-    } catch (err) {
-      expect(err.response.status).toBe(code);
+  type Resp = {
+    status: number;
+    body: string;
+    headers: Headers;
+  };
+  const sendRequest = async (
+    url: string,
+    extraHeaders?: Record<string, string>
+  ): Promise<Resp> => {
+    // Note: we're not using axios because it seems to have trouble
+    // sending request headers.
+    const resp = await fetch(url, {
+      headers: extraHeaders,
+    });
+    const body = await resp.text();
+    return { status: resp.status, body, headers: resp.headers };
+  };
+
+  const expectHttpError = async (
+    promise: Promise<Resp>,
+    code: number,
+    body?: string
+  ) => {
+    const resp = await promise;
+    expect(resp.status).toBe(code);
+    if (body) {
+      expect(resp.body).toBe(body);
     }
   };
 
+  // TODO move to /example
   it("example works", async () => {
     // start the prod service and verify it works
     deferClose(exampleMain(globalConfig.exampleProdPort));
 
-    const resp2 = await axios(globalConfig.exampleProdUrl);
+    const resp2 = await sendRequest(globalConfig.exampleProdUrl);
     expect(resp2.status).toBe(200);
-    expect(resp2.data).toBe(globalConfig.exampleProdPort);
+    expect(resp2.body).toBe(globalConfig.exampleProdPort);
   });
 
   it("sidecar works", async () => {
     // sidecar should return 500 if the prod service is offline
     deferClose(await startSidecar(globalConfig.sidecarPort, "secret"));
-    await expectHttpError(axios(globalConfig.sidecarUrl), 500);
+    await expectHttpError(sendRequest(globalConfig.sidecarUrl), 500);
 
     deferClose(exampleMain(globalConfig.exampleProdPort));
 
     // sidecar should forward standard requests to prod service
-    const resp3 = await axios(globalConfig.sidecarUrl);
+    const resp3 = await sendRequest(globalConfig.sidecarUrl);
     expect(resp3.status).toBe(200);
-    expect(resp3.data).toBe(globalConfig.exampleProdPort);
+    expect(resp3.body).toBe(globalConfig.exampleProdPort);
   });
 
   it("routing works", async () => {
@@ -77,23 +98,28 @@ describe("integration", () => {
     });
     const secret = res.secret;
 
-    deferClose(await startSidecar(globalConfig.sidecarPort, secret));
-
     const res2 = await routerClient.post("createRoute", {
       oauthToken,
       applicationSecret: secret,
     });
     const routeKey = res2.routeKey;
 
-    const sendDevRequest = (): AxiosPromise => {
-      return axios(globalConfig.sidecarUrl, {
-        headers: { [globalConfig.routeKeyHeader]: routeKey },
-      });
-    };
-    // send a dev request, verify it fails because the router hasn't been started
-    await expectHttpError(sendDevRequest(), 500);
+    deferClose(await exampleMain(globalConfig.exampleProdPort));
+    deferClose(await startSidecar(globalConfig.sidecarPort, secret));
 
-    deferClose(await routerMain(globalConfig.routerPort));
-    await expectHttpError(sendDevRequest(), 404);
+    const resp = await sendRequest(globalConfig.sidecarUrl);
+    expect(resp.status).toBe(200);
+    expect(resp.body).toBe("" + globalConfig.exampleProdPort);
+
+    const sendDevRequest = (): ReturnType<typeof sendRequest> =>
+      sendRequest(globalConfig.sidecarUrl, {
+        [globalConfig.routeKeyHeader]: routeKey,
+      });
+
+    // send a dev request, verify it fails because the local proxy isn't connected
+    // to the route
+    await expectHttpError(sendDevRequest(), 400, "Route isn't connected");
+    //deferClose(await routerMain(globalConfig.routerPort));
+    //await expectHttpError(sendDevRequest(), 404);
   });
 });
