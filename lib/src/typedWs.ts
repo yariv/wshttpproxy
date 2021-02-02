@@ -60,11 +60,9 @@ export class WsWrapper<
     });
   }
 
-  setHandler(
-    msgType: keyof IncomingSchemaType,
-    handler: (
-      msg: IncomingSchemaType[keyof IncomingSchemaType]
-    ) => Promise<void>
+  setHandler<MsgType extends keyof IncomingSchemaType>(
+    msgType: MsgType,
+    handler: (msg: z.infer<IncomingSchemaType[MsgType]>) => Promise<void>
   ) {
     this.handlers[msgType] = handler;
   }
@@ -76,39 +74,7 @@ export class WsWrapper<
   }
 }
 
-export const getMsgHandler = <
-  IncomingSchemaType extends WsSchema,
-  MsgType extends keyof IncomingSchemaType
->(
-  incomingSchema: IncomingSchemaType,
-  msgType: MsgType,
-  handler: (message: z.infer<IncomingSchemaType[MsgType]>) => Promise<void>
-): ((event: WebSocket.MessageEvent) => void) => {
-  return (event) => {
-    log("message", event.data);
-    const msgStr = event.data.toString("utf-8");
-    let unserialized;
-    try {
-      unserialized = JSON.parse(msgStr);
-    } catch (e) {
-      log("Error parsing", msgStr);
-      // TODO close?
-      return;
-    }
-
-    const parseResult = incomingSchema[msgType].safeParse(unserialized);
-    if (parseResult.success) {
-      handler(parseResult.data).catch((err) => {
-        log("Error in handling message", event, err.message);
-        // TODO close?
-      });
-    } else {
-      log("Invalid message", event.data, parseResult);
-      debugger;
-      // TODO close?
-    }
-  };
-};
+// TODO clean up
 export const initWebsocket = (ws: WebSocket) => {
   ws.onopen = () => {
     log("open");

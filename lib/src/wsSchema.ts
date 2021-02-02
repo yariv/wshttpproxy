@@ -19,7 +19,6 @@ export const clientSchema = z.union([
       requestId: z.string(),
       status: z.number(),
       statusText: z.string(),
-      headers: z.record(z.string()),
       body: z.string().optional(),
     }),
   }),
