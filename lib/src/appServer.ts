@@ -24,7 +24,7 @@ export const start = async (
   // note: next is a parameter instead of an import to prevent
   // duplicate imports of react, which causes errors
   next: (params: any) => any,
-  initKoaApp?: () => Promise<Koa>
+  koaApp?: Koa
 ): Promise<Closeable> => {
   const dev = process.env.NODE_ENV !== "production";
 
@@ -34,7 +34,7 @@ export const start = async (
 
   const requestHandler = nextApp.getRequestHandler();
 
-  const app = initKoaApp ? await initKoaApp() : new Koa();
+  const app = koaApp || new Koa();
 
   app.use(async (ctx) => {
     await requestHandler(ctx.req, ctx.res);

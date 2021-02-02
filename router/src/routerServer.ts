@@ -29,7 +29,7 @@ export const start = async (
   port: number,
   dirname: string
 ): Promise<Closeable> => {
-  const closeable = await appServerStart(port, dirname, next, initKoaApp);
+  const closeable = await appServerStart(port, dirname, next, initKoaApp());
   const closeable2 = {
     close: async () => {
       for (const wsWrapper of Object.values(liveWebSockets)) {
@@ -56,7 +56,7 @@ const proxyRequests: Record<
   { timeoutId: NodeJS.Timeout; ctx: Koa.Context }
 > = {};
 
-const initKoaApp = async (): Promise<Koa> => {
+const initKoaApp = (): Koa => {
   const koa = new Koa();
   koa.use((ctx, next) => {
     log(ctx.host, ctx.hostname, ctx.headers, ctx.path);

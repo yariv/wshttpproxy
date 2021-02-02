@@ -2,7 +2,7 @@ import { Closeable, start } from "dev-in-prod-lib/src/appServer";
 import { globalConfig } from "../lib/src/utils";
 import next from "next";
 import dotenv from "dotenv";
-import { initKoaApp } from "./src/app";
+import { initKoaApp as initKoaApp } from "./src/app";
 dotenv.config();
 
 export const main = (

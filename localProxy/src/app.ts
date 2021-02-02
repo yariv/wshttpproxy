@@ -21,7 +21,7 @@ const apiSchema = {
   },
 };
 
-export const initKoaApp = (applicationSecret: string): (() => Promise<Koa>) => {
+export const initKoaApp = (applicationSecret: string): Koa => {
   const apiRouter = new Router();
   createKoaRoute(apiSchema, "setToken", async ({ token }) => {
     await storage.set("token", token);
@@ -39,5 +39,5 @@ export const initKoaApp = (applicationSecret: string): (() => Promise<Koa>) => {
   const app = new Koa();
   app.use(apiRouter.routes());
   app.use(apiRouter.allowedMethods());
-  return () => Promise.resolve(app);
+  return app;
 };
