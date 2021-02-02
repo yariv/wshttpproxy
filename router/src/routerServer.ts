@@ -112,10 +112,7 @@ const createWsWrapper = (
     "connect",
     async ({ authToken, applicationSecret, routeKey }) => {
       const sendErrMsg = (message: string) => {
-        wrapper.sendMsg({
-          type: "connection_error",
-          params: { message },
-        });
+        wrapper.sendMsg("connection_error", { message });
         wrapper.ws.close();
       };
       const token = await prisma.oAuthToken.findUnique({
@@ -224,7 +221,7 @@ const proxyMiddleware = async (ctx: Koa.Context, next: Koa.Next) => {
 
   const requestId = genNewToken();
 
-  connectedWebSockets[webSocketKey].sendMsg<"proxy">({
+  connectedWebSockets[webSocketKey].sendMsg("proxy", {
     requestId: requestId,
     method: ctx.method,
     headers: ctx.headers,

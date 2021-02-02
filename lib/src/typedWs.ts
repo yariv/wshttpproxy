@@ -2,6 +2,7 @@ import * as z from "zod";
 import WebSocket from "ws";
 import { log } from "./log";
 import { serverSchema } from "./wsSchema";
+import { typedServerFunc } from "../../router/src/typedApi/baseApi";
 
 export type WsSchema = Record<string, z.ZodType<any>>;
 
@@ -9,6 +10,11 @@ export type WsHandlerType<IncomingSchemaType extends WsSchema> = (
   msgType: keyof IncomingSchemaType,
   msg: z.infer<IncomingSchemaType[typeof msgType]>
 ) => Promise<void>;
+
+const genericMsgSchema = z.object({
+  type: z.string(),
+  params: z.any(),
+});
 
 export class WsWrapper<
   IncomingSchemaType extends WsSchema,
@@ -35,28 +41,30 @@ export class WsWrapper<
         // TODO close?
         return;
       }
-      const msgType = unserialized.type;
-      if (!msgType) {
-        log("Missing message type", unserialized);
-        // TODO close?
+
+      const parseResult = genericMsgSchema.safeParse(unserialized);
+      if (!parseResult.success) {
+        log("Invalid message", parseResult.error);
         return;
       }
-      if (!(msgType in this.handlers)) {
-        log("Invalid message type", unserialized);
+      const { type, params } = parseResult.data;
+      if (!(type in this.handlers)) {
+        log("Missing message handler", type);
         // TODO close?
         return;
       }
 
-      const parseResult = incomingSchema[msgType].safeParse(unserialized);
-      if (!parseResult.success) {
+      const parseResult2 = incomingSchema[type].safeParse(params);
+      if (parseResult2.success) {
+        this.handlers[type](parseResult2.data).catch((err) => {
+          log("Error in handling message", event, err.message);
+          // TODO close?
+        });
+      } else {
         log("Invalid message", event.data, parseResult);
         debugger;
         return;
       }
-      this.handlers[msgType](parseResult.data).catch((err) => {
-        log("Error in handling message", event, err.message);
-        // TODO close?
-      });
     });
   }
 
@@ -68,22 +76,24 @@ export class WsWrapper<
   }
 
   sendMsg<MsgType extends keyof OutgoingSchemaType>(
-    msg: z.infer<OutgoingSchemaType[MsgType]>
+    type: MsgType,
+    params: z.infer<OutgoingSchemaType[MsgType]>
   ) {
-    this.ws.send(JSON.stringify(msg));
+    console.log("ASDF", type, params);
+    this.ws.send(JSON.stringify({ type, params }));
   }
 }
 
 // TODO clean up
 export const initWebsocket = (ws: WebSocket) => {
-  ws.onopen = () => {
+  ws.on("open", () => {
     log("open");
-  };
+  });
 
-  ws.onclose = () => {
+  ws.on("close", () => {
     console.log("close");
-  };
-  ws.onerror = (err) => {
+  });
+  ws.on("error", (err) => {
     console.error("error");
-  };
+  });
 };

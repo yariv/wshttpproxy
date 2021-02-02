@@ -26,11 +26,13 @@ export const initKoaApp = async (applicationSecret: string): Promise<Koa> => {
     openWebSocket = initWsClient();
     const authToken = await storage.getItem("token");
     openWebSocket.ws.on("open", () => {
-      openWebSocket.sendMsg<"connect">({
-        authToken,
-        routeKey,
-        applicationSecret,
-      });
+      openWebSocket.ws.send("FSDF");
+
+      // openWebSocket.sendMsg("connect", {
+      //   authToken,
+      //   routeKey,
+      //   applicationSecret,
+      // });
     });
   })(apiRouter);
 

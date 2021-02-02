@@ -25,7 +25,7 @@ export const initWsClient = (): WsWrapper<
         res.headers.forEach((val, key) => {
           headersMap[key] = val;
         });
-        wrapper.sendMsg<"proxyResult">({
+        wrapper.sendMsg("proxyResult", {
           requestId: requestId,
           status: res.status,
           statusText: res.statusText,
@@ -34,7 +34,7 @@ export const initWsClient = (): WsWrapper<
         });
       } catch (err) {
         console.error("fetch error", err);
-        wrapper.sendMsg<"proxyError">({
+        wrapper.sendMsg("proxyError", {
           requestId,
           message: err.message,
         });
