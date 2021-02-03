@@ -23,6 +23,7 @@ export const globalConfig = {
   routeKeySubdomainPrefix: "rk-",
   apiPathPrefix: "/api/",
   originalHostHeader: "x-forwarded-host",
+  proxyTimeout: 10000,
 };
 
 export const getRouterApiUrl = (): string => {

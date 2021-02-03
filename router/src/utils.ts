@@ -1,14 +1,9 @@
 import { createHash } from "crypto";
 import { genNewToken } from "dev-in-prod-lib/src/utils";
-import util from "util";
 import { prisma } from "./prisma";
 
 export const sha256 = (val: string): string => {
   return createHash("sha256").update(val).digest("hex");
-};
-
-export const log = (obj: any) => {
-  console.log(util.inspect(obj, { showHidden: false, depth: null }));
 };
 
 export const createOAuthToken = async (
@@ -29,3 +24,9 @@ export const createOAuthToken = async (
 
   return token;
 };
+
+export type WsKey = string;
+export const getWebSocketKey = (
+  applicationId: string,
+  routeKey: string
+): WsKey => applicationId + "_" + routeKey;
