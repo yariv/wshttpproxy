@@ -64,11 +64,6 @@ const initKoaApp = (): Koa => {
     return next();
   });
   koa.use(proxyMiddleware);
-  koa.use((ctx, next) => {
-    log("after middleware");
-    return next();
-  });
-
   koa.use(apiRouter.allowedMethods());
   koa.use(apiRouter.routes());
 
@@ -91,13 +86,13 @@ const sendProxyResponse = (
   requestId: string,
   handler: (ctx: Koa.Context) => void
 ) => {
-  debugger;
   if (!(requestId in proxyRequests)) {
     return;
   }
-  handler(proxyRequests[requestId].ctx);
-  clearTimeout(proxyRequests[requestId].timeoutId);
-  proxyRequests[requestId].resolve();
+  const { ctx, timeoutId, resolve } = proxyRequests[requestId];
+  handler(ctx);
+  clearTimeout(timeoutId);
+  resolve();
   delete proxyRequests[requestId];
 };
 
