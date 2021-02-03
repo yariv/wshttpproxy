@@ -32,7 +32,7 @@ const initKoaApp = (socketManager: SocketManager): Koa => {
     log("router request", ctx.host, ctx.hostname, ctx.headers, ctx.path);
     return next();
   });
-  koa.use(socketManager.proxyMiddleware);
+  koa.use(socketManager.proxyMiddleware.bind(socketManager));
   koa.use(apiRouter.allowedMethods());
   koa.use(apiRouter.routes());
 
