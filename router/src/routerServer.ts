@@ -4,30 +4,21 @@ import {
   start as appServerStart,
 } from "dev-in-prod-lib/src/appServer";
 import { log } from "dev-in-prod-lib/src/log";
-import {
-  WsHandlerType,
-  initWebsocket,
-  WsWrapper,
-} from "dev-in-prod-lib/src/typedWs";
+import { initWebsocket, WsWrapper } from "dev-in-prod-lib/src/typedWs";
 import {
   genNewToken,
   getRouteKeyFromCtx,
   globalConfig,
 } from "dev-in-prod-lib/src/utils";
-import {
-  clientSchema,
-  clientSchema2,
-  serverSchema,
-  serverSchema2,
-} from "dev-in-prod-lib/src/wsSchema";
+import { clientSchema2, serverSchema2 } from "dev-in-prod-lib/src/wsSchema";
 import Koa from "koa";
 import route from "koa-route";
 import websockify from "koa-websocket";
 import next from "next";
+import WebSocket from "ws";
 import { router as apiRouter } from "./apiHandlers/router";
 import { prisma } from "./prisma";
 import { sha256 } from "./utils";
-import WebSocket from "ws";
 
 export const start = async (
   port: number,
@@ -63,16 +54,20 @@ const getWebSocketKey = (applicationId: string, routeKey: string): WsKey =>
 
 const proxyRequests: Record<
   string,
-  { timeoutId: NodeJS.Timeout; ctx: Koa.Context }
+  { timeoutId: NodeJS.Timeout; ctx: Koa.Context; resolve: () => void }
 > = {};
 
 const initKoaApp = (): Koa => {
   const koa = new Koa();
   koa.use((ctx, next) => {
-    log(ctx.host, ctx.hostname, ctx.headers, ctx.path);
+    log("router request", ctx.host, ctx.hostname, ctx.headers, ctx.path);
     return next();
   });
   koa.use(proxyMiddleware);
+  koa.use((ctx, next) => {
+    log("after middleware");
+    return next();
+  });
 
   koa.use(apiRouter.allowedMethods());
   koa.use(apiRouter.routes());
@@ -96,11 +91,13 @@ const sendProxyResponse = (
   requestId: string,
   handler: (ctx: Koa.Context) => void
 ) => {
+  debugger;
   if (!(requestId in proxyRequests)) {
     return;
   }
   handler(proxyRequests[requestId].ctx);
   clearTimeout(proxyRequests[requestId].timeoutId);
+  proxyRequests[requestId].resolve();
   delete proxyRequests[requestId];
 };
 
@@ -153,7 +150,6 @@ const createWsWrapper = (
       connectedWebSockets[webSocketKey] = wrapper;
       wrapper.ws.on("close", () => {
         if (connectedWebSockets[webSocketKey] === wrapper) {
-          log("deleting ws", webSocketKey);
           delete connectedWebSockets[webSocketKey];
         } else {
           log("keeping existing ws", webSocketKey);
@@ -182,7 +178,10 @@ const createWsWrapper = (
   return wrapper;
 };
 
-const proxyMiddleware = async (ctx: Koa.Context, next: Koa.Next) => {
+const proxyMiddleware = async (
+  ctx: Koa.Context,
+  next: Koa.Next
+): Promise<void> => {
   const appSecret = ctx.header[globalConfig.appSecretHeader];
   if (!appSecret) {
     return next();
@@ -236,5 +235,9 @@ const proxyMiddleware = async (ctx: Koa.Context, next: Koa.Next) => {
     });
   }, proxyTimeout) as any;
 
-  proxyRequests[requestId] = { timeoutId, ctx };
+  const promise = new Promise<void>((resolve) => {
+    proxyRequests[requestId] = { timeoutId, ctx, resolve };
+  });
+
+  return promise;
 };

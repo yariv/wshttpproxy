@@ -15,6 +15,7 @@ export const initWsClient = (): WsWrapper<
     "proxy",
     async ({ path, requestId, method, headers, body: bodyStr }) => {
       try {
+        log("fetching", globalConfig.exampleDevUrl + path);
         const res = await fetch(globalConfig.exampleDevUrl + path, {
           headers,
           method,
@@ -36,7 +37,7 @@ export const initWsClient = (): WsWrapper<
         console.error("fetch error", err);
         wrapper.sendMsg("proxyError", {
           requestId,
-          message: err.message,
+          message: "failed to proxy request",
         });
       }
     }

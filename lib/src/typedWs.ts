@@ -1,8 +1,6 @@
-import * as z from "zod";
 import WebSocket from "ws";
+import * as z from "zod";
 import { log } from "./log";
-import { serverSchema } from "./wsSchema";
-import { typedServerFunc } from "../../router/src/typedApi/baseApi";
 
 export type WsSchema = Record<string, z.ZodType<any>>;
 
@@ -16,6 +14,7 @@ const genericMsgSchema = z.object({
   params: z.any(),
 });
 
+// TODO use ping/pong messages
 export class WsWrapper<
   IncomingSchemaType extends WsSchema,
   OutgoingSchemaType extends WsSchema
@@ -30,14 +29,14 @@ export class WsWrapper<
     this.ws = ws;
     this.handlers = {} as any; // TODO figure out why this casting is necessary
 
-    this.ws.on("message", (event: WebSocket.MessageEvent) => {
-      log("message", event.data);
-      const msgStr = event.data.toString("utf-8");
+    this.ws.on("message", (event) => {
+      log("message", event);
       let unserialized;
       try {
+        const msgStr = event.toString("utf-8");
         unserialized = JSON.parse(msgStr);
       } catch (e) {
-        log("Error parsing", msgStr);
+        log("Error parsing", event);
         // TODO close?
         return;
       }
@@ -61,8 +60,7 @@ export class WsWrapper<
           // TODO close?
         });
       } else {
-        log("Invalid message", event.data, parseResult);
-        debugger;
+        log("Invalid message", event, parseResult2.error);
         return;
       }
     });
@@ -79,7 +77,7 @@ export class WsWrapper<
     type: MsgType,
     params: z.infer<OutgoingSchemaType[MsgType]>
   ) {
-    console.log("ASDF", type, params);
+    log("sending", { type, params });
     this.ws.send(JSON.stringify({ type, params }));
   }
 }
@@ -90,9 +88,7 @@ export const initWebsocket = (ws: WebSocket) => {
     log("open");
   });
 
-  ws.on("close", () => {
-    console.log("close");
-  });
+  ws.on("close", () => {});
   ws.on("error", (err) => {
     console.error("error");
   });

@@ -9,7 +9,7 @@ import { createKoaRoute } from "../../router/src/typedApi/koaAdapter";
 import { localProxyApiSchema } from "./localProxyApiSchema";
 import { initWsClient } from "./wsClient";
 
-export let openWebSocket: WsWrapper<typeof serverSchema2, typeof clientSchema2>;
+export let wsWrapper: WsWrapper<typeof serverSchema2, typeof clientSchema2>;
 
 export const initKoaApp = async (applicationSecret: string): Promise<Koa> => {
   await storage.init();
@@ -19,20 +19,18 @@ export const initKoaApp = async (applicationSecret: string): Promise<Koa> => {
   })(apiRouter);
 
   createKoaRoute(localProxyApiSchema, "setRouteKey", async ({ routeKey }) => {
-    if (openWebSocket) {
+    if (wsWrapper) {
       console.log("Closing open websocket");
-      openWebSocket.ws.close();
+      wsWrapper.ws.close();
     }
-    openWebSocket = initWsClient();
+    wsWrapper = initWsClient();
     const authToken = await storage.getItem("token");
-    openWebSocket.ws.on("open", () => {
-      openWebSocket.ws.send("FSDF");
-
-      // openWebSocket.sendMsg("connect", {
-      //   authToken,
-      //   routeKey,
-      //   applicationSecret,
-      // });
+    wsWrapper.ws.on("open", () => {
+      wsWrapper.sendMsg("connect", {
+        authToken,
+        routeKey,
+        applicationSecret,
+      });
     });
   })(apiRouter);
 

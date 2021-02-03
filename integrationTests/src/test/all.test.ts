@@ -137,9 +137,12 @@ describe("integration", () => {
     );
     await localProxyClient.post("setToken", { token: oauthToken });
     await localProxyClient.post("setRouteKey", { routeKey });
+    deferClose(await exampleMain(globalConfig.exampleDevPort));
 
     const resp2 = await sendDevRequest();
-    log(resp2);
+    log("resp", resp2);
+    expect(resp2.body).toBe("" + globalConfig.exampleDevPort);
+    expect(resp2.status).toBe(200);
 
     //await expectHttpError(sendDevRequest(), 404);
   });

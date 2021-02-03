@@ -2,7 +2,7 @@ import { Closeable, start } from "dev-in-prod-lib/src/appServer";
 import dotenv from "dotenv";
 import next from "next";
 import { globalConfig } from "../lib/src/utils";
-import { initKoaApp as initKoaApp, openWebSocket } from "./src/app";
+import { initKoaApp as initKoaApp, wsWrapper } from "./src/app";
 dotenv.config();
 
 export const main = async (
@@ -14,8 +14,8 @@ export const main = async (
   const closeable = await start(port, __dirname, next, app);
   return {
     close: async () => {
-      if (openWebSocket) {
-        openWebSocket.ws.close();
+      if (wsWrapper) {
+        wsWrapper.ws.close();
       }
       return closeable.close();
     },
