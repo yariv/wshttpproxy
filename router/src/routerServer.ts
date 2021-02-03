@@ -10,7 +10,7 @@ import route from "koa-route";
 import websockify from "koa-websocket";
 import next from "next";
 import { router as apiRouter } from "./apiHandlers/router";
-import { SocketManager } from "./proxyMiddleware";
+import { SocketManager } from "./socketManager";
 
 export const start = async (
   port: number,
