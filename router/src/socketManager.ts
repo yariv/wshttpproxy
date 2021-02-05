@@ -10,6 +10,7 @@ import { prisma } from "./prisma";
 import { getWebSocketKey, sha256, WsKey } from "./utils";
 import WebSocket from "ws";
 import { log } from "dev-in-prod-lib/src/log";
+import getRawBody from "raw-body";
 
 export class SocketManager {
   proxyRequests: Record<
@@ -78,13 +79,13 @@ export class SocketManager {
     delete ctx.headers[globalConfig.appSecretHeader];
     delete ctx.headers[globalConfig.routeKeyHeader];
 
-    console.log("BFBDF", ctx.request.body);
-    debugger;
+    const body = await getRawBody(ctx.req, { encoding: "utf-8" });
+    // TODO deal with non utf-8 blobs
     this.connectedWebSockets[webSocketKey].sendMsg("proxy", {
       requestId: requestId,
       method: ctx.method,
       headers: ctx.headers,
-      body: ctx.request.rawBody,
+      body: body,
       path: ctx.path,
     });
 

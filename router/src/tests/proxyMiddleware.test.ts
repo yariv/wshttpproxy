@@ -95,7 +95,7 @@ describe("proxy middleware", () => {
     const res2 = await fetch(globalConfig.routerUrl, {
       headers: {
         [globalConfig.appSecretHeader]: applicationSecret,
-        [globalConfig.originalHostHeader]: "http://localhost",
+        [globalConfig.originalHostHeader]: "localhost",
         [globalConfig.routeKeyHeader]: routeKey,
       },
     });
@@ -120,9 +120,12 @@ describe("proxy middleware", () => {
           expect(body).toStrictEqual(bodyStr);
           expect(path).toStrictEqual(testPath);
           expect(headers[globalConfig.originalHostHeader]).toStrictEqual(
-            "http://localhost"
+            "localhost"
           );
-          expect(headers["host"]).toStrictEqual("http://localhost");
+          expect(headers["host"]).toStrictEqual(
+            "localhost:" + globalConfig.routerPort
+          );
+          expect(headers["content-length"]).toStrictEqual("" + bodyStr.length);
           console.log("sadf");
           resolve(null);
         }
@@ -131,7 +134,7 @@ describe("proxy middleware", () => {
         const res2 = await fetch(globalConfig.routerUrl + testPath, {
           headers: {
             [globalConfig.appSecretHeader]: applicationSecret,
-            [globalConfig.originalHostHeader]: "http://localhost",
+            [globalConfig.originalHostHeader]: "localhost",
             [globalConfig.routeKeyHeader]: routeKey,
           },
           method: "POST",
