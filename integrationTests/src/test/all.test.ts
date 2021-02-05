@@ -1,6 +1,6 @@
 import { exampleMain as exampleMain } from "dev-in-prod-example/main";
 import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/src/utils";
-import { main as localProxyMain } from "dev-in-prod-local-proxy/main";
+import { localProxyMain as localProxyMain } from "dev-in-prod-local-proxy/localProxyMain";
 import { localProxyApiSchema } from "dev-in-prod-local-proxy/src/localProxyApiSchema";
 import { routerMain } from "dev-in-prod-router/routerMain";
 import { prisma } from "dev-in-prod-router/src/prisma";

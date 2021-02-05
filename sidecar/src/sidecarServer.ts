@@ -1,4 +1,4 @@
-import { Closeable, listenOnPort } from "dev-in-prod-lib/src/appServer";
+import { listenOnPort } from "dev-in-prod-lib/src/appServer";
 import { getRouteKeyFromCtx, globalConfig } from "dev-in-prod-lib/src/utils";
 import { log } from "dev-in-prod-lib/src/log";
 import Koa from "koa";
@@ -8,7 +8,7 @@ import { config } from "./config";
 export const startSidecar = async (
   port: number,
   appSecret: string
-): Promise<Closeable> => {
+): Promise<() => Promise<void>> => {
   const app = new Koa();
 
   app.use(
@@ -32,5 +32,5 @@ export const startSidecar = async (
       },
     })
   );
-  return listenOnPort(app, port);
+  return await listenOnPort(app, port);
 };
