@@ -30,4 +30,5 @@ export const serverSchema = {
   connectionError: z.object({
     message: z.string(),
   }),
+  connected: z.void(),
 };

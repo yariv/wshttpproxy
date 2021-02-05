@@ -18,7 +18,7 @@ export const globalConfig = {
   routerUrl: getHttpUrl(configPorts.routerPort),
   routerWsUrl: `ws://localhost:${configPorts.routerPort}/ws`,
   sidecarUrl: getHttpUrl(configPorts.sidecarPort),
-  routeKeyHeader: "dev-in-prod-router-key",
+  routeKeyHeader: "dev-in-prod-route-key",
   appSecretHeader: "dev-in-prod-app-secret",
   routeKeySubdomainPrefix: "rk-",
   apiPathPrefix: "/api/",

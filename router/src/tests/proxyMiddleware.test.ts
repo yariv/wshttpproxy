@@ -110,14 +110,35 @@ describe("proxy middleware", () => {
     });
     const ws = new WebSocket(globalConfig.routerWsUrl);
     const wsWrapper = new WsWrapper(ws, serverSchema, clientSchema);
+
+    const bodyStr = "a=1";
+    const testPath = "/testPath";
     return new Promise((resolve) => {
       wsWrapper.setHandler(
         "proxy",
         async ({ body, path, requestId, headers }) => {
+          expect(body).toStrictEqual(bodyStr);
+          expect(path).toStrictEqual(testPath);
+          expect(headers[globalConfig.originalHostHeader]).toStrictEqual(
+            "http://localhost"
+          );
+          expect(headers["host"]).toStrictEqual("http://localhost");
           console.log("sadf");
           resolve(null);
         }
       );
+      wsWrapper.setHandler("connected", async () => {
+        const res2 = await fetch(globalConfig.routerUrl + testPath, {
+          headers: {
+            [globalConfig.appSecretHeader]: applicationSecret,
+            [globalConfig.originalHostHeader]: "http://localhost",
+            [globalConfig.routeKeyHeader]: routeKey,
+          },
+          method: "POST",
+          body: bodyStr,
+        });
+        console.log(res2.status);
+      });
       ws.on("open", () => {
         wsWrapper.sendMsg("connect", {
           routeKey,

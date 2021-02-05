@@ -75,6 +75,11 @@ export class SocketManager {
 
     const requestId = genNewToken();
 
+    delete ctx.headers[globalConfig.appSecretHeader];
+    delete ctx.headers[globalConfig.routeKeyHeader];
+
+    console.log("BFBDF", ctx.request.body);
+    debugger;
     this.connectedWebSockets[webSocketKey].sendMsg("proxy", {
       requestId: requestId,
       method: ctx.method,
@@ -165,6 +170,8 @@ export class SocketManager {
             log("keeping existing ws", webSocketKey);
           }
         });
+
+        wrapper.sendMsg("connected");
       }
     );
 

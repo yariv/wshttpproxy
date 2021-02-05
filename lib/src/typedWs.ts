@@ -64,7 +64,7 @@ export class WsWrapper<
       if (parseResult2.success) {
         this.handlers[type](parseResult2.data).catch((err) => {
           log("Error in handling message", event, err.message);
-          // TODO close?
+          this.ws.close();
         });
       } else {
         log("Invalid message", event, parseResult2.error);
@@ -82,7 +82,7 @@ export class WsWrapper<
 
   sendMsg<MsgType extends keyof OutgoingSchemaType>(
     type: MsgType,
-    params: z.infer<OutgoingSchemaType[MsgType]>
+    params?: z.infer<OutgoingSchemaType[MsgType]>
   ) {
     log("sending", { type, params });
     this.ws.send(JSON.stringify({ type, params }));

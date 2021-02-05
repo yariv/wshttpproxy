@@ -2,6 +2,7 @@ import { appServerStart } from "dev-in-prod-lib/src/appServer";
 import { log } from "dev-in-prod-lib/src/log";
 import { initWebsocket } from "dev-in-prod-lib/src/typedWs";
 import Koa from "koa";
+import bodyParser from "koa-bodyparser";
 import route from "koa-route";
 import websockify from "koa-websocket";
 import next from "next";
@@ -31,6 +32,7 @@ const initKoaApp = (socketManager: SocketManager): Koa => {
     log("router request", ctx.host, ctx.hostname, ctx.headers, ctx.path);
     return next();
   });
+  koa.use(bodyParser());
   koa.use(socketManager.proxyMiddleware.bind(socketManager));
   koa.use(apiRouter.allowedMethods());
   koa.use(apiRouter.routes());
