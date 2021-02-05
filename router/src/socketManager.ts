@@ -23,7 +23,7 @@ export class SocketManager {
     WsWrapper<typeof clientSchema2, typeof serverSchema2>
   > = {};
 
-  async close() {
+  close() {
     this.allWebSockets.forEach((ws) => {
       ws.close();
     });

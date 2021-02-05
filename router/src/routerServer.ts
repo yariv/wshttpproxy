@@ -1,8 +1,4 @@
-import {
-  Closeable,
-  CloseableContainer,
-  start as appServerStart,
-} from "dev-in-prod-lib/src/appServer";
+import { appServerStart } from "dev-in-prod-lib/src/appServer";
 import { log } from "dev-in-prod-lib/src/log";
 import { initWebsocket } from "dev-in-prod-lib/src/typedWs";
 import Koa from "koa";
@@ -12,18 +8,21 @@ import next from "next";
 import { router as apiRouter } from "./apiHandlers/router";
 import { SocketManager } from "./socketManager";
 
-export const start = async (
+export const routerServerStart = async (
   port: number,
   dirname: string
-): Promise<Closeable> => {
+): Promise<() => Promise<void>> => {
   const socketManager = new SocketManager();
-  const closeable = await appServerStart(
+  const closeFunc = await appServerStart(
     port,
     dirname,
     next,
     initKoaApp(socketManager)
   );
-  return new CloseableContainer([closeable, socketManager]);
+  return async () => {
+    socketManager.close();
+    await closeFunc();
+  };
 };
 
 const initKoaApp = (socketManager: SocketManager): Koa => {

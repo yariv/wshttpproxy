@@ -1,4 +1,4 @@
-import { Closeable, start } from "dev-in-prod-lib/src/appServer";
+import { Closeable, appServerStart } from "dev-in-prod-lib/src/appServer";
 import dotenv from "dotenv";
 import next from "next";
 import { globalConfig } from "../lib/src/utils";
@@ -11,7 +11,7 @@ export const main = async (
 ): Promise<Closeable> => {
   // TODO create local client id
   const app = await initKoaApp(applicationSecret);
-  const closeable = await start(port, __dirname, next, app);
+  const closeable = await appServerStart(port, __dirname, next, app);
   return {
     close: async () => {
       if (wsWrapper) {

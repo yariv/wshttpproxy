@@ -1,34 +1,8 @@
-import { Closeable } from "dev-in-prod-lib/src/appServer";
-import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/src/utils";
-import { main } from "../../../../main";
-import { prisma } from "../../../prisma";
-import { TypedHttpClient } from "../../../typedApi/httpApi";
-import { initTestDb } from "../../db";
 import { createTestOAuthToken } from "../../testLib";
-import { routerApiSchema } from "../../../routerApiSchema";
-jest.mock("next-auth/client");
+import { setupTest } from "../../testLib";
 
 describe("createApplication", () => {
-  let closeable: Closeable;
-
-  const client = new TypedHttpClient(getRouterApiUrl(), routerApiSchema);
-
-  beforeAll(async () => {
-    closeable = await main(globalConfig.routerPort);
-  });
-
-  afterAll(async () => {
-    await closeable.close();
-  });
-
-  beforeEach(async () => {
-    await initTestDb();
-  });
-
-  afterEach(async () => {
-    await prisma.$disconnect();
-    jest.resetAllMocks();
-  });
+  const client = setupTest();
 
   it("works", async () => {
     const oauthToken = await createTestOAuthToken();

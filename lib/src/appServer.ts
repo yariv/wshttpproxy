@@ -1,31 +1,15 @@
+import { Server } from "http";
 import Koa from "koa";
 import util from "util";
-import { Server } from "http";
 
-export interface Closeable {
-  close(): Promise<void>;
-}
-
-export class CloseableContainer implements Closeable {
-  closeables: Closeable[];
-
-  constructor(closables: Closeable[]) {
-    this.closeables = closables;
-  }
-
-  async close() {
-    await Promise.all(this.closeables.map((closeable) => closeable.close()));
-  }
-}
-
-export const start = async (
+export const appServerStart = async (
   port: number,
   dirname: string,
   // note: next is a parameter instead of an import to prevent
   // duplicate imports of react, which causes errors
   next: (params: any) => any,
   koaApp?: Koa
-): Promise<Closeable> => {
+): Promise<() => Promise<void>> => {
   const dev = process.env.NODE_ENV !== "production";
 
   const nextConf = require(dirname + "/next.config.js");
@@ -40,17 +24,17 @@ export const start = async (
     await requestHandler(ctx.req, ctx.res);
   });
 
-  const closeableKoaApp = await listenOnPort(app, port);
+  const closeKoaFunc = await listenOnPort(app, port);
 
-  const closeableNextApp = {
-    close: async () => {
-      // Unfortunately, Next Server's close() method is protected. Casting the Server
-      // to 'any' lets us call it.
-      await (nextApp as any).close();
-    },
+  const closeNextFunc = async () => {
+    // Unfortunately, 'close' is a protected method, so we cast
+    // nextApp as any to be able to access it.
+    await (nextApp as any).close();
   };
 
-  return new CloseableContainer([closeableKoaApp, closeableNextApp]);
+  return async () => {
+    await Promise.all([closeKoaFunc(), closeNextFunc()]);
+  };
 };
 
 interface CanListen {
@@ -59,20 +43,18 @@ interface CanListen {
 export const listenOnPort = (
   app: CanListen,
   port: number
-): Promise<Closeable> => {
-  const promise = new Promise<Closeable>((resolve, reject) => {
+): Promise<() => Promise<void>> => {
+  return new Promise<() => Promise<void>>((resolve, reject) => {
     const server = app.listen(port);
     server.addListener("listening", () => {
       console.log("Listening on port ", port);
-      const closeableServer = {
-        close: util.promisify(server.close).bind(server),
-      };
-      resolve(closeableServer);
+      resolve(async () => {
+        return util.promisify(server.close.bind(server))();
+      });
     });
     server.addListener("error", () => {
       console.error("Error listening on port ", port);
       reject();
     });
   });
-  return promise;
 };
