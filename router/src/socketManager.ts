@@ -4,7 +4,7 @@ import {
   getRouteKeyFromCtx,
   globalConfig,
 } from "dev-in-prod-lib/src/utils";
-import { clientSchema2, serverSchema2 } from "dev-in-prod-lib/src/wsSchema";
+import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
 import Koa from "koa";
 import { prisma } from "./prisma";
 import { getWebSocketKey, sha256, WsKey } from "./utils";
@@ -20,7 +20,7 @@ export class SocketManager {
   allWebSockets: Set<WebSocket> = new Set();
   connectedWebSockets: Record<
     WsKey,
-    WsWrapper<typeof clientSchema2, typeof serverSchema2>
+    WsWrapper<typeof clientSchema, typeof serverSchema>
   > = {};
 
   close() {
@@ -56,7 +56,7 @@ export class SocketManager {
       where: { secret: appSecret },
     });
     if (!application) {
-      ctx.throw(400, "Invalid application secret.");
+      ctx.throw(400, "Invalid application secret");
     }
 
     const route = await prisma.route.findUnique({
@@ -114,16 +114,16 @@ export class SocketManager {
       this.allWebSockets.delete(ws);
     });
 
-    const wrapper = new WsWrapper(ws, clientSchema2);
+    const wrapper = new WsWrapper(ws, clientSchema, serverSchema);
     wrapper.setHandler(
       "connect",
-      async ({ authToken, applicationSecret, routeKey }) => {
+      async ({ oauthToken, applicationSecret, routeKey }) => {
         const sendErrMsg = (message: string) => {
-          wrapper.sendMsg("connection_error", { message });
+          wrapper.sendMsg("connectionError", { message });
           wrapper.ws.close();
         };
         const token = await prisma.oAuthToken.findUnique({
-          where: { tokenHash: sha256(authToken) },
+          where: { tokenHash: sha256(oauthToken) },
         });
         if (!token) {
           sendErrMsg("Invalid oauth token");

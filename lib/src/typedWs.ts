@@ -25,7 +25,14 @@ export class WsWrapper<
     (msg: IncomingSchemaType[keyof IncomingSchemaType]) => Promise<void>
   >;
 
-  constructor(ws: WebSocket, incomingSchema: IncomingSchemaType) {
+  constructor(
+    ws: WebSocket,
+    incomingSchema: IncomingSchemaType,
+
+    // This parameter is only used for enforcing the right type
+    // definition for OutgoingSchemaType
+    outgoingSchema: OutgoingSchemaType
+  ) {
     this.ws = ws;
     this.handlers = {} as any; // TODO figure out why this casting is necessary
 

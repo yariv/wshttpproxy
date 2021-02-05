@@ -17,12 +17,12 @@ export const setupTest = (): ((deferredFunc: () => Promise<void>) => void) => {
     deferredFuncs.push(func);
   };
 
-  afterAll(async () => {
-    await Promise.all(deferredFuncs.map((func) => func()));
+  beforeAll(async () => {
+    await initTestDb();
   });
 
-  beforeEach(async () => {
-    await initTestDb();
+  afterAll(async () => {
+    await Promise.all(deferredFuncs.map((func) => func()));
   });
 
   afterEach(async () => {

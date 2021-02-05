@@ -1,8 +1,8 @@
 import * as z from "zod";
 
-export const clientSchema2 = {
+export const clientSchema = {
   connect: z.object({
-    authToken: z.string(),
+    oauthToken: z.string(),
     applicationSecret: z.string(),
     routeKey: z.string(),
   }),
@@ -19,7 +19,7 @@ export const clientSchema2 = {
   }),
 };
 
-export const serverSchema2 = {
+export const serverSchema = {
   proxy: z.object({
     path: z.string(),
     requestId: z.string(),

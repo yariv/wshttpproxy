@@ -1,7 +1,7 @@
 import Router from "@koa/router";
 import { WsWrapper } from "dev-in-prod-lib/src/typedWs";
 import { globalConfig } from "dev-in-prod-lib/src/utils";
-import { clientSchema2, serverSchema2 } from "dev-in-prod-lib/src/wsSchema";
+import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
 import Koa from "koa";
 import storage from "node-persist";
 // TODO fix import
@@ -9,7 +9,7 @@ import { createKoaRoute } from "../../router/src/typedApi/koaAdapter";
 import { localProxyApiSchema } from "./localProxyApiSchema";
 import { initWsClient } from "./wsClient";
 
-export let wsWrapper: WsWrapper<typeof serverSchema2, typeof clientSchema2>;
+export let wsWrapper: WsWrapper<typeof serverSchema, typeof clientSchema>;
 
 export const initKoaApp = async (applicationSecret: string): Promise<Koa> => {
   await storage.init();

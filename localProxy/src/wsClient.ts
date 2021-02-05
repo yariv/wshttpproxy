@@ -1,16 +1,16 @@
 import { log } from "dev-in-prod-lib/src/log";
 import { initWebsocket, WsWrapper } from "dev-in-prod-lib/src/typedWs";
-import { clientSchema2, serverSchema2 } from "dev-in-prod-lib/src/wsSchema";
+import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
 import WebSocket from "ws";
 import { globalConfig } from "../../lib/src/utils";
 
 export const initWsClient = (): WsWrapper<
-  typeof serverSchema2,
-  typeof clientSchema2
+  typeof serverSchema,
+  typeof clientSchema
 > => {
   const ws = new WebSocket(globalConfig.routerWsUrl);
   initWebsocket(ws);
-  const wrapper = new WsWrapper(ws, serverSchema2);
+  const wrapper = new WsWrapper(ws, serverSchema);
   wrapper.setHandler(
     "proxy",
     async ({ path, requestId, method, headers, body: bodyStr }) => {
