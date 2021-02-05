@@ -1,6 +1,5 @@
 import { listenOnPort } from "dev-in-prod-lib/src/appServer";
 import { getRouteKeyFromCtx, globalConfig } from "dev-in-prod-lib/src/utils";
-import { log } from "dev-in-prod-lib/src/log";
 import Koa from "koa";
 import proxy from "koa-better-http-proxy";
 import { config } from "./config";

@@ -3,7 +3,7 @@ import { getServerSideProps } from "../../../pages/oauth2/authorize";
 import { sha256 } from "../../../utils";
 import { initTestDb } from "../../db";
 import { prisma } from "../../../prisma";
-import { createTestOAuthToken } from "../../testLib";
+import { createTestOAuthToken } from "dev-in-prod-lib/src/testLib";
 import client from "next-auth/client";
 jest.mock("next-auth/client");
 

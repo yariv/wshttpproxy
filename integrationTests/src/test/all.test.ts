@@ -1,31 +1,16 @@
 import { exampleMain as exampleMain } from "dev-in-prod-example/main";
+import { createTestOAuthToken, setupTest } from "dev-in-prod-lib/src/testLib";
 import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/src/utils";
 import { localProxyMain as localProxyMain } from "dev-in-prod-local-proxy/localProxyMain";
 import { localProxyApiSchema } from "dev-in-prod-local-proxy/src/localProxyApiSchema";
 import { routerMain } from "dev-in-prod-router/routerMain";
-import { prisma } from "dev-in-prod-router/src/prisma";
 import { routerApiSchema } from "dev-in-prod-router/src/routerApiSchema";
-import { createTestOAuthToken } from "dev-in-prod-router/src/tests/testLib";
 import { startSidecar } from "dev-in-prod-sidecar/src/sidecarServer";
 // TODO fix import
 import { TypedHttpClient } from "../../../router/src/typedApi/httpApi";
 
 describe("integration", () => {
-  let closeFuncs: (() => Promise<void>)[];
-
-  beforeEach(() => {
-    closeFuncs = [];
-  });
-
-  afterEach(async () => {
-    await Promise.all(closeFuncs.map((func) => func()));
-    closeFuncs = [];
-    await prisma.$disconnect();
-  });
-
-  const defer = (closeFunc: () => Promise<void>) => {
-    closeFuncs.push(closeFunc);
-  };
+  const defer = setupTest();
 
   type Resp = {
     status: number;

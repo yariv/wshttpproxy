@@ -1,9 +1,17 @@
-import { createTestOAuthToken } from "../../testLib";
-import { setupTest } from "../../testLib";
+import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/src/utils";
+import { routerMain } from "../../../../routerMain";
+import { routerApiSchema } from "../../../routerApiSchema";
+import { TypedHttpClient } from "../../../typedApi/httpApi";
+import { createTestOAuthToken } from "dev-in-prod-lib/src/testLib";
+import { setupTest } from "dev-in-prod-lib/src/testLib";
 jest.mock("next-auth/client");
 
 describe("createRoute", () => {
-  const client = setupTest();
+  const defer = setupTest();
+  const client = new TypedHttpClient(getRouterApiUrl(), routerApiSchema);
+  beforeAll(async () => {
+    defer(await routerMain(globalConfig.routerPort));
+  });
 
   it("requires valid application secret", async () => {
     const oauthToken = await createTestOAuthToken();
