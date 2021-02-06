@@ -7,6 +7,7 @@ import { routerApiSchema } from "../routerApiSchema";
 import { TypedHttpClient } from "../typedApi/httpApi";
 import WebSocket from "ws";
 import * as z from "zod";
+import { extractPreviewFeatures } from "@prisma/sdk";
 
 describe("proxy middleware", () => {
   const defer = setupTest();
@@ -264,8 +265,42 @@ describe("proxy middleware", () => {
         body: "",
         requestId: "foo",
         status: 200,
-        statusText: "test",
         headers: {},
+      });
+    });
+  });
+
+  it("proxyResult works", async () => {
+    const applicationSecret = await getAppSecret();
+    const routeKey = await getRouteKey(applicationSecret);
+    const wsWrapper = await getConnectedWs(applicationSecret, routeKey);
+    const testBody = "test";
+    const testHeaders = { foo: "bar" };
+    wsWrapper.setHandler("proxy", async ({ requestId }) => {
+      wsWrapper.sendMsg("proxyResult", {
+        body: testBody,
+        requestId: requestId,
+        status: 213,
+        headers: testHeaders,
+      });
+    });
+    const resp = await sendProxyRequest(applicationSecret, routeKey);
+    checkRes(resp, 213, testBody);
+    expect(resp.headers).toStrictEqual(testHeaders);
+  });
+
+  it("proxyError requires valid requestId", async () => {
+    const applicationSecret = await getAppSecret();
+    const routeKey = await getRouteKey(applicationSecret);
+    const wsWrapper = await getConnectedWs(applicationSecret, routeKey);
+    return new Promise(async (resolve) => {
+      wsWrapper.setHandler("invalidRequestId", async ({ requestId }) => {
+        expect(requestId).toBe("foo");
+        resolve(null);
+      });
+      wsWrapper.sendMsg("proxyError", {
+        requestId: "foo",
+        message: "",
       });
     });
   });

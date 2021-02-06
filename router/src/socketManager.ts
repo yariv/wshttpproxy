@@ -191,17 +191,12 @@ export class SocketManager {
       });
     });
 
-    wrapper.setHandler(
-      "proxyResult",
-      async ({ body, requestId, status, statusText }) => {
-        this.sendProxyResponse(wrapper, requestId, (ctx) => {
-          ctx.status = 500;
-          ctx.body = body;
-          ctx.status = status;
-          ctx.statusText = statusText;
-        });
-      }
-    );
+    wrapper.setHandler("proxyResult", async ({ body, requestId, status }) => {
+      this.sendProxyResponse(wrapper, requestId, (ctx) => {
+        ctx.body = body;
+        ctx.status = status;
+      });
+    });
     return wrapper;
   }
 }
