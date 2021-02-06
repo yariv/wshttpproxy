@@ -1,6 +1,10 @@
 import { createTestOAuthToken, setupTest } from "dev-in-prod-lib/src/testLib";
 import { WsWrapper } from "dev-in-prod-lib/src/typedWs";
-import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/src/utils";
+import {
+  genNewToken,
+  getRouterApiUrl,
+  globalConfig,
+} from "dev-in-prod-lib/src/utils";
 import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
 import { routerMain } from "../../routerMain";
 import { routerApiSchema } from "../routerApiSchema";
@@ -8,6 +12,8 @@ import { TypedHttpClient } from "../typedApi/httpApi";
 import WebSocket from "ws";
 import * as z from "zod";
 import { extractPreviewFeatures } from "@prisma/sdk";
+
+type TestWsType = WsWrapper<typeof serverSchema, typeof clientSchema>;
 
 describe("proxy middleware", () => {
   const defer = setupTest();
@@ -24,7 +30,7 @@ describe("proxy middleware", () => {
   const getAppSecret = async (): Promise<string> => {
     const { secret } = await client.post("createApplication", {
       oauthToken,
-      name: "foo",
+      name: "foo" + genNewToken(),
     });
     return secret;
   };
@@ -105,9 +111,7 @@ describe("proxy middleware", () => {
   const bodyStr = "a=1";
   const testPath = "/testPath";
 
-  const openWs = async (): Promise<
-    WsWrapper<typeof serverSchema, typeof clientSchema>
-  > => {
+  const openWs = async (): Promise<TestWsType> => {
     const ws = new WebSocket(globalConfig.routerWsUrl);
     const wsWrapper = new WsWrapper(ws, serverSchema, clientSchema);
 
@@ -212,7 +216,7 @@ describe("proxy middleware", () => {
   const getConnectedWs = async (
     applicationSecret: string,
     routeKey: string
-  ): Promise<WsWrapper<typeof serverSchema, typeof clientSchema>> => {
+  ): Promise<TestWsType> => {
     const wsWrapper = await openWs();
     return new Promise((resolve) => {
       wsWrapper.setHandler("connected", async () => {
@@ -270,23 +274,65 @@ describe("proxy middleware", () => {
     });
   });
 
+  const testBody = "test";
+  const testHeaders = { foo: "bar" };
+  const sendProxyResult = (wsWrapper: TestWsType, requestId: string) => {
+    wsWrapper.sendMsg("proxyResult", {
+      body: testBody,
+      requestId,
+      status: 213,
+      headers: testHeaders,
+    });
+  };
+
   it("proxyResult works", async () => {
     const applicationSecret = await getAppSecret();
     const routeKey = await getRouteKey(applicationSecret);
     const wsWrapper = await getConnectedWs(applicationSecret, routeKey);
-    const testBody = "test";
-    const testHeaders = { foo: "bar" };
     wsWrapper.setHandler("proxy", async ({ requestId }) => {
-      wsWrapper.sendMsg("proxyResult", {
-        body: testBody,
-        requestId: requestId,
-        status: 213,
-        headers: testHeaders,
-      });
+      sendProxyResult(wsWrapper, requestId);
     });
     const resp = await sendProxyRequest(applicationSecret, routeKey);
     checkRes(resp, 213, testBody);
-    expect(resp.headers).toStrictEqual(testHeaders);
+    expect(resp.headers.get("foo")).toStrictEqual("bar");
+  });
+
+  const checkOnlyOneMessagePerProxyResult = async (
+    sendClientMessage1: (wsWrapper: TestWsType, requestId: string) => void,
+    sendClientMessage2: (wsWrapper: TestWsType, requestId: string) => void
+  ) => {
+    const applicationSecret = await getAppSecret();
+    const routeKey = await getRouteKey(applicationSecret);
+    const wsWrapper = await getConnectedWs(applicationSecret, routeKey);
+    return new Promise(async (resolve) => {
+      wsWrapper.setHandler("proxy", async ({ requestId }) => {
+        wsWrapper.setHandler(
+          "invalidRequestId",
+          async ({ requestId: errRequestId }) => {
+            expect(errRequestId).toStrictEqual(requestId);
+            resolve(null);
+          }
+        );
+
+        sendClientMessage1(wsWrapper, requestId);
+        sendClientMessage2(wsWrapper, requestId);
+      });
+      await sendProxyRequest(applicationSecret, routeKey);
+    });
+  };
+
+  const proxyError = "proxy fail";
+  const sendProxyError = (wsWrapper: TestWsType, requestId: string) => {
+    wsWrapper.sendMsg("proxyError", { requestId, message: proxyError });
+  };
+
+  it("proxyResult and proxyError only work once per requestId", async () => {
+    return Promise.all([
+      checkOnlyOneMessagePerProxyResult(sendProxyResult, sendProxyResult),
+      checkOnlyOneMessagePerProxyResult(sendProxyError, sendProxyResult),
+      checkOnlyOneMessagePerProxyResult(sendProxyResult, sendProxyError),
+      checkOnlyOneMessagePerProxyResult(sendProxyError, sendProxyError),
+    ]);
   });
 
   it("proxyError requires valid requestId", async () => {
@@ -303,5 +349,16 @@ describe("proxy middleware", () => {
         message: "",
       });
     });
+  });
+
+  it("proxyError works", async () => {
+    const applicationSecret = await getAppSecret();
+    const routeKey = await getRouteKey(applicationSecret);
+    const wsWrapper = await getConnectedWs(applicationSecret, routeKey);
+    wsWrapper.setHandler("proxy", async ({ requestId }) => {
+      sendProxyError(wsWrapper, requestId);
+    });
+    const resp = await sendProxyRequest(applicationSecret, routeKey);
+    checkRes(resp, 500, proxyError);
   });
 });

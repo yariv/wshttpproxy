@@ -191,12 +191,18 @@ export class SocketManager {
       });
     });
 
-    wrapper.setHandler("proxyResult", async ({ body, requestId, status }) => {
-      this.sendProxyResponse(wrapper, requestId, (ctx) => {
-        ctx.body = body;
-        ctx.status = status;
-      });
-    });
+    wrapper.setHandler(
+      "proxyResult",
+      async ({ body, requestId, status, headers }) => {
+        this.sendProxyResponse(wrapper, requestId, (ctx) => {
+          ctx.body = body;
+          ctx.status = status;
+          for (const [header, val] of Object.entries(headers)) {
+            ctx.set(header, val);
+          }
+        });
+      }
+    );
     return wrapper;
   }
 }
