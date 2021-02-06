@@ -32,7 +32,8 @@ export class SocketManager {
       this.proxyRequests
     )) {
       clearTimeout(timeoutId);
-      // TODO is this needed?
+      ctx.status = 500;
+      ctx.body = "Proxy error";
       ctx.res.end();
     }
   }
