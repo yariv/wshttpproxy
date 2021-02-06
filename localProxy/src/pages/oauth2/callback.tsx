@@ -15,6 +15,7 @@ const OAuthCallbackPage = () => {
     if (!token) {
       throw new Error("Missing token");
     }
+    // TODO rewrite
     (async () => {
       await post<{ token: string }>("/api/setToken", { token: token });
       setMsg("hi");

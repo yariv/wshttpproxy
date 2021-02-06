@@ -14,8 +14,9 @@ export let wsWrapper: WsWrapper<typeof serverSchema, typeof clientSchema>;
 export const initKoaApp = async (applicationSecret: string): Promise<Koa> => {
   await storage.init();
   const apiRouter = new Router({ prefix: globalConfig.apiPathPrefix });
+
   createKoaRoute(localProxyApiSchema, "setToken", async ({ token }) => {
-    await storage.setItem("token", token);
+    await storage.setItem("oauthToken", token);
   })(apiRouter);
 
   createKoaRoute(localProxyApiSchema, "setRouteKey", async ({ routeKey }) => {
@@ -24,10 +25,10 @@ export const initKoaApp = async (applicationSecret: string): Promise<Koa> => {
       wsWrapper.ws.close();
     }
     wsWrapper = initWsClient();
-    const authToken = await storage.getItem("token");
+    const oauthToken = await storage.getItem("oauthToken");
     wsWrapper.ws.on("open", () => {
       wsWrapper.sendMsg("connect", {
-        authToken,
+        oauthToken,
         routeKey,
         applicationSecret,
       });

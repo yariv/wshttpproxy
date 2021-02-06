@@ -184,6 +184,7 @@ describe("proxy middleware", () => {
       "Invalid route key"
     );
   });
+
   it("only one websocket per route key", async () => {
     const applicationSecret = await getAppSecret();
     const routeKey = await getRouteKey(applicationSecret);

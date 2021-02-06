@@ -10,7 +10,7 @@ export const initWsClient = (): WsWrapper<
 > => {
   const ws = new WebSocket(globalConfig.routerWsUrl);
   initWebsocket(ws);
-  const wrapper = new WsWrapper(ws, serverSchema);
+  const wrapper = new WsWrapper(ws, serverSchema, clientSchema);
   wrapper.setHandler(
     "proxy",
     async ({ path, requestId, method, headers, body: bodyStr }) => {
@@ -29,7 +29,6 @@ export const initWsClient = (): WsWrapper<
         wrapper.sendMsg("proxyResult", {
           requestId: requestId,
           status: res.status,
-          statusText: res.statusText,
           headers: headersMap,
           body: body,
         });
