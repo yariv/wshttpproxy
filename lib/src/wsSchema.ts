@@ -31,4 +31,7 @@ export const serverSchema = {
     message: z.string(),
   }),
   connected: z.void(),
+  invalidRequestId: z.object({
+    requestId: z.string(),
+  }),
 };

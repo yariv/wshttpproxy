@@ -71,7 +71,8 @@ export class SocketManager {
     }
 
     const webSocketKey = getWebSocketKey(application.id, routeKey);
-    if (!this.connectedWebSockets[webSocketKey]) {
+    const wsWrapper = this.connectedWebSockets[webSocketKey];
+    if (!wsWrapper) {
       ctx.throw(400, "Route isn't connected");
     }
 
@@ -80,9 +81,10 @@ export class SocketManager {
     delete ctx.headers[globalConfig.appSecretHeader];
     delete ctx.headers[globalConfig.routeKeyHeader];
 
-    const body = await getRawBody(ctx.req, { encoding: "utf-8" });
     // TODO deal with non utf-8 blobs
-    this.connectedWebSockets[webSocketKey].sendMsg("proxy", {
+    const body = await getRawBody(ctx.req, { encoding: "utf-8" });
+
+    wsWrapper.sendMsg("proxy", {
       requestId: requestId,
       method: ctx.method,
       headers: ctx.headers,
@@ -91,7 +93,7 @@ export class SocketManager {
     });
 
     const timeoutId = setTimeout(() => {
-      this.sendProxyResponse(requestId, (ctx) => {
+      this.sendProxyResponse(wsWrapper, requestId, (ctx) => {
         ctx.status = 500;
         ctx.body = "Request timed out";
       });
@@ -104,8 +106,13 @@ export class SocketManager {
     return promise;
   }
 
-  sendProxyResponse(requestId: string, handler: (ctx: Koa.Context) => void) {
+  sendProxyResponse(
+    wsWrapper: WsWrapper<typeof clientSchema, typeof serverSchema>,
+    requestId: string,
+    handler: (ctx: Koa.Context) => void
+  ) {
     if (!(requestId in this.proxyRequests)) {
+      wsWrapper.sendMsg("invalidRequestId", { requestId });
       return;
     }
     const { ctx, timeoutId, resolve } = this.proxyRequests[requestId];
@@ -178,7 +185,7 @@ export class SocketManager {
     );
 
     wrapper.setHandler("proxyError", async ({ requestId, message }) => {
-      this.sendProxyResponse(requestId, (ctx) => {
+      this.sendProxyResponse(wrapper, requestId, (ctx) => {
         ctx.status = 500;
         ctx.body = message;
       });
@@ -187,7 +194,7 @@ export class SocketManager {
     wrapper.setHandler(
       "proxyResult",
       async ({ body, requestId, status, statusText }) => {
-        this.sendProxyResponse(requestId, (ctx) => {
+        this.sendProxyResponse(wrapper, requestId, (ctx) => {
           ctx.status = 500;
           ctx.body = body;
           ctx.status = status;

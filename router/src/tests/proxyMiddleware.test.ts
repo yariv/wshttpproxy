@@ -117,52 +117,20 @@ describe("proxy middleware", () => {
     });
   };
 
-  const sendProxyRequest = (applicationSecret: string, routeKey:string): Promise<Response> => {
+  const sendProxyRequest = (
+    applicationSecret: string,
+    routeKey: string
+  ): Promise<Response> => {
     return fetch(globalConfig.routerUrl + testPath, {
-          headers: {
-            [globalConfig.appSecretHeader]: applicationSecret,
-            [globalConfig.originalHostHeader]: "localhost",
-            [globalConfig.routeKeyHeader]: routeKey,
-          },
-          method: "POST",
-          body: bodyStr,
-        });
-  }
-
-  it("Forwards proxy request", async () => {
-    const applicationSecret = await getAppSecret();
-    const routeKey = await getRouteKey(applicationSecret);
-    const wsWrapper = await openWs();
-
-    return new Promise((resolve) => {
-      wsWrapper.setHandler(
-        "proxy",
-        async ({ body, path, requestId, headers }) => {
-          expect(body).toStrictEqual(bodyStr);
-          expect(path).toStrictEqual(testPath);
-          expect(requestId).toBeTruthy();
-          expect(headers[globalConfig.originalHostHeader]).toStrictEqual(
-            "localhost"
-          );
-          expect(headers["host"]).toStrictEqual(
-            "localhost:" + globalConfig.routerPort
-          );
-          expect(headers["content-length"]).toStrictEqual("" + bodyStr.length);
-          resolve(null);
-        }
-      );
-      wsWrapper.setHandler("connected", async () => {
-        const res2 = await sendProxyRequest(applicationSecret, routeKey);
-        // the server shuts down, triggering this error
-        checkRes(res2, 500, "Proxy error");
-      });
-      wsWrapper.sendMsg("connect", {
-        routeKey,
-        applicationSecret,
-        oauthToken,
-      });
+      headers: {
+        [globalConfig.appSecretHeader]: applicationSecret,
+        [globalConfig.originalHostHeader]: "localhost",
+        [globalConfig.routeKeyHeader]: routeKey,
+      },
+      method: "POST",
+      body: bodyStr,
     });
-  });
+  };
 
   const testConnectError = async (
     request: z.infer<typeof clientSchema["connect"]>,
@@ -240,24 +208,14 @@ describe("proxy middleware", () => {
     });
   });
 
-
-  it("Forwards proxy result", async () => {
-    const applicationSecret = await getAppSecret();
-    const routeKey = await getRouteKey(applicationSecret);
+  const getConnectedWs = async (
+    applicationSecret: string,
+    routeKey: string
+  ): Promise<WsWrapper<typeof serverSchema, typeof clientSchema>> => {
     const wsWrapper = await openWs();
-
     return new Promise((resolve) => {
-      wsWrapper.setHandler(
-        "proxy",
-        async ({ body, path, requestId, headers }) => {
-          wsWrapper.sendMsg("proxyResult", {body: "result", requestId, status: 231, statusText: "sup", headers: {foo: "bar"}});
-          resolve(null);
-        }
-      );
       wsWrapper.setHandler("connected", async () => {
-
-        // the server shuts down, triggering this error
-        checkRes(res2, 500, "Proxy error");
+        resolve(wsWrapper);
       });
       wsWrapper.sendMsg("connect", {
         routeKey,
@@ -265,4 +223,50 @@ describe("proxy middleware", () => {
         oauthToken,
       });
     });
+  };
+
+  it("Forwards proxy request", async () => {
+    const applicationSecret = await getAppSecret();
+    const routeKey = await getRouteKey(applicationSecret);
+    const wsWrapper = await getConnectedWs(applicationSecret, routeKey);
+    return new Promise(async (resolve) => {
+      wsWrapper.setHandler(
+        "proxy",
+        async ({ body, path, requestId, headers }) => {
+          expect(body).toStrictEqual(bodyStr);
+          expect(path).toStrictEqual(testPath);
+          expect(requestId).toBeTruthy();
+          expect(headers[globalConfig.originalHostHeader]).toStrictEqual(
+            "localhost"
+          );
+          expect(headers["host"]).toStrictEqual(
+            "localhost:" + globalConfig.routerPort
+          );
+          expect(headers["content-length"]).toStrictEqual("" + bodyStr.length);
+          resolve(null);
+        }
+      );
+      const resp = await sendProxyRequest(applicationSecret, routeKey);
+      checkRes(resp, 500, "Proxy error");
+    });
+  });
+
+  it("proxyResult requires valid requestId", async () => {
+    const applicationSecret = await getAppSecret();
+    const routeKey = await getRouteKey(applicationSecret);
+    const wsWrapper = await getConnectedWs(applicationSecret, routeKey);
+    return new Promise(async (resolve) => {
+      wsWrapper.setHandler("invalidRequestId", async ({ requestId }) => {
+        expect(requestId).toBe("foo");
+        resolve(null);
+      });
+      wsWrapper.sendMsg("proxyResult", {
+        body: "",
+        requestId: "foo",
+        status: 200,
+        statusText: "test",
+        headers: {},
+      });
+    });
+  });
 });
