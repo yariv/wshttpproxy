@@ -1,7 +1,7 @@
 import Koa from "koa";
 import Router from "koa-router";
 import util from "util";
-import { globalConfig } from "../lib/src/utils";
+import { globalConfig } from "dev-in-prod-lib/src/utils";
 
 export const exampleMain = (port: number): (() => Promise<void>) => {
   const app = new Koa();

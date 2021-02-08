@@ -2,7 +2,7 @@ import { log } from "dev-in-prod-lib/src/log";
 import { initWebsocket, WsWrapper } from "dev-in-prod-lib/src/typedWs";
 import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
 import WebSocket from "ws";
-import { globalConfig } from "../../lib/src/utils";
+import { globalConfig } from "dev-in-prod-lib/src/utils";
 
 export const initWsClient = (): WsWrapper<
   typeof serverSchema,
