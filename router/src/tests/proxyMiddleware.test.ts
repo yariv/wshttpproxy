@@ -277,9 +277,13 @@ describe("proxy middleware", () => {
 
   const testBody = "test";
   const testHeaders = { foo: "bar" };
-  const sendProxyResult = (wsWrapper: TestWsType, requestId: string) => {
+  const sendProxyResult = (
+    wsWrapper: TestWsType,
+    requestId: string,
+    body: string = testBody
+  ) => {
     wsWrapper.sendMsg("proxyResult", {
-      body: testBody,
+      body,
       requestId,
       status: 213,
       headers: testHeaders,
@@ -361,5 +365,24 @@ describe("proxy middleware", () => {
     });
     const resp = await sendProxyRequest(applicationSecret, routeKey);
     checkRes(resp, 500, proxyError);
+  });
+
+  it("multiple routes work", async () => {
+    const applicationSecret = await getAppSecret();
+    const routeKey1 = await getRouteKey(applicationSecret);
+    const routeKey2 = await getRouteKey(applicationSecret);
+    const wsWrapper1 = await getConnectedWs(applicationSecret, routeKey1);
+    const wsWrapper2 = await getConnectedWs(applicationSecret, routeKey2);
+    let resp2: Response;
+    wsWrapper1.setHandler("proxy", async ({ requestId }) => {
+      resp2 = await sendProxyRequest(applicationSecret, routeKey2);
+      sendProxyResult(wsWrapper1, requestId, "testBody1");
+    });
+    wsWrapper2.setHandler("proxy", async ({ requestId }) => {
+      sendProxyResult(wsWrapper2, requestId, "testBody2");
+    });
+    const resp1 = await sendProxyRequest(applicationSecret, routeKey1);
+    checkRes(resp1, 213, "testBody1");
+    checkRes(resp2!, 213, "testBody2");
   });
 });
