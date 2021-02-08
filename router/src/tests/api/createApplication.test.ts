@@ -1,8 +1,8 @@
 import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/src/utils";
 import { routerMain } from "../../../routerMain";
-import { routerApiSchema } from "../../routerApiSchema";
-import { TypedHttpClient } from "../../typedApi/httpApi";
 import { setupTest } from "dev-in-prod-lib/src/testLib";
+import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
+import { TypedHttpClient } from "typed-api/src/httpApi";
 
 describe("createApplication", () => {
   const defer = setupTest();
@@ -12,7 +12,7 @@ describe("createApplication", () => {
   });
 
   it("works", async () => {
-    const oauthToken = await createTestOAuthToken();
+    const oauthToken = await client.post("");
     const res = await client.post("createApplication", {
       oauthToken,
       name: "foo",

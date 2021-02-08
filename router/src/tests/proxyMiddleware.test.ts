@@ -7,11 +7,10 @@ import {
 } from "dev-in-prod-lib/src/utils";
 import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
 import { routerMain } from "../../routerMain";
-import { routerApiSchema } from "../routerApiSchema";
-import { TypedHttpClient } from "../typedApi/httpApi";
 import WebSocket from "ws";
 import * as z from "zod";
-import { extractPreviewFeatures } from "@prisma/sdk";
+import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
+import { TypedHttpClient } from "typed-api/src/httpApi";
 
 type TestWsType = WsWrapper<typeof serverSchema, typeof clientSchema>;
 

@@ -1,10 +1,13 @@
 import { config } from "dotenv";
 import path from "path";
+
+// TODO remove
 import { prisma } from "../../router/src/prisma";
-import { createOAuthToken } from "../../router/src/utils";
 import { initTestDb } from "../../router/src/tests/db";
+
 import { getRouterApiUrl } from "./utils";
-import { routerApiSchema } from "../../router/src/routerApiSchema";
+import { TypedHttpClient } from "typed-api/src/httpApi";
+import { routerApiSchema } from "./routerApiSchema";
 
 config({ path: path.resolve(process.cwd(), ".env_test") });
 

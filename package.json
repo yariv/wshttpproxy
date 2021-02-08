@@ -6,7 +6,8 @@
     "example",
     "sidecar",
     "localProxy",
-    "typedApi"
+    "typedApi",
+    "integrationTests"
   ],
   "dependencies": {}
 }

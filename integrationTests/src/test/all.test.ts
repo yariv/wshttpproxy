@@ -1,13 +1,12 @@
 import { exampleMain as exampleMain } from "dev-in-prod-example/main";
-import { createTestOAuthToken, setupTest } from "dev-in-prod-lib/src/testLib";
+import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
+import { setupTest } from "dev-in-prod-lib/src/testLib";
 import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/src/utils";
 import { localProxyMain as localProxyMain } from "dev-in-prod-local-proxy/localProxyMain";
 import { localProxyApiSchema } from "dev-in-prod-local-proxy/src/localProxyApiSchema";
 import { routerMain } from "dev-in-prod-router/routerMain";
-import { routerApiSchema } from "dev-in-prod-router/src/routerApiSchema";
 import { startSidecar } from "dev-in-prod-sidecar/src/sidecarServer";
-// TODO fix import
-import { TypedHttpClient } from "../../../router/src/typedApi/httpApi";
+import { TypedHttpClient } from "typed-api/src/httpApi";
 
 describe("integration", () => {
   const defer = setupTest();
@@ -72,7 +71,7 @@ describe("integration", () => {
       getRouterApiUrl(),
       routerApiSchema
     );
-    const oauthToken = await createTestOAuthToken();
+    const { oauthToken } = await routerClient.post("createTestOAuthToken");
     const { secret: applicationSecret } = await routerClient.post(
       "createApplication",
       {

@@ -5,9 +5,9 @@ import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
 import Koa from "koa";
 import storage from "node-persist";
 // TODO fix import
-import { createKoaRoute } from "../../router/src/typedApi/koaAdapter";
 import { localProxyApiSchema } from "./localProxyApiSchema";
 import { initWsClient } from "./wsClient";
+import { createKoaRoute } from "typed-api/src/koaAdapter";
 
 export let wsWrapper: WsWrapper<typeof serverSchema, typeof clientSchema>;
 

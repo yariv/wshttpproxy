@@ -66,6 +66,6 @@
     "isolatedModules": true,
     "jsx": "preserve"
   },
-  "include": ["**/*.ts", "**/*.tsx", "../localProxy/createRoute.ts", "../localProxy/createApplication.ts", "../lib/src/testLib.ts"],
+  "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }
