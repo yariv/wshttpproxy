@@ -107,3 +107,5 @@ dist
 .node-persist
 
 .DS_Store
+
+example/dev-in-prod-lib

@@ -6,7 +6,7 @@ import bodyParser from "koa-bodyparser";
 import route from "koa-route";
 import websockify from "koa-websocket";
 import next from "next";
-import { router as apiRouter } from "./apiHandlers/router";
+import { router as apiRouter } from "./api/router";
 import { SocketManager } from "./socketManager";
 
 export const routerServerStart = async (

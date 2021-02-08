@@ -19,4 +19,10 @@ export const routerApiSchema = {
       routeKey: z.string(),
     }),
   },
+  createTestOAuthToken: {
+    req: z.void(),
+    res: z.object({
+      oauthToken: z.string(),
+    }),
+  },
 };

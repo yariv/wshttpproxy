@@ -3,6 +3,8 @@ import path from "path";
 import { prisma } from "../../router/src/prisma";
 import { createOAuthToken } from "../../router/src/utils";
 import { initTestDb } from "../../router/src/tests/db";
+import { getRouterApiUrl } from "./utils";
+import { routerApiSchema } from "../../router/src/routerApiSchema";
 
 config({ path: path.resolve(process.cwd(), ".env_test") });
 
@@ -32,10 +34,8 @@ export const setupTest = (): ((deferredFunc: () => Promise<void>) => void) => {
   return defer;
 };
 
-const clientId = "test_client";
-
-export const createTestOAuthToken = async (): Promise<string> => {
-  const user = await prisma.user.create({ data: {} });
-  const token = await createOAuthToken(user.id, clientId);
-  return token;
+const createTestOAuthToken = async (): Promise<string> => {
+  const client = new TypedHttpClient(getRouterApiUrl(), routerApiSchema);
+  const { oauthToken } = await client.post("createTestOAuthToken");
+  return oauthToken;
 };

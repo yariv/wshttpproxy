@@ -1,8 +1,7 @@
 import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/src/utils";
-import { routerMain } from "../../../../routerMain";
-import { routerApiSchema } from "../../../routerApiSchema";
-import { TypedHttpClient } from "../../../typedApi/httpApi";
-import { createTestOAuthToken } from "dev-in-prod-lib/src/testLib";
+import { routerMain } from "../../../routerMain";
+import { routerApiSchema } from "../../routerApiSchema";
+import { TypedHttpClient } from "../../typedApi/httpApi";
 import { setupTest } from "dev-in-prod-lib/src/testLib";
 
 describe("createApplication", () => {
