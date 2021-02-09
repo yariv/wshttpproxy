@@ -1,5 +1,3 @@
-import { globalConfig } from "dev-in-prod-lib/src/utils";
-import { IncomingMessage } from "http";
 import { Request } from "koa";
 import bodyParser from "koa-bodyparser";
 import Router from "koa-router";

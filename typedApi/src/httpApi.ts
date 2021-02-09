@@ -26,7 +26,7 @@ export class TypedHttpClient<ApiSchemaType extends AbstractApiSchemaType> {
     this.schema = schema;
   }
 
-  async post<MethodName extends keyof ApiSchemaType>(
+  async call<MethodName extends keyof ApiSchemaType>(
     methodName: MethodName,
     reqBody?: ReqSchema<ApiSchemaType, typeof methodName>
   ): Promise<ResSchema<ApiSchemaType, typeof methodName>> {

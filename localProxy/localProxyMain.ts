@@ -1,7 +1,7 @@
-import { appServerStart } from "dev-in-prod-lib/src/appServer";
+import { appServerStart } from "dev-in-prod-lib/dist/appServer";
 import dotenv from "dotenv";
 import next from "next";
-import { globalConfig } from "dev-in-prod-lib/src/utils";
+import { globalConfig } from "dev-in-prod-lib/dist/utils";
 import { initKoaApp as initKoaApp, wsWrapper } from "./src/app";
 dotenv.config();
 

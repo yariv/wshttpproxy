@@ -1,7 +1,7 @@
 import { exampleMain as exampleMain } from "dev-in-prod-example/main";
-import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
-import { setupTest } from "dev-in-prod-lib/src/testLib";
-import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/src/utils";
+import { routerApiSchema } from "dev-in-prod-lib/dist/routerApiSchema";
+import { setupTest } from "dev-in-prod-lib/dist/testLib";
+import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/dist/utils";
 import { localProxyMain as localProxyMain } from "dev-in-prod-local-proxy/localProxyMain";
 import { localProxyApiSchema } from "dev-in-prod-local-proxy/src/localProxyApiSchema";
 import { routerMain } from "dev-in-prod-router/routerMain";
@@ -71,8 +71,8 @@ describe("integration", () => {
       getRouterApiUrl(),
       routerApiSchema
     );
-    const { oauthToken } = await routerClient.post("createTestOAuthToken");
-    const { secret: applicationSecret } = await routerClient.post(
+    const { oauthToken } = await routerClient.call("createTestOAuthToken");
+    const { secret: applicationSecret } = await routerClient.call(
       "createApplication",
       {
         oauthToken,
@@ -80,7 +80,7 @@ describe("integration", () => {
       }
     );
 
-    const res2 = await routerClient.post("createRoute", {
+    const res2 = await routerClient.call("createRoute", {
       oauthToken,
       applicationSecret,
     });
@@ -108,8 +108,8 @@ describe("integration", () => {
       globalConfig.localProxyUrl + globalConfig.apiPathPrefix,
       localProxyApiSchema
     );
-    await localProxyClient.post("setToken", { token: oauthToken });
-    await localProxyClient.post("setRouteKey", { routeKey });
+    await localProxyClient.call("setToken", { token: oauthToken });
+    await localProxyClient.call("setRouteKey", { routeKey });
     defer(await exampleMain(globalConfig.exampleDevPort));
 
     const resp2 = await sendDevRequest();

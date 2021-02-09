@@ -3,7 +3,7 @@ import { GetServerSideProps } from "next";
 import { getSession, signIn, signOut, useSession } from "next-auth/client";
 import * as React from "react";
 import * as z from "zod";
-import { genNewToken } from "dev-in-prod-lib/src/utils";
+import { genNewToken } from "dev-in-prod-lib/dist/utils";
 import { prisma } from "../../prisma";
 import { createOAuthToken } from "../../utils";
 

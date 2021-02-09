@@ -1,18 +1,14 @@
-import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/dist/utils";
-import { routerMain } from "../../../routerMain";
-import { setupTest } from "dev-in-prod-lib/dist/testLib";
+import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/src/utils";
+import { setupTest } from "dev-in-prod-lib/src/testLib";
 import { TypedHttpClient } from "typed-api/src/httpApi";
 import { routerApiSchema } from "dev-in-prod-lib/dist/routerApiSchema";
-import { initTestDb } from "../db";
-import { prisma } from "../../prisma";
+import { routerMain } from "dev-in-prod-router/routerMain";
 jest.mock("next-auth/client");
 
 describe("createRoute", () => {
   const defer = setupTest();
-  defer(prisma.$disconnect.bind(prisma));
   const client = new TypedHttpClient(getRouterApiUrl(), routerApiSchema);
   beforeAll(async () => {
-    initTestDb();
     defer(await routerMain(globalConfig.routerPort));
   });
 
@@ -42,7 +38,7 @@ describe("createRoute", () => {
   });
 
   it("works", async () => {
-    const oauthToken = await createTestOAuthToken();
+    const { oauthToken } = await client.call("createTestOAuthToken");
     const res = await client.call("createApplication", {
       oauthToken,
       name: "foo",

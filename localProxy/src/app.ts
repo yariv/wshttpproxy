@@ -1,7 +1,7 @@
 import Router from "@koa/router";
-import { WsWrapper } from "dev-in-prod-lib/src/typedWs";
-import { globalConfig } from "dev-in-prod-lib/src/utils";
-import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
+import { WsWrapper } from "dev-in-prod-lib/dist/typedWs";
+import { globalConfig } from "dev-in-prod-lib/dist/utils";
+import { clientSchema, serverSchema } from "dev-in-prod-lib/dist/wsSchema";
 import Koa from "koa";
 import storage from "node-persist";
 // TODO fix import

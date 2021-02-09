@@ -1,4 +1,4 @@
-import { globalConfig } from "dev-in-prod-lib/src/utils";
+import { globalConfig } from "dev-in-prod-lib/dist/utils";
 import Router from "koa-router";
 import { createApplicationHandler } from "./createApplication";
 import { createRouteHandler } from "./createRoute";

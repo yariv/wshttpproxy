@@ -1,5 +1,4 @@
 import * as z from "zod";
-import { ZodError } from "zod";
 
 export type AbstractApiSchemaType = Record<
   string,

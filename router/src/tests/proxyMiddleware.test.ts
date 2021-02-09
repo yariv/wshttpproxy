@@ -1,16 +1,16 @@
-import { createTestOAuthToken, setupTest } from "dev-in-prod-lib/src/testLib";
-import { WsWrapper } from "dev-in-prod-lib/src/typedWs";
+import { WsWrapper } from "dev-in-prod-lib/dist/typedWs";
 import {
   genNewToken,
   getRouterApiUrl,
   globalConfig,
-} from "dev-in-prod-lib/src/utils";
-import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
+} from "dev-in-prod-lib/dist/utils";
+import { clientSchema, serverSchema } from "dev-in-prod-lib/dist/wsSchema";
 import { routerMain } from "../../routerMain";
 import WebSocket from "ws";
 import * as z from "zod";
-import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
+import { routerApiSchema } from "dev-in-prod-lib/dist/routerApiSchema";
 import { TypedHttpClient } from "typed-api/src/httpApi";
+import { setupTest } from "dev-in-prod-lib/dist/testLib";
 
 type TestWsType = WsWrapper<typeof serverSchema, typeof clientSchema>;
 
@@ -27,14 +27,14 @@ describe("proxy middleware", () => {
   });
 
   const getAppSecret = async (): Promise<string> => {
-    const { secret } = await client.post("createApplication", {
+    const { secret } = await client.call("createApplication", {
       oauthToken,
       name: "foo" + genNewToken(),
     });
     return secret;
   };
   const getRouteKey = async (applicationSecret: string): Promise<string> => {
-    const { routeKey } = await client.post("createRoute", {
+    const { routeKey } = await client.call("createRoute", {
       oauthToken,
       applicationSecret,
     });

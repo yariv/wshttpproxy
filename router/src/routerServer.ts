@@ -1,6 +1,6 @@
-import { appServerStart } from "dev-in-prod-lib/src/appServer";
-import { log } from "dev-in-prod-lib/src/log";
-import { initWebsocket } from "dev-in-prod-lib/src/typedWs";
+import { appServerStart } from "dev-in-prod-lib/dist/appServer";
+import { log } from "dev-in-prod-lib/dist/log";
+import { initWebsocket } from "dev-in-prod-lib/dist/typedWs";
 import Koa from "koa";
 import bodyParser from "koa-bodyparser";
 import route from "koa-route";

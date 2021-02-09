@@ -1,19 +1,24 @@
-import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/src/utils";
+import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/dist/utils";
 import { routerMain } from "../../../routerMain";
-import { setupTest } from "dev-in-prod-lib/src/testLib";
-import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
+import { setupTest } from "dev-in-prod-lib/dist/testLib";
+import { routerApiSchema } from "dev-in-prod-lib/dist/routerApiSchema";
 import { TypedHttpClient } from "typed-api/src/httpApi";
+import { prisma } from "../../prisma";
+import { initTestDb } from "../db";
 
 describe("createApplication", () => {
   const defer = setupTest();
+  defer(prisma.$disconnect.bind(prisma));
+
   const client = new TypedHttpClient(getRouterApiUrl(), routerApiSchema);
   beforeAll(async () => {
+    initTestDb();
     defer(await routerMain(globalConfig.routerPort));
   });
 
   it("works", async () => {
-    const oauthToken = await client.post("");
-    const res = await client.post("createApplication", {
+    const { oauthToken } = await client.call("createTestOAuthToken");
+    const res = await client.call("createApplication", {
       oauthToken,
       name: "foo",
     });
@@ -21,9 +26,9 @@ describe("createApplication", () => {
   });
 
   it("requires name", async () => {
-    const oauthToken = await createTestOAuthToken();
+    const { oauthToken } = await client.call("createTestOAuthToken");
     try {
-      const res = await client.post("createApplication", { oauthToken } as any);
+      const res = await client.call("createApplication", { oauthToken } as any);
       fail();
     } catch (err) {
       // TODO refine error message
@@ -33,7 +38,7 @@ describe("createApplication", () => {
 
   it("requires oauth token", async () => {
     try {
-      const res = await client.post("createApplication", {
+      const res = await client.call("createApplication", {
         name: "foo",
       } as any);
       fail();
@@ -44,7 +49,7 @@ describe("createApplication", () => {
 
   it("requires valid oauth token", async () => {
     try {
-      const res = await client.post("createApplication", {
+      const res = await client.call("createApplication", {
         oauthToken: "foo",
         name: "foo",
       });
@@ -55,14 +60,14 @@ describe("createApplication", () => {
   });
 
   it("ensures name is unique", async () => {
-    const oauthToken = await createTestOAuthToken();
-    const res = await client.post("createApplication", {
+    const { oauthToken } = await client.call("createTestOAuthToken");
+    const res = await client.call("createApplication", {
       oauthToken,
       name: "foo",
     });
 
     try {
-      const res2 = await client.post("createApplication", {
+      const res2 = await client.call("createApplication", {
         oauthToken,
         name: "foo",
       });
