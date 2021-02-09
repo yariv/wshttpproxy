@@ -21,23 +21,23 @@ export class AppServer {
   }
 
   get url(): string {
-    return getHttpUrl(this.serverPort);
+    return getHttpUrl(this.port);
   }
 
-  get serverPort(): number {
+  get port(): number {
     return (this.server.address() as any).port;
   }
 
   get apiUrl(): string {
-    return getHttpUrl(this.serverPort) + globalConfig.apiPathPrefix;
+    return getHttpUrl(this.port) + globalConfig.apiPathPrefix;
   }
 
   get wsUrl(): string {
-    return `ws://localhost:${this.serverPort}/ws`;
+    return `ws://localhost:${this.port}/ws`;
   }
 }
 
-export const appServerStart = async (
+export const startNextServer = async (
   port: number,
   dirname: string,
   // note: next is a parameter instead of an import to prevent

@@ -1,4 +1,4 @@
-import { AppServer, appServerStart } from "dev-in-prod-lib/src/appServer";
+import { AppServer, startNextServer } from "dev-in-prod-lib/src/appServer";
 import { globalConfig } from "dev-in-prod-lib/src/utils";
 import dotenv from "dotenv";
 import next from "next";
@@ -8,11 +8,16 @@ dotenv.config();
 export const localProxyMain = async (
   port: number,
   applicationSecret: string,
-  routerWsUrl: string
+  routerWsUrl: string,
+  localServiceUrl: string
 ): Promise<AppServer> => {
   // TODO create local client id
-  const app = await initLocalProxyApp(applicationSecret, routerWsUrl);
-  const appServer = await appServerStart(port, __dirname, next, app);
+  const app = await initLocalProxyApp(
+    applicationSecret,
+    routerWsUrl,
+    localServiceUrl
+  );
+  const appServer = await startNextServer(port, __dirname, next, app);
 
   appServer.onClose(async () => wsWrapper.ws.close());
   return appServer;
@@ -24,9 +29,11 @@ if (require.main == module) {
   }
 
   const routerWsUrl = "TODO";
+  const localServiceUrl = "TODO";
   localProxyMain(
     globalConfig.localProxyPort,
     process.env.APPLICATION_SECRET,
-    routerWsUrl
+    routerWsUrl,
+    localServiceUrl
   );
 }

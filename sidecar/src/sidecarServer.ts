@@ -2,16 +2,17 @@ import { AppServer, listenOnPort } from "dev-in-prod-lib/src/appServer";
 import { getRouteKeyFromCtx, globalConfig } from "dev-in-prod-lib/src/utils";
 import Koa from "koa";
 import proxy from "koa-better-http-proxy";
-import { config } from "./config";
 
 export const startSidecar = async (
   port: number,
-  appSecret: string
+  appSecret: string,
+  prodUrl: string,
+  routerUrl: string
 ): Promise<AppServer> => {
   const app = new Koa();
 
   app.use(
-    proxy(config.prodServiceUrl, {
+    proxy(prodUrl, {
       filter: (ctx) => {
         return !getRouteKeyFromCtx(ctx);
       },
@@ -19,7 +20,7 @@ export const startSidecar = async (
   );
 
   app.use(
-    proxy(config.routerUrl, {
+    proxy(routerUrl, {
       filter: (ctx) => {
         return getRouteKeyFromCtx(ctx) != null;
       },

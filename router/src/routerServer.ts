@@ -1,4 +1,4 @@
-import { AppServer, appServerStart } from "dev-in-prod-lib/src/appServer";
+import { AppServer, startNextServer } from "dev-in-prod-lib/src/appServer";
 import { log } from "dev-in-prod-lib/src/log";
 import { initWebsocket } from "dev-in-prod-lib/src/typedWs";
 import Koa from "koa";
@@ -14,7 +14,7 @@ export const routerServerStart = async (
   dirname: string
 ): Promise<AppServer> => {
   const socketManager = new SocketManager();
-  const appServer = await appServerStart(
+  const appServer = await startNextServer(
     port,
     dirname,
     next,

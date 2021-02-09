@@ -1,4 +1,4 @@
-import { AppServer, appServerStart } from "dev-in-prod-lib/src/appServer";
+import { AppServer, startNextServer } from "dev-in-prod-lib/src/appServer";
 import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
 import { setupTest } from "dev-in-prod-lib/src/testLib";
 import { WsWrapper } from "dev-in-prod-lib/src/typedWs";
@@ -253,7 +253,7 @@ describe("proxy middleware", () => {
             "localhost"
           );
           expect(headers["host"]).toStrictEqual(
-            "localhost:" + appServer.serverPort
+            "localhost:" + appServer.port
           );
           expect(headers["content-length"]).toStrictEqual("" + bodyStr.length);
           resolve(null);

@@ -1,11 +1,11 @@
 import { log } from "dev-in-prod-lib/src/log";
 import { initWebsocket, WsWrapper } from "dev-in-prod-lib/src/typedWs";
-import { globalConfig } from "dev-in-prod-lib/src/utils";
 import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
 import WebSocket from "ws";
 
 export const initWsClient = (
-  routerWsUrl: string
+  routerWsUrl: string,
+  localServiceUrl: string
 ): WsWrapper<typeof serverSchema, typeof clientSchema> => {
   const ws = new WebSocket(routerWsUrl);
   initWebsocket(ws);
@@ -14,8 +14,8 @@ export const initWsClient = (
     "proxy",
     async ({ path, requestId, method, headers, body: reqBody }) => {
       try {
-        log("fetching", globalConfig.exampleDevUrl + path);
-        const res = await fetch(globalConfig.exampleDevUrl + path, {
+        log("fetching", localServiceUrl + path);
+        const res = await fetch(localServiceUrl + path, {
           headers,
           method,
           body: reqBody ? reqBody : null,

@@ -13,7 +13,8 @@ export let wsWrapper: WsWrapper<typeof serverSchema, typeof clientSchema>;
 
 export const initLocalProxyApp = async (
   applicationSecret: string,
-  routerWsUrl: string
+  routerWsUrl: string,
+  localServiceUrl: string
 ): Promise<Koa> => {
   await storage.init();
   const apiRouter = new Router({ prefix: globalConfig.apiPathPrefix });
@@ -27,7 +28,7 @@ export const initLocalProxyApp = async (
       console.log("Closing open websocket");
       wsWrapper.ws.close();
     }
-    wsWrapper = initWsClient(routerWsUrl);
+    wsWrapper = initWsClient(routerWsUrl, localServiceUrl);
     const oauthToken = await storage.getItem("oauthToken");
     wsWrapper.ws.on("open", () => {
       wsWrapper.sendMsg("connect", {
