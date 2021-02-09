@@ -251,9 +251,7 @@ describe("proxy middleware", () => {
           expect(headers[globalConfig.originalHostHeader]).toStrictEqual(
             "localhost"
           );
-          expect(headers["host"]).toStrictEqual(
-            "localhost:" + globalConfig.routerPort
-          );
+          expect(headers["host"]).toStrictEqual("localhost:" + serverPort);
           expect(headers["content-length"]).toStrictEqual("" + bodyStr.length);
           resolve(null);
         }
