@@ -25,7 +25,7 @@ export class AppServer {
   }
 
   get serverPort(): number {
-    return (this.server.address as any).port;
+    return (this.server.address() as any).port;
   }
 
   get apiUrl(): string {
@@ -55,13 +55,15 @@ export const appServerStart = async (
     await requestHandler(ctx.req, ctx.res);
   });
 
-  const appServer = await listenOnPort(app, port);
+  const server = await listenOnPort(app, port);
 
   const closeNextFunc = async () => {
     // Unfortunately, 'close' is a protected method, so we cast
     // nextApp as any to be able to access it.
     await (nextApp as any).close();
   };
+
+  const appServer = new AppServer(server);
   appServer.onClose(closeNextFunc);
   return appServer;
 };
@@ -69,15 +71,12 @@ export const appServerStart = async (
 interface CanListen {
   listen(port: number): Server;
 }
-export const listenOnPort = (
-  app: CanListen,
-  port: number
-): Promise<AppServer> => {
+export const listenOnPort = (app: CanListen, port: number): Promise<Server> => {
   return new Promise((resolve, reject) => {
     const server = app.listen(port);
     server.addListener("listening", () => {
       console.log("Listening on port ", port);
-      resolve(new AppServer(server));
+      resolve(server);
     });
     server.addListener("error", () => {
       reject("Error listening on port " + port);
