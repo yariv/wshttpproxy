@@ -1,13 +1,10 @@
+import { AppServer, appServerStart } from "dev-in-prod-lib/src/appServer";
 import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
 import { setupTest } from "dev-in-prod-lib/src/testLib";
 import { WsWrapper } from "dev-in-prod-lib/src/typedWs";
-import {
-  genNewToken,
-  getHttpUrl,
-  getRouterWsUrl,
-  globalConfig,
-} from "dev-in-prod-lib/src/utils";
+import { genNewToken, globalConfig } from "dev-in-prod-lib/src/utils";
 import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
+import { App } from "koa-websocket";
 import { TypedHttpClient } from "typed-api/src/httpApi";
 import WebSocket from "ws";
 import * as z from "zod";
@@ -17,15 +14,19 @@ type TestWsType = WsWrapper<typeof serverSchema, typeof clientSchema>;
 
 describe("proxy middleware", () => {
   let client: TypedHttpClient<typeof routerApiSchema>;
-  let oauthToken: string;
-  const defer = setupTest();
   let routerUrl: string;
-  let serverPort: number;
+  let appServer: AppServer;
+  let oauthToken: string;
+
+  const defer = setupTest();
 
   beforeAll(async () => {
-    client = await setupRouterTest(defer);
-    serverPort = parseInt(new URL(client.baseUrl).port);
-    routerUrl = getHttpUrl(serverPort);
+    const { client: client1, appServer: appServer1 } = await setupRouterTest(
+      defer
+    );
+    client = client1;
+    appServer = appServer1;
+    routerUrl = appServer.apiUrl;
   });
 
   beforeEach(async () => {
@@ -118,7 +119,7 @@ describe("proxy middleware", () => {
   const testPath = "/testPath";
 
   const openWs = async (): Promise<TestWsType> => {
-    const ws = new WebSocket(getRouterWsUrl(serverPort));
+    const ws = new WebSocket(appServer.wsUrl);
     const wsWrapper = new WsWrapper(ws, serverSchema, clientSchema);
 
     return new Promise((resolve) => {
@@ -251,7 +252,9 @@ describe("proxy middleware", () => {
           expect(headers[globalConfig.originalHostHeader]).toStrictEqual(
             "localhost"
           );
-          expect(headers["host"]).toStrictEqual("localhost:" + serverPort);
+          expect(headers["host"]).toStrictEqual(
+            "localhost:" + appServer.serverPort
+          );
           expect(headers["content-length"]).toStrictEqual("" + bodyStr.length);
           resolve(null);
         }

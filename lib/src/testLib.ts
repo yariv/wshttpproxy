@@ -1,10 +1,6 @@
 import { config } from "dotenv";
 import path from "path";
 
-import { getApiUrl } from "./utils";
-import { TypedHttpClient } from "typed-api/src/httpApi";
-import { routerApiSchema } from "./routerApiSchema";
-
 config({ path: path.resolve(process.cwd(), ".env_test") });
 
 jest.mock("next-auth/client");

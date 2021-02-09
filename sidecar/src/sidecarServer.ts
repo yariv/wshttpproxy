@@ -31,5 +31,6 @@ export const startSidecar = async (
       },
     })
   );
-  return await listenOnPort(app, port);
+  const server = await listenOnPort(app, port);
+  return new AppServer(server);
 };

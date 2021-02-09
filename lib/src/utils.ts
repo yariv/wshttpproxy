@@ -25,14 +25,6 @@ export const globalConfig = {
   proxyTimeout: 10000,
 };
 
-export const getRouterWsUrl = (serverPort: number): string =>
-  `ws://localhost:${serverPort}/ws`;
-
-export const getApiUrl = (serverPort: number): string => {
-  // TODO revise
-  return getHttpUrl(serverPort) + globalConfig.apiPathPrefix;
-};
-
 // TODO move to a different file?
 export const getRouteKeyFromHostname = (hostname: string): string | null => {
   const toks = hostname.split(".");

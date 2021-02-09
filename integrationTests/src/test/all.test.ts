@@ -1,11 +1,7 @@
 import { exampleMain as exampleMain } from "dev-in-prod-example/main";
 import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
 import { setupTest } from "dev-in-prod-lib/src/testLib";
-import {
-  getApiUrl,
-  getRouterWsUrl,
-  globalConfig,
-} from "dev-in-prod-lib/src/utils";
+import { globalConfig } from "dev-in-prod-lib/src/utils";
 import { localProxyMain as localProxyMain } from "dev-in-prod-local-proxy/localProxyMain";
 import { localProxyApiSchema } from "dev-in-prod-local-proxy/src/localProxyApiSchema";
 import { routerMain } from "dev-in-prod-router/routerMain";
@@ -71,13 +67,10 @@ describe("integration", () => {
   });
 
   it("routing works", async () => {
-    const { serverPort, close: closeFunc } = await routerMain(0);
-    defer(closeFunc);
+    const router = await routerMain(0);
+    defer(router.close.bind(router));
 
-    const routerClient = new TypedHttpClient(
-      getApiUrl(serverPort),
-      routerApiSchema
-    );
+    const routerClient = new TypedHttpClient(router.apiUrl, routerApiSchema);
     const { oauthToken } = await routerClient.call("createTestOAuthToken");
     const { secret: applicationSecret } = await routerClient.call(
       "createApplication",
@@ -113,15 +106,11 @@ describe("integration", () => {
     // to the route
     await expectHttpError(sendDevRequest(), 400, "Route isn't connected");
 
-    const localProxy = await localProxyMain(
-      0,
-      applicationSecret,
-      getRouterWsUrl(serverPort)
-    );
+    const localProxy = await localProxyMain(0, applicationSecret, router.wsUrl);
     defer(localProxy.close);
 
     const localProxyClient = new TypedHttpClient(
-      getApiUrl(localProxy.serverPort),
+      localProxy.apiUrl,
       localProxyApiSchema
     );
     await localProxyClient.call("setToken", { token: oauthToken });

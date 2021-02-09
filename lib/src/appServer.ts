@@ -1,7 +1,7 @@
 import { Server } from "http";
 import Koa from "koa";
 import util from "util";
-import { getApiUrl, getHttpUrl } from "./utils";
+import { getHttpUrl, globalConfig } from "./utils";
 
 export class AppServer {
   server: Server;
@@ -29,7 +29,11 @@ export class AppServer {
   }
 
   get apiUrl(): string {
-    return getApiUrl(this.serverPort);
+    return getHttpUrl(this.serverPort) + globalConfig.apiPathPrefix;
+  }
+
+  get wsUrl(): string {
+    return `ws://localhost:${this.serverPort}/ws`;
   }
 }
 

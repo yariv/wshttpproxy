@@ -1,3 +1,4 @@
+import { AppServer } from "dev-in-prod-lib/src/appServer";
 import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
 import { setupTest } from "dev-in-prod-lib/src/testLib";
 import { TypedHttpClient } from "typed-api/src/httpApi";
@@ -8,7 +9,8 @@ describe("createApplication", () => {
   const defer = setupTest();
 
   beforeAll(async () => {
-    client = await setupRouterTest(defer);
+    const { client: client1 } = await setupRouterTest(defer);
+    client = client1;
   });
 
   it("works", async () => {

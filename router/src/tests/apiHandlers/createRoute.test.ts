@@ -9,7 +9,8 @@ describe("createRoute", () => {
   const defer = setupTest();
 
   beforeAll(async () => {
-    client = await setupRouterTest(defer);
+    const { client: client1 } = await setupRouterTest(defer);
+    client = client1;
   });
 
   it("requires valid application secret", async () => {

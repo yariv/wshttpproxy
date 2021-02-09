@@ -1,5 +1,5 @@
 import { AppServer, appServerStart } from "dev-in-prod-lib/src/appServer";
-import { getRouterWsUrl, globalConfig } from "dev-in-prod-lib/src/utils";
+import { globalConfig } from "dev-in-prod-lib/src/utils";
 import dotenv from "dotenv";
 import next from "next";
 import { initLocalProxyApp as initLocalProxyApp, wsWrapper } from "./src/app";
@@ -23,7 +23,7 @@ if (require.main == module) {
     throw new Error("Missing APPLICATION_SECRET environment variable.");
   }
 
-  const routerWsUrl = getRouterWsUrl(globalConfig.routerPort);
+  const routerWsUrl = "TODO";
   localProxyMain(
     globalConfig.localProxyPort,
     process.env.APPLICATION_SECRET,
