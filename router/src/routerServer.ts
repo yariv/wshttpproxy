@@ -7,6 +7,7 @@ import route from "koa-route";
 import websockify from "koa-websocket";
 import next from "next";
 import { router as apiRouter } from "./api/router";
+import { prisma } from "./prisma";
 import { SocketManager } from "./socketManager";
 
 export const routerServerStart = async (
@@ -22,7 +23,7 @@ export const routerServerStart = async (
   );
   return async () => {
     socketManager.close();
-    await closeFunc();
+    await Promise.all([closeFunc(), prisma.$disconnect()]);
   };
 };
 

@@ -19,7 +19,7 @@ export const initWsClient = (): WsWrapper<
         const res = await fetch(globalConfig.exampleDevUrl + path, {
           headers,
           method,
-          body: method === "POST" ? reqBody : null,
+          body: reqBody ? reqBody : null,
         });
         const resBody = await res.text();
         const headersMap: Record<string, string> = {};
