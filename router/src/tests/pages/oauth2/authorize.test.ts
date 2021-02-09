@@ -3,18 +3,16 @@ import { getServerSideProps } from "../../../pages/oauth2/authorize";
 import { sha256 } from "../../../utils";
 import { initTestDb } from "../../db";
 import { prisma } from "../../../prisma";
-import { createTestOAuthToken } from "dev-in-prod-lib/dist/testLib";
 import client from "next-auth/client";
+import { setupTest } from "dev-in-prod-lib/dist/testLib";
 jest.mock("next-auth/client");
 
 describe("authorize", () => {
-  // console.log(3);
+  const defer = setupTest();
+  defer(async () => await prisma.$disconnect());
+
   beforeEach(async () => {
     await initTestDb();
-  });
-
-  afterEach(async () => {
-    await prisma.$disconnect();
   });
 
   const validQuery = {
