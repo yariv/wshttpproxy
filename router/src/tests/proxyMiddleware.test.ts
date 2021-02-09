@@ -26,7 +26,7 @@ describe("proxy middleware", () => {
     );
     client = client1;
     appServer = appServer1;
-    routerUrl = appServer.apiUrl;
+    routerUrl = appServer.url;
   });
 
   beforeEach(async () => {
