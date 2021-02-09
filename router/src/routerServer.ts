@@ -1,6 +1,7 @@
 import { AppServer, appServerStart } from "dev-in-prod-lib/src/appServer";
 import { log } from "dev-in-prod-lib/src/log";
 import { initWebsocket } from "dev-in-prod-lib/src/typedWs";
+import { getHttpUrl } from "dev-in-prod-lib/src/utils";
 import Koa from "koa";
 import route from "koa-route";
 import websockify from "koa-websocket";
@@ -14,19 +15,17 @@ export const routerServerStart = async (
   dirname: string
 ): Promise<AppServer> => {
   const socketManager = new SocketManager();
-  const { serverPort, closeFunc } = await appServerStart(
+  const appServer = await appServerStart(
     port,
     dirname,
     next,
     initKoaApp(socketManager)
   );
-  return {
-    serverPort,
-    closeFunc: async () => {
-      socketManager.close();
-      await Promise.all([closeFunc(), prisma.$disconnect()]);
-    },
-  };
+  appServer.onClose(async () => {
+    socketManager.close();
+    await prisma.$disconnect;
+  });
+  return appServer;
 };
 
 const initKoaApp = (socketManager: SocketManager): Koa => {

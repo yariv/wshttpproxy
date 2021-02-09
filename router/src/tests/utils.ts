@@ -8,7 +8,7 @@ export const setupRouterTest = async (
 ): Promise<TypedHttpClient<typeof routerApiSchema>> => {
   let client: TypedHttpClient<typeof routerApiSchema>;
 
-  const { serverPort, closeFunc } = await routerMain(0);
+  const { serverPort, close: closeFunc } = await routerMain(0);
   client = new TypedHttpClient(getApiUrl(serverPort), routerApiSchema);
   defer(closeFunc);
 

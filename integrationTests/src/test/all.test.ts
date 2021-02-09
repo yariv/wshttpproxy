@@ -58,7 +58,7 @@ describe("integration", () => {
   it("sidecar works", async () => {
     // sidecar should return 500 if the prod service is offline
     const sideCar = await startSidecar(0, "secret");
-    defer(sideCar.closeFunc);
+    defer(sideCar.close);
 
     await expectHttpError(sendRequest(sideCar.url), 500);
 
@@ -71,7 +71,7 @@ describe("integration", () => {
   });
 
   it("routing works", async () => {
-    const { serverPort, closeFunc } = await routerMain(0);
+    const { serverPort, close: closeFunc } = await routerMain(0);
     defer(closeFunc);
 
     const routerClient = new TypedHttpClient(
@@ -98,7 +98,7 @@ describe("integration", () => {
       globalConfig.sidecarPort,
       applicationSecret
     );
-    defer(sideCar.closeFunc);
+    defer(sideCar.close);
 
     const resp = await sendRequest(sideCar.url);
     expect(resp.status).toBe(200);
@@ -118,7 +118,7 @@ describe("integration", () => {
       applicationSecret,
       getRouterWsUrl(serverPort)
     );
-    defer(localProxy.closeFunc);
+    defer(localProxy.close);
 
     const localProxyClient = new TypedHttpClient(
       getApiUrl(localProxy.serverPort),

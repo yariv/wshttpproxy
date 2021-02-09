@@ -3,12 +3,31 @@ import Koa from "koa";
 import util from "util";
 import { getHttpUrl } from "./utils";
 
-// TODO convert to class
-export type AppServer = {
-  serverPort: number;
-  closeFunc: () => Promise<void>;
-  url: string;
-};
+export class AppServer {
+  server: Server;
+  onCloseFuncs: (() => Promise<void>)[] = [];
+
+  constructor(server: Server) {
+    this.server = server;
+    this.onCloseFuncs.push(util.promisify(server.close.bind(server)));
+  }
+
+  async onClose(func: () => Promise<void>) {
+    this.onCloseFuncs.push(func);
+  }
+
+  async close() {
+    await Promise.all(this.onCloseFuncs.map((func) => func()));
+  }
+
+  get url() {
+    return getHttpUrl(this.serverPort);
+  }
+
+  get serverPort() {
+    return (this.server.address as any).port;
+  }
+}
 
 export const appServerStart = async (
   port: number,
@@ -32,21 +51,15 @@ export const appServerStart = async (
     await requestHandler(ctx.req, ctx.res);
   });
 
-  const { serverPort, closeFunc: closeKoaFunc } = await listenOnPort(app, port);
+  const appServer = await listenOnPort(app, port);
 
   const closeNextFunc = async () => {
     // Unfortunately, 'close' is a protected method, so we cast
     // nextApp as any to be able to access it.
     await (nextApp as any).close();
   };
-
-  return {
-    serverPort,
-    closeFunc: async () => {
-      await Promise.all([closeKoaFunc(), closeNextFunc()]);
-    },
-    url: getHttpUrl(serverPort),
-  };
+  appServer.onClose(closeNextFunc);
+  return appServer;
 };
 
 interface CanListen {
@@ -60,15 +73,10 @@ export const listenOnPort = (
     const server = app.listen(port);
     server.addListener("listening", () => {
       console.log("Listening on port ", port);
-      resolve({
-        serverPort: (server.address() as any).port,
-        closeFunc: util.promisify(server.close.bind(server)),
-        url: getHttpUrl((server.address() as any).port),
-      });
+      resolve(new AppServer(server));
     });
     server.addListener("error", () => {
-      console.error("Error listening on port ", port);
-      reject();
+      reject("Error listening on port " + port);
     });
   });
 };

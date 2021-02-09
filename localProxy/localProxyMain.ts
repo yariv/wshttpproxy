@@ -1,7 +1,11 @@
 import { AppServer, appServerStart } from "dev-in-prod-lib/src/appServer";
 import dotenv from "dotenv";
 import next from "next";
-import { getRouterWsUrl, globalConfig } from "dev-in-prod-lib/src/utils";
+import {
+  getHttpUrl,
+  getRouterWsUrl,
+  globalConfig,
+} from "dev-in-prod-lib/src/utils";
 import { initLocalProxyApp as initLocalProxyApp, wsWrapper } from "./src/app";
 import { route } from "next/dist/next-server/server/router";
 dotenv.config();
@@ -13,20 +17,10 @@ export const localProxyMain = async (
 ): Promise<AppServer> => {
   // TODO create local client id
   const app = await initLocalProxyApp(applicationSecret, routerWsUrl);
-  const { serverPort, closeFunc } = await appServerStart(
-    port,
-    __dirname,
-    next,
-    app
-  );
-  return {
-    serverPort,
-    closeFunc: async () => {
-      wsWrapper.ws.close();
-      await closeFunc();
-    },
-    
-  };
+  const appServer = await appServerStart(port, __dirname, next, app);
+
+  appServer.onClose(async () => wsWrapper.ws.close());
+  return appServer;
 };
 
 if (require.main == module) {
