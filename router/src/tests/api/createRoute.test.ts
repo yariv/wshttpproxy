@@ -42,7 +42,7 @@ describe("createRoute", () => {
   });
 
   it("works", async () => {
-    const oauthToken = await createTestOAuthToken();
+    const { oauthToken } = await client.call("createTestOAuthToken");
     const res = await client.call("createApplication", {
       oauthToken,
       name: "foo",

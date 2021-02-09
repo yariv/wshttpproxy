@@ -23,7 +23,8 @@ describe("proxy middleware", () => {
   });
 
   beforeEach(async () => {
-    oauthToken = await createTestOAuthToken();
+    const { oauthToken: token } = await client.call("createTestOAuthToken");
+    oauthToken = token;
   });
 
   const getAppSecret = async (): Promise<string> => {
