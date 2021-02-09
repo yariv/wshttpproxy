@@ -13,15 +13,15 @@ export const initWsClient = (): WsWrapper<
   const wrapper = new WsWrapper(ws, serverSchema, clientSchema);
   wrapper.setHandler(
     "proxy",
-    async ({ path, requestId, method, headers, body: bodyStr }) => {
+    async ({ path, requestId, method, headers, body: reqBody }) => {
       try {
         log("fetching", globalConfig.exampleDevUrl + path);
         const res = await fetch(globalConfig.exampleDevUrl + path, {
           headers,
           method,
-          body: bodyStr,
+          body: method === "POST" ? reqBody : null,
         });
-        const body = await res.text();
+        const resBody = await res.text();
         const headersMap: Record<string, string> = {};
         res.headers.forEach((val, key) => {
           headersMap[key] = val;
@@ -30,7 +30,7 @@ export const initWsClient = (): WsWrapper<
           requestId: requestId,
           status: res.status,
           headers: headersMap,
-          body: body,
+          body: resBody,
         });
       } catch (err) {
         console.error("fetch error", err);

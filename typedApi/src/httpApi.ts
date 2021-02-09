@@ -28,7 +28,7 @@ export class TypedHttpClient<ApiSchemaType extends AbstractApiSchemaType> {
 
   async call<MethodName extends keyof ApiSchemaType>(
     methodName: MethodName,
-    reqBody?: ReqSchema<ApiSchemaType, typeof methodName>
+    reqBody: ReqSchema<ApiSchemaType, typeof methodName> = {}
   ): Promise<ResSchema<ApiSchemaType, typeof methodName>> {
     return typedClientFunc(this.schema, methodName, async (reqBody) => {
       const res = await fetch(this.baseUrl + methodName, {
@@ -62,6 +62,7 @@ export const createHttpHandler = <
     } catch (err) {
       if (err instanceof ZodError) {
         // TODO send more informative error messages
+        console.error("Zod error", err);
         return { status: 400, body: "Invalid request" };
       }
       if (!err.status || err.status === 500) {

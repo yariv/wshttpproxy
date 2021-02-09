@@ -1,13 +1,13 @@
 import { routerApiSchema } from "dev-in-prod-lib/dist/routerApiSchema";
 import { Request } from "koa";
 import { createKoaRoute } from "typed-api/src/koaAdapter";
-import { prisma } from "../prisma";
-import { createOAuthToken } from "../utils";
+import { prisma } from "../../prisma";
+import { createOAuthToken } from "../../utils";
 
 const clientId = "test_client";
 
 // Useful for integration tests
-export const createRouteHandler = createKoaRoute(
+export const createTestOAuthTokenHandler = createKoaRoute(
   routerApiSchema,
   "createTestOAuthToken",
   async (body, req: Request) => {

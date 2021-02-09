@@ -115,7 +115,5 @@ describe("integration", () => {
     const resp2 = await sendDevRequest();
     expect(resp2.body).toBe("" + globalConfig.exampleDevPort);
     expect(resp2.status).toBe(200);
-
-    //await expectHttpError(sendDevRequest(), 404);
   });
 });

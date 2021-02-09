@@ -48,7 +48,7 @@ export const listenOnPort = (
     const server = app.listen(port);
     server.addListener("listening", () => {
       console.log("Listening on port ", port);
-      resolve(async () => {
+      resolve(() => {
         return util.promisify(server.close.bind(server))();
       });
     });

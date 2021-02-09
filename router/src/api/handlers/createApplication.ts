@@ -3,8 +3,8 @@ import { genNewToken } from "dev-in-prod-lib/dist/utils";
 import { Request } from "koa";
 import { createKoaRoute } from "typed-api/src/koaAdapter";
 import { ApiHttpError } from "typed-api/src/types";
-import { authorize } from "../middleware";
-import { prisma } from "../prisma";
+import { authorize } from "../authorize";
+import { prisma } from "../../prisma";
 
 export const createApplicationHandler = createKoaRoute(
   routerApiSchema,

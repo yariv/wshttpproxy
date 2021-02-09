@@ -1,6 +1,6 @@
-import { prisma } from "./prisma";
-import { ApiHttpError } from "./typedApi/types";
-import { sha256 } from "./utils";
+import { ApiHttpError } from "typed-api/src/types";
+import { prisma } from "../prisma";
+import { sha256 } from "../utils";
 
 export const authorize = async (
   method: string,
