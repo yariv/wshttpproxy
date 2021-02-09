@@ -1,25 +1,31 @@
-import { WsWrapper } from "dev-in-prod-lib/dist/typedWs";
+import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
+import { setupTest } from "dev-in-prod-lib/src/testLib";
+import { WsWrapper } from "dev-in-prod-lib/src/typedWs";
 import {
   genNewToken,
-  getRouterApiUrl,
+  getHttpUrl,
+  getRouterWsUrl,
   globalConfig,
-} from "dev-in-prod-lib/dist/utils";
-import { clientSchema, serverSchema } from "dev-in-prod-lib/dist/wsSchema";
-import { routerMain } from "../../routerMain";
+} from "dev-in-prod-lib/src/utils";
+import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
+import { TypedHttpClient } from "typed-api/src/httpApi";
 import WebSocket from "ws";
 import * as z from "zod";
-import { routerApiSchema } from "dev-in-prod-lib/dist/routerApiSchema";
-import { TypedHttpClient } from "typed-api/src/httpApi";
-import { setupTest } from "dev-in-prod-lib/dist/testLib";
+import { setupRouterTest } from "./utils";
 
 type TestWsType = WsWrapper<typeof serverSchema, typeof clientSchema>;
 
 describe("proxy middleware", () => {
-  const defer = setupTest();
-  const client = new TypedHttpClient(getRouterApiUrl(), routerApiSchema);
+  let client: TypedHttpClient<typeof routerApiSchema>;
   let oauthToken: string;
+  const defer = setupTest();
+  let routerUrl: string;
+  let serverPort: number;
+
   beforeAll(async () => {
-    defer(await routerMain(globalConfig.routerPort));
+    client = await setupRouterTest(defer);
+    serverPort = parseInt(new URL(client.baseUrl).port);
+    routerUrl = getHttpUrl(serverPort);
   });
 
   beforeEach(async () => {
@@ -52,7 +58,7 @@ describe("proxy middleware", () => {
   };
 
   it("Requires x-forwarded-host header", async () => {
-    const res = await fetch(globalConfig.routerUrl, {
+    const res = await fetch(routerUrl, {
       headers: { [globalConfig.appSecretHeader]: "foo" },
     });
     checkRes(res, 400, "Missing x-forwarded-host header");
@@ -60,7 +66,7 @@ describe("proxy middleware", () => {
 
   it("Requires route key", async () => {
     const originalHost = "http://localhost";
-    const res = await fetch(globalConfig.routerUrl, {
+    const res = await fetch(routerUrl, {
       headers: {
         [globalConfig.appSecretHeader]: "foo",
         [globalConfig.originalHostHeader]: originalHost,
@@ -71,7 +77,7 @@ describe("proxy middleware", () => {
 
   it("Requires valid app secret", async () => {
     const originalHost = "rk-123.localhost.localhost";
-    const res = await fetch(globalConfig.routerUrl, {
+    const res = await fetch(routerUrl, {
       headers: {
         [globalConfig.appSecretHeader]: "foo",
         [globalConfig.originalHostHeader]: originalHost,
@@ -83,7 +89,7 @@ describe("proxy middleware", () => {
   it("Requires valid route key", async () => {
     const applicationSecret = await getAppSecret();
     const originalHost = "rk-123.localhost.localhost";
-    const res = await fetch(globalConfig.routerUrl, {
+    const res = await fetch(routerUrl, {
       headers: {
         [globalConfig.appSecretHeader]: applicationSecret,
         [globalConfig.originalHostHeader]: originalHost,
@@ -96,7 +102,7 @@ describe("proxy middleware", () => {
     const applicationSecret = await getAppSecret();
     const routeKey = await getRouteKey(applicationSecret);
     const originalHost = `${globalConfig.routeKeySubdomainPrefix}${routeKey}.localhost.localhost`;
-    const res = await fetch(globalConfig.routerUrl, {
+    const res = await fetch(routerUrl, {
       headers: {
         [globalConfig.appSecretHeader]: applicationSecret,
         [globalConfig.originalHostHeader]: originalHost,
@@ -112,7 +118,7 @@ describe("proxy middleware", () => {
   const testPath = "/testPath";
 
   const openWs = async (): Promise<TestWsType> => {
-    const ws = new WebSocket(globalConfig.routerWsUrl);
+    const ws = new WebSocket(getRouterWsUrl(serverPort));
     const wsWrapper = new WsWrapper(ws, serverSchema, clientSchema);
 
     return new Promise((resolve) => {
@@ -126,7 +132,7 @@ describe("proxy middleware", () => {
     applicationSecret: string,
     routeKey: string
   ): Promise<Response> => {
-    return fetch(globalConfig.routerUrl + testPath, {
+    return fetch(routerUrl + testPath, {
       headers: {
         [globalConfig.appSecretHeader]: applicationSecret,
         [globalConfig.originalHostHeader]: "localhost",

@@ -4,7 +4,7 @@ import { authorize } from "../authorize";
 import { prisma } from "../../prisma";
 import { createKoaRoute } from "typed-api/src/koaAdapter";
 import { ApiHttpError } from "typed-api/src/types";
-import { routerApiSchema } from "dev-in-prod-lib/dist/routerApiSchema";
+import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
 
 export const createRouteHandler = createKoaRoute(
   routerApiSchema,

@@ -1,4 +1,4 @@
-import { Closeable, start } from "dev-in-prod-lib/dist/appServer";
+import { Closeable, start } from "dev-in-prod-lib/src/appServer";
 import next from "next";
 import { TypedClient } from "../client";
 import { schema } from "../schema";

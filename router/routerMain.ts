@@ -1,7 +1,8 @@
 import { routerServerStart } from "./src/routerServer";
-import { globalConfig } from "dev-in-prod-lib/dist/utils";
+import { globalConfig } from "dev-in-prod-lib/src/utils";
+import { AppServer } from "dev-in-prod-lib/src/appServer";
 
-export const routerMain = (port: number): Promise<() => Promise<void>> => {
+export const routerMain = (port: number): Promise<AppServer> => {
   return routerServerStart(port, __dirname);
 };
 

@@ -1,7 +1,7 @@
 import Router from "@koa/router";
-import { WsWrapper } from "dev-in-prod-lib/dist/typedWs";
-import { globalConfig } from "dev-in-prod-lib/dist/utils";
-import { clientSchema, serverSchema } from "dev-in-prod-lib/dist/wsSchema";
+import { WsWrapper } from "dev-in-prod-lib/src/typedWs";
+import { globalConfig } from "dev-in-prod-lib/src/utils";
+import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
 import Koa from "koa";
 import storage from "node-persist";
 // TODO fix import
@@ -11,7 +11,10 @@ import { createKoaRoute } from "typed-api/src/koaAdapter";
 
 export let wsWrapper: WsWrapper<typeof serverSchema, typeof clientSchema>;
 
-export const initKoaApp = async (applicationSecret: string): Promise<Koa> => {
+export const initLocalProxyApp = async (
+  applicationSecret: string,
+  routerWsUrl: string
+): Promise<Koa> => {
   await storage.init();
   const apiRouter = new Router({ prefix: globalConfig.apiPathPrefix });
 
@@ -24,7 +27,7 @@ export const initKoaApp = async (applicationSecret: string): Promise<Koa> => {
       console.log("Closing open websocket");
       wsWrapper.ws.close();
     }
-    wsWrapper = initWsClient();
+    wsWrapper = initWsClient(routerWsUrl);
     const oauthToken = await storage.getItem("oauthToken");
     wsWrapper.ws.on("open", () => {
       wsWrapper.sendMsg("connect", {

@@ -4,7 +4,7 @@ import { sha256 } from "../../../utils";
 import { initTestDb } from "../../db";
 import { prisma } from "../../../prisma";
 import client from "next-auth/client";
-import { setupTest } from "dev-in-prod-lib/dist/testLib";
+import { setupTest } from "dev-in-prod-lib/src/testLib";
 jest.mock("next-auth/client");
 
 describe("authorize", () => {

@@ -1,5 +1,5 @@
-import { routerApiSchema } from "dev-in-prod-lib/dist/routerApiSchema";
-import { genNewToken } from "dev-in-prod-lib/dist/utils";
+import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
+import { genNewToken } from "dev-in-prod-lib/src/utils";
 import { Request } from "koa";
 import { createKoaRoute } from "typed-api/src/koaAdapter";
 import { ApiHttpError } from "typed-api/src/types";

@@ -1,4 +1,4 @@
-const getHttpUrl = (port: number): string => {
+export const getHttpUrl = (port: number): string => {
   return `http://localhost:${port}`;
 };
 
@@ -16,7 +16,6 @@ export const globalConfig = {
   exampleDevUrl: getHttpUrl(configPorts.exampleDevPort),
   localProxyUrl: getHttpUrl(configPorts.localProxyPort),
   routerUrl: getHttpUrl(configPorts.routerPort),
-  routerWsUrl: `ws://localhost:${configPorts.routerPort}/ws`,
   sidecarUrl: getHttpUrl(configPorts.sidecarPort),
   routeKeyHeader: "dev-in-prod-route-key",
   appSecretHeader: "dev-in-prod-app-secret",
@@ -26,9 +25,12 @@ export const globalConfig = {
   proxyTimeout: 10000,
 };
 
-export const getRouterApiUrl = (): string => {
+export const getRouterWsUrl = (serverPort: number): string =>
+  `ws://localhost:${serverPort}/ws`;
+
+export const getRouterApiUrl = (serverPort: number): string => {
   // TODO revise
-  return globalConfig.routerUrl + globalConfig.apiPathPrefix;
+  return getHttpUrl(serverPort) + globalConfig.apiPathPrefix;
 };
 
 // TODO move to a different file?

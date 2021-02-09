@@ -1,14 +1,13 @@
-import { log } from "dev-in-prod-lib/dist/log";
-import { initWebsocket, WsWrapper } from "dev-in-prod-lib/dist/typedWs";
-import { clientSchema, serverSchema } from "dev-in-prod-lib/dist/wsSchema";
+import { log } from "dev-in-prod-lib/src/log";
+import { initWebsocket, WsWrapper } from "dev-in-prod-lib/src/typedWs";
+import { globalConfig } from "dev-in-prod-lib/src/utils";
+import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
 import WebSocket from "ws";
-import { globalConfig } from "dev-in-prod-lib/dist/utils";
 
-export const initWsClient = (): WsWrapper<
-  typeof serverSchema,
-  typeof clientSchema
-> => {
-  const ws = new WebSocket(globalConfig.routerWsUrl);
+export const initWsClient = (
+  routerWsUrl: string
+): WsWrapper<typeof serverSchema, typeof clientSchema> => {
+  const ws = new WebSocket(routerWsUrl);
   initWebsocket(ws);
   const wrapper = new WsWrapper(ws, serverSchema, clientSchema);
   wrapper.setHandler(

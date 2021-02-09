@@ -1,5 +1,5 @@
 import { createHash } from "crypto";
-import { genNewToken } from "dev-in-prod-lib/dist/utils";
+import { genNewToken } from "dev-in-prod-lib/src/utils";
 import { prisma } from "./prisma";
 
 export const sha256 = (val: string): string => {

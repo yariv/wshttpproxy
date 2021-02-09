@@ -2,6 +2,8 @@ import { Server } from "http";
 import Koa from "koa";
 import util from "util";
 
+export type AppServer = { serverPort: number; closeFunc: () => Promise<void> };
+
 export const appServerStart = async (
   port: number,
   dirname: string,
@@ -9,7 +11,7 @@ export const appServerStart = async (
   // duplicate imports of react, which causes errors
   next: (params: any) => any,
   koaApp?: Koa
-): Promise<() => Promise<void>> => {
+): Promise<AppServer> => {
   const dev = process.env.NODE_ENV !== "production";
 
   const nextConf = require(dirname + "/next.config.js");
@@ -24,7 +26,7 @@ export const appServerStart = async (
     await requestHandler(ctx.req, ctx.res);
   });
 
-  const closeKoaFunc = await listenOnPort(app, port);
+  const { serverPort, closeFunc: closeKoaFunc } = await listenOnPort(app, port);
 
   const closeNextFunc = async () => {
     // Unfortunately, 'close' is a protected method, so we cast
@@ -32,8 +34,11 @@ export const appServerStart = async (
     await (nextApp as any).close();
   };
 
-  return async () => {
-    await Promise.all([closeKoaFunc(), closeNextFunc()]);
+  return {
+    serverPort,
+    closeFunc: async () => {
+      await Promise.all([closeKoaFunc(), closeNextFunc()]);
+    },
   };
 };
 
@@ -43,13 +48,14 @@ interface CanListen {
 export const listenOnPort = (
   app: CanListen,
   port: number
-): Promise<() => Promise<void>> => {
-  return new Promise<() => Promise<void>>((resolve, reject) => {
+): Promise<AppServer> => {
+  return new Promise((resolve, reject) => {
     const server = app.listen(port);
     server.addListener("listening", () => {
       console.log("Listening on port ", port);
-      resolve(() => {
-        return util.promisify(server.close.bind(server))();
+      resolve({
+        serverPort: (server.address() as any).port,
+        closeFunc: util.promisify(server.close.bind(server)),
       });
     });
     server.addListener("error", () => {

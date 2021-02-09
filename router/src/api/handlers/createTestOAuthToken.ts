@@ -1,4 +1,4 @@
-import { routerApiSchema } from "dev-in-prod-lib/dist/routerApiSchema";
+import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
 import { Request } from "koa";
 import { createKoaRoute } from "typed-api/src/koaAdapter";
 import { prisma } from "../../prisma";

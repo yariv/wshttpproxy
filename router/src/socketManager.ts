@@ -1,15 +1,15 @@
-import { WsWrapper } from "dev-in-prod-lib/dist/typedWs";
+import { WsWrapper } from "dev-in-prod-lib/src/typedWs";
 import {
   genNewToken,
   getRouteKeyFromCtx,
   globalConfig,
-} from "dev-in-prod-lib/dist/utils";
-import { clientSchema, serverSchema } from "dev-in-prod-lib/dist/wsSchema";
+} from "dev-in-prod-lib/src/utils";
+import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
 import Koa from "koa";
 import { prisma } from "./prisma";
 import { getWebSocketKey, sha256, WsKey } from "./utils";
 import WebSocket from "ws";
-import { log } from "dev-in-prod-lib/dist/log";
+import { log } from "dev-in-prod-lib/src/log";
 import getRawBody from "raw-body";
 
 export class SocketManager {

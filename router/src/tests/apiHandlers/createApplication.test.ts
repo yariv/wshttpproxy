@@ -1,19 +1,14 @@
-import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/dist/utils";
-import { routerMain } from "../../../routerMain";
-import { setupTest } from "dev-in-prod-lib/dist/testLib";
-import { routerApiSchema } from "dev-in-prod-lib/dist/routerApiSchema";
+import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
+import { setupTest } from "dev-in-prod-lib/src/testLib";
 import { TypedHttpClient } from "typed-api/src/httpApi";
-import { prisma } from "../../prisma";
-import { initTestDb } from "../db";
+import { setupRouterTest } from "../utils";
 
 describe("createApplication", () => {
+  let client: TypedHttpClient<typeof routerApiSchema>;
   const defer = setupTest();
-  defer(prisma.$disconnect.bind(prisma));
 
-  const client = new TypedHttpClient(getRouterApiUrl(), routerApiSchema);
   beforeAll(async () => {
-    initTestDb();
-    defer(await routerMain(globalConfig.routerPort));
+    client = await setupRouterTest(defer);
   });
 
   it("works", async () => {

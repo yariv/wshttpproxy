@@ -1,7 +1,7 @@
 import { exampleMain as exampleMain } from "dev-in-prod-example/main";
-import { routerApiSchema } from "dev-in-prod-lib/dist/routerApiSchema";
-import { setupTest } from "dev-in-prod-lib/dist/testLib";
-import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/dist/utils";
+import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
+import { setupTest } from "dev-in-prod-lib/src/testLib";
+import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/src/utils";
 import { localProxyMain as localProxyMain } from "dev-in-prod-local-proxy/localProxyMain";
 import { localProxyApiSchema } from "dev-in-prod-local-proxy/src/localProxyApiSchema";
 import { routerMain } from "dev-in-prod-router/routerMain";

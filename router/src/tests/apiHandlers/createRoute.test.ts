@@ -1,15 +1,15 @@
-import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/src/utils";
+import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
 import { setupTest } from "dev-in-prod-lib/src/testLib";
 import { TypedHttpClient } from "typed-api/src/httpApi";
-import { routerApiSchema } from "dev-in-prod-lib/dist/routerApiSchema";
-import { routerMain } from "dev-in-prod-router/routerMain";
+import { setupRouterTest } from "../utils";
 jest.mock("next-auth/client");
 
 describe("createRoute", () => {
+  let client: TypedHttpClient<typeof routerApiSchema>;
   const defer = setupTest();
-  const client = new TypedHttpClient(getRouterApiUrl(), routerApiSchema);
+
   beforeAll(async () => {
-    defer(await routerMain(globalConfig.routerPort));
+    client = await setupRouterTest(defer);
   });
 
   it("requires valid application secret", async () => {
