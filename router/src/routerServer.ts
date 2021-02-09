@@ -1,7 +1,6 @@
 import { AppServer, appServerStart } from "dev-in-prod-lib/src/appServer";
 import { log } from "dev-in-prod-lib/src/log";
 import { initWebsocket } from "dev-in-prod-lib/src/typedWs";
-import { getHttpUrl } from "dev-in-prod-lib/src/utils";
 import Koa from "koa";
 import route from "koa-route";
 import websockify from "koa-websocket";
@@ -23,7 +22,7 @@ export const routerServerStart = async (
   );
   appServer.onClose(async () => {
     socketManager.close();
-    await prisma.$disconnect;
+    await prisma.$disconnect();
   });
   return appServer;
 };

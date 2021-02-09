@@ -1,11 +1,11 @@
 import { Server } from "http";
 import Koa from "koa";
 import util from "util";
-import { getHttpUrl } from "./utils";
+import { getApiUrl, getHttpUrl } from "./utils";
 
 export class AppServer {
   server: Server;
-  onCloseFuncs: (() => Promise<void>)[] = [];
+  private onCloseFuncs: (() => Promise<void>)[] = [];
 
   constructor(server: Server) {
     this.server = server;
@@ -20,12 +20,16 @@ export class AppServer {
     await Promise.all(this.onCloseFuncs.map((func) => func()));
   }
 
-  get url() {
+  get url(): string {
     return getHttpUrl(this.serverPort);
   }
 
-  get serverPort() {
+  get serverPort(): number {
     return (this.server.address as any).port;
+  }
+
+  get apiUrl(): string {
+    return getApiUrl(this.serverPort);
   }
 }
 

@@ -1,13 +1,8 @@
 import { AppServer, appServerStart } from "dev-in-prod-lib/src/appServer";
+import { getRouterWsUrl, globalConfig } from "dev-in-prod-lib/src/utils";
 import dotenv from "dotenv";
 import next from "next";
-import {
-  getHttpUrl,
-  getRouterWsUrl,
-  globalConfig,
-} from "dev-in-prod-lib/src/utils";
 import { initLocalProxyApp as initLocalProxyApp, wsWrapper } from "./src/app";
-import { route } from "next/dist/next-server/server/router";
 dotenv.config();
 
 export const localProxyMain = async (
