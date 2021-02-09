@@ -25,6 +25,7 @@ export const localProxyMain = async (
       wsWrapper.ws.close();
       await closeFunc();
     },
+    
   };
 };
 

@@ -1,8 +1,14 @@
 import { Server } from "http";
 import Koa from "koa";
 import util from "util";
+import { getHttpUrl } from "./utils";
 
-export type AppServer = { serverPort: number; closeFunc: () => Promise<void> };
+// TODO convert to class
+export type AppServer = {
+  serverPort: number;
+  closeFunc: () => Promise<void>;
+  url: string;
+};
 
 export const appServerStart = async (
   port: number,
@@ -39,6 +45,7 @@ export const appServerStart = async (
     closeFunc: async () => {
       await Promise.all([closeKoaFunc(), closeNextFunc()]);
     },
+    url: getHttpUrl(serverPort),
   };
 };
 
@@ -56,6 +63,7 @@ export const listenOnPort = (
       resolve({
         serverPort: (server.address() as any).port,
         closeFunc: util.promisify(server.close.bind(server)),
+        url: getHttpUrl((server.address() as any).port),
       });
     });
     server.addListener("error", () => {

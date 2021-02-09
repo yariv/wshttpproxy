@@ -28,7 +28,7 @@ export const globalConfig = {
 export const getRouterWsUrl = (serverPort: number): string =>
   `ws://localhost:${serverPort}/ws`;
 
-export const getRouterApiUrl = (serverPort: number): string => {
+export const getApiUrl = (serverPort: number): string => {
   // TODO revise
   return getHttpUrl(serverPort) + globalConfig.apiPathPrefix;
 };

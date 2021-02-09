@@ -1,7 +1,11 @@
 import { exampleMain as exampleMain } from "dev-in-prod-example/main";
 import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
 import { setupTest } from "dev-in-prod-lib/src/testLib";
-import { getRouterApiUrl, globalConfig } from "dev-in-prod-lib/src/utils";
+import {
+  getApiUrl,
+  getRouterWsUrl,
+  globalConfig,
+} from "dev-in-prod-lib/src/utils";
 import { localProxyMain as localProxyMain } from "dev-in-prod-local-proxy/localProxyMain";
 import { localProxyApiSchema } from "dev-in-prod-local-proxy/src/localProxyApiSchema";
 import { routerMain } from "dev-in-prod-router/routerMain";
@@ -53,22 +57,25 @@ describe("integration", () => {
 
   it("sidecar works", async () => {
     // sidecar should return 500 if the prod service is offline
-    defer(await startSidecar(globalConfig.sidecarPort, "secret"));
-    await expectHttpError(sendRequest(globalConfig.sidecarUrl), 500);
+    const sideCar = await startSidecar(0, "secret");
+    defer(sideCar.closeFunc);
+
+    await expectHttpError(sendRequest(sideCar.url), 500);
 
     defer(exampleMain(globalConfig.exampleProdPort));
 
     // sidecar should forward standard requests to prod service
-    const resp3 = await sendRequest(globalConfig.sidecarUrl);
+    const resp3 = await sendRequest(sideCar.url);
     expect(resp3.status).toBe(200);
     expect(resp3.body).toBe("" + globalConfig.exampleProdPort);
   });
 
   it("routing works", async () => {
-    defer(await routerMain(globalConfig.routerPort));
+    const { serverPort, closeFunc } = await routerMain(0);
+    defer(closeFunc);
 
     const routerClient = new TypedHttpClient(
-      getRouterApiUrl(),
+      getApiUrl(serverPort),
       routerApiSchema
     );
     const { oauthToken } = await routerClient.call("createTestOAuthToken");
@@ -87,14 +94,18 @@ describe("integration", () => {
     const routeKey = res2.routeKey;
 
     defer(await exampleMain(globalConfig.exampleProdPort));
-    defer(await startSidecar(globalConfig.sidecarPort, applicationSecret));
+    const sideCar = await startSidecar(
+      globalConfig.sidecarPort,
+      applicationSecret
+    );
+    defer(sideCar.closeFunc);
 
-    const resp = await sendRequest(globalConfig.sidecarUrl);
+    const resp = await sendRequest(sideCar.url);
     expect(resp.status).toBe(200);
     expect(resp.body).toBe("" + globalConfig.exampleProdPort);
 
     const sendDevRequest = (): ReturnType<typeof sendRequest> =>
-      sendRequest(globalConfig.sidecarUrl, {
+      sendRequest(sideCar.url, {
         [globalConfig.routeKeyHeader]: routeKey,
       });
 
@@ -102,10 +113,15 @@ describe("integration", () => {
     // to the route
     await expectHttpError(sendDevRequest(), 400, "Route isn't connected");
 
-    defer(await localProxyMain(globalConfig.localProxyPort, applicationSecret));
+    const localProxy = await localProxyMain(
+      0,
+      applicationSecret,
+      getRouterWsUrl(serverPort)
+    );
+    defer(localProxy.closeFunc);
 
     const localProxyClient = new TypedHttpClient(
-      globalConfig.localProxyUrl + globalConfig.apiPathPrefix,
+      getApiUrl(localProxy.serverPort),
       localProxyApiSchema
     );
     await localProxyClient.call("setToken", { token: oauthToken });

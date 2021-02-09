@@ -1,7 +1,7 @@
 import { config } from "dotenv";
 import path from "path";
 
-import { getRouterApiUrl } from "./utils";
+import { getApiUrl } from "./utils";
 import { TypedHttpClient } from "typed-api/src/httpApi";
 import { routerApiSchema } from "./routerApiSchema";
 
@@ -25,10 +25,4 @@ export const setupTest = (): ((deferredFunc: () => Promise<void>) => void) => {
   });
 
   return defer;
-};
-
-const createTestOAuthToken = async (): Promise<string> => {
-  const client = new TypedHttpClient(getRouterApiUrl(), routerApiSchema);
-  const { oauthToken } = await client.call("createTestOAuthToken");
-  return oauthToken;
 };

@@ -1,4 +1,4 @@
-import { listenOnPort } from "dev-in-prod-lib/src/appServer";
+import { AppServer, listenOnPort } from "dev-in-prod-lib/src/appServer";
 import { getRouteKeyFromCtx, globalConfig } from "dev-in-prod-lib/src/utils";
 import Koa from "koa";
 import proxy from "koa-better-http-proxy";
@@ -7,7 +7,7 @@ import { config } from "./config";
 export const startSidecar = async (
   port: number,
   appSecret: string
-): Promise<() => Promise<void>> => {
+): Promise<AppServer> => {
   const app = new Koa();
 
   app.use(
