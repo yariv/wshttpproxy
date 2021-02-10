@@ -4,7 +4,7 @@ export const getHttpUrl = (port: number): string => {
 
 const configPorts = {
   routerPort: 3000, // note: should match google app settings
-  exampleProdPort: 3001,
+  exampleProdPort: 80,
   exampleDevPort: 3002,
   localProxyPort: 3003,
   sidecarPort: 3004,
