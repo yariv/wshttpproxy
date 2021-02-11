@@ -38,12 +38,12 @@ const initKoaApp = (socketManager: SocketManager): Koa => {
   koa.use(apiRouter.routes());
 
   // TODO use https
-  const app = websockify(koa);
+  const app = websockify(koa as any);
   app.ws.use(
     route.all("/ws", (ctx) => {
       initWebsocket(ctx.websocket);
       socketManager.registerWebSocket(ctx.websocket);
     })
   );
-  return app;
+  return app as any;
 };
