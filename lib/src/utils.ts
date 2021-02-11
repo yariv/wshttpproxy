@@ -3,11 +3,11 @@ export const getHttpUrl = (port: number): string => {
 };
 
 const configPorts = {
-  routerPort: 80, // note: should match google app settings
-  exampleProdPort: 3001,
-  exampleDevPort: 3002,
-  localProxyPort: 3003,
-  sidecarPort: 80,
+  routerPort: 3001, // note: should match google app settings
+  exampleProdPort: 3002,
+  exampleDevPort: 3003,
+  localProxyPort: 3004,
+  sidecarPort: 3005,
 };
 
 export const globalConfig = {

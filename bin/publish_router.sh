@@ -1,0 +1,1 @@
+aws lightsail push-container-image --region us-west-2 --service-name dev --label router --image router

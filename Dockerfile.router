@@ -1,0 +1,5 @@
+FROM devinprod
+
+EXPOSE 3001
+WORKDIR /usr/src/app/router
+CMD ["yarn", "ts-node", "routerMain.ts"]
