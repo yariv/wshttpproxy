@@ -1,8 +1,8 @@
  #!/bin/sh
- mkdir .docker_imports
- cp -r ../lib ./.docker_imports/dev-in-prod-lib
- pushd dev-in-prod-lib
+ mkdir .docker_imports 2>/dev/null
+ cp -r ../lib .docker_imports/dev-in-prod-lib
+ pushd .docker_imports/dev-in-prod-lib
  tsc
  popd
  docker build -t example .
- rm -rf dev-in-prod-lib
+ rm -rf .docker_imports

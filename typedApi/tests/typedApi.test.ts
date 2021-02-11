@@ -1,8 +1,8 @@
 import { AppServer, startNextServer } from "dev-in-prod-lib/src/appServer";
 import next from "next";
-import { TypedHttpClient } from "../httpApi";
+import { TypedHttpClient } from "../src/httpApi";
 import path from "path";
-import { schema } from "../../example/src/schema";
+import { schema } from "../example/src/schema";
 
 describe("typedApi", () => {
   let appServer: AppServer;
@@ -11,7 +11,7 @@ describe("typedApi", () => {
   beforeAll(async () => {
     appServer = await startNextServer(
       0,
-      path.resolve(__dirname, "../../example"),
+      path.resolve(__dirname, "../example"),
       next
     );
     client = new TypedHttpClient(appServer.apiUrl, schema);

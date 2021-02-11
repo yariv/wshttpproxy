@@ -1,12 +1,12 @@
  #!/bin/sh
- mkdir .docker_imports
+ mkdir .docker_imports 2>/dev/null
  cp -r ../lib .docker_imports/dev-in-prod-lib
- pushd dev-in-prod-lib
+ pushd .docker_imports/dev-in-prod-lib
  tsc
  popd
  cp -r ../typedApi .docker_imports/
- pushd typedApi 
+ pushd .docker_imports/typedApi 
  tsc
  popd
  docker build -t router .
- rm -rf dev-in-prod-lib
+ #rm -rf .docker_imports
