@@ -1,6 +1,5 @@
-import { resolveTripleslashReference } from "typescript";
 import { ZodError } from "zod";
-import { typedClientFunc, TypedServerFunc, UntypedServerFunc } from "./baseApi";
+import { typedClientFunc, TypedServerFunc } from "./baseApi";
 import {
   AbstractApiSchemaType,
   ApiHttpError,

@@ -1,9 +1,9 @@
-import { Request } from "koa";
 import bodyParser from "koa-bodyparser";
 import Router from "koa-router";
 import { typedServerFunc, TypedServerFunc } from "./baseApi";
 import { createHttpHandler } from "./httpApi";
 import { AbstractApiSchemaType } from "./types";
+import { Request } from "koa";
 
 export const createKoaRoute = <
   ApiSchemaType extends AbstractApiSchemaType,

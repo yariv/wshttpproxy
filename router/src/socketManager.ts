@@ -83,7 +83,6 @@ export class SocketManager {
 
     // TODO deal with non utf-8 blobs
     const body = await getRawBody(ctx.req, { encoding: "utf-8" });
-    debugger;
 
     wsWrapper.sendMsg("proxy", {
       requestId: requestId,

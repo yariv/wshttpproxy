@@ -4,6 +4,8 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.21.1"
+    "@types/koa": "^2.11.7",
+    "axios": "^0.21.1",
+    "koa": "^2.13.1"
   }
 }
