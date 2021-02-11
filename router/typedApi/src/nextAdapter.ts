@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { TypedServerFunc } from "./baseApi";
-import { createHttpHandler } from "./httpApi";
+import { createHttpHandler, HttpHandler } from "./httpApi";
 import { AbstractApiSchemaType, ResSchema } from "./types";
 
 export const createNextHandler = <

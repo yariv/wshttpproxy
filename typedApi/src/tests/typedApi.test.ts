@@ -1,29 +1,25 @@
 import { AppServer, startNextServer } from "dev-in-prod-lib/src/appServer";
 import next from "next";
-import { TypedHttpClient } from "../../../../src/httpApi";
+import { TypedHttpClient } from "../httpApi";
 import path from "path";
-import { schema } from "../../../schema";
+import { schema } from "../../example/src/schema";
 
 describe("typedApi", () => {
-  const port = 4829;
   let appServer: AppServer;
+  let client: TypedHttpClient<typeof schema>;
 
   beforeAll(async () => {
     appServer = await startNextServer(
-      port,
-      path.resolve(__dirname, "../../"),
+      0,
+      path.resolve(__dirname, "../../example"),
       next
     );
+    client = new TypedHttpClient(appServer.apiUrl, schema);
   });
 
   afterAll(async () => {
     await appServer.close();
   });
-
-  const client = new TypedHttpClient(
-    "http://localhost:" + port + "/api/",
-    schema
-  );
 
   test("sayHi", async () => {
     const res = await client.call("sayHi", { name: "Eve" });
