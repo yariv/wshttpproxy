@@ -12,6 +12,8 @@
   "author": "yarivsadan@gmail.com",
   "dependencies": {
     "@types/koa": "^2.11.7",
-    "koa": "^2.13.1"
+    "@types/koa-logger": "^3.1.1",
+    "koa": "^2.13.1",
+    "koa-logger": "^3.2.1"
   }
 }

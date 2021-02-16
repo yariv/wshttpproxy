@@ -1,10 +1,9 @@
-import { AppServer, startNextServer } from "dev-in-prod-lib/src/appServer";
+import { AppServer } from "dev-in-prod-lib/src/appServer";
 import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
 import { setupTest } from "dev-in-prod-lib/src/testLib";
 import { WsWrapper } from "dev-in-prod-lib/src/typedWs";
 import { genNewToken, globalConfig } from "dev-in-prod-lib/src/utils";
 import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
-import { App } from "koa-websocket";
 import { TypedHttpClient } from "typed-api/src/httpApi";
 import WebSocket from "ws";
 import * as z from "zod";
@@ -102,7 +101,7 @@ describe("proxy middleware", () => {
   it("Parses route key from original host or header", async () => {
     const applicationSecret = await getAppSecret();
     const routeKey = await getRouteKey(applicationSecret);
-    const originalHost = `${globalConfig.routeKeySubdomainPrefix}${routeKey}.localhost.localhost`;
+    const originalHost = `www-rk${routeKey}.localhost.localhost`;
     const res = await fetch(routerUrl, {
       headers: {
         [globalConfig.appSecretHeader]: applicationSecret,
@@ -252,9 +251,7 @@ describe("proxy middleware", () => {
           expect(headers[globalConfig.originalHostHeader]).toStrictEqual(
             "localhost"
           );
-          expect(headers["host"]).toStrictEqual(
-            "localhost:" + appServer.port
-          );
+          expect(headers["host"]).toStrictEqual("localhost:" + appServer.port);
           expect(headers["content-length"]).toStrictEqual("" + bodyStr.length);
           resolve(null);
         }

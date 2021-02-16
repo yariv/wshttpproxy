@@ -1,8 +1,9 @@
 import { AppServer, startNextServer } from "dev-in-prod-lib/src/appServer";
 import next from "next";
-import { TypedHttpClient } from "../src/httpApi";
 import path from "path";
 import { schema } from "../example/src/schema";
+import { TypedHttpClient } from "../src/httpApi";
+import Koa from "koa";
 
 describe("typedApi", () => {
   let appServer: AppServer;
@@ -12,7 +13,8 @@ describe("typedApi", () => {
     appServer = await startNextServer(
       0,
       path.resolve(__dirname, "../example"),
-      next
+      next,
+      new Koa()
     );
     client = new TypedHttpClient(appServer.apiUrl, schema);
   });

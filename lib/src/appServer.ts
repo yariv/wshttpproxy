@@ -2,6 +2,7 @@ import { Server } from "http";
 import Koa from "koa";
 import util from "util";
 import { getHttpUrl, globalConfig } from "./utils";
+const logger = require("koa-logger");
 
 export class AppServer {
   server: Server;
@@ -43,7 +44,7 @@ export const startNextServer = async (
   // note: next is a parameter instead of an import to prevent
   // duplicate imports of react, which causes errors
   next: (params: any) => any,
-  koaApp?: Koa
+  app: Koa
 ): Promise<AppServer> => {
   const dev = process.env.NODE_ENV !== "production";
 
@@ -52,8 +53,6 @@ export const startNextServer = async (
   await nextApp.prepare();
 
   const requestHandler = nextApp.getRequestHandler();
-
-  const app = koaApp || new Koa();
 
   app.use(async (ctx) => {
     await requestHandler(ctx.req, ctx.res);

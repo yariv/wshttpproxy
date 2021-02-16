@@ -1,0 +1,1 @@
+rsync -av — progress -e "ssh -i ~/devinprod.pem" . --exclude-from=".gitignore" --exclude=".git" ubuntu@52.23.193.209:~/devinprod

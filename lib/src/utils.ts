@@ -19,7 +19,7 @@ export const globalConfig = {
   sidecarUrl: getHttpUrl(configPorts.sidecarPort),
   routeKeyHeader: "dev-in-prod-route-key",
   appSecretHeader: "dev-in-prod-app-secret",
-  routeKeySubdomainPrefix: "rk-",
+  routeKeyRegex: /^.+-rk(.+)$/,
   apiPathPrefix: "/api/",
   originalHostHeader: "x-forwarded-host",
   proxyTimeout: 10000,
@@ -32,10 +32,8 @@ export const getRouteKeyFromHostname = (hostname: string): string | null => {
     return null;
   }
   const lastSubdomain = toks[toks.length - 3];
-  if (!lastSubdomain.startsWith(globalConfig.routeKeySubdomainPrefix)) {
-    return null;
-  }
-  return lastSubdomain.substring(globalConfig.routeKeySubdomainPrefix.length);
+  const reRes = globalConfig.routeKeyRegex.exec(lastSubdomain);
+  return reRes ? reRes[1] : null;
 };
 
 export const getRouteKeyFromCtx = (

@@ -8,6 +8,7 @@ import storage from "node-persist";
 import { localProxyApiSchema } from "./localProxyApiSchema";
 import { initWsClient } from "./wsClient";
 import { createKoaRoute } from "typed-api/src/koaAdapter";
+import logger from "koa-logger";
 
 export let wsWrapper: WsWrapper<typeof serverSchema, typeof clientSchema>;
 
@@ -40,6 +41,7 @@ export const initLocalProxyApp = async (
   })(apiRouter);
 
   const app = new Koa();
+  app.use(logger());
   app.use(apiRouter.routes());
   app.use(apiRouter.allowedMethods());
   return app;
