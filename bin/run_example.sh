@@ -1,2 +1,2 @@
 #!/bin/sh
-docker run -p 3002:3002 -d example
+yarn ts-node exampleMain.ts > log.txt 2>&1

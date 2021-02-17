@@ -1,0 +1,1 @@
+sudo certbot certonly -d dsee.io --email=yarivsadan@gmail.com --agree-tos --nginx

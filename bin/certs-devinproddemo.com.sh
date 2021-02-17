@@ -1,0 +1,1 @@
+sudo certbot certonly -d *.devinproddemo.com --dns-route53 --email=yarivsadan@gmail.com --agree-tos
