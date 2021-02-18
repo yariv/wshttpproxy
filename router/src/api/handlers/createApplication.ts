@@ -9,14 +9,14 @@ import { prisma } from "../../prisma";
 export const createApplicationHandler = createKoaRoute(
   routerApiSchema,
   "createApplication",
-  async (body, req: Request) => {
-    const ownerId = await authorize(req.method, body.oauthToken);
+  async ({ name, oauthToken }, req: Request) => {
+    const ownerId = await authorize(req.method, oauthToken);
 
     const application = await prisma.application.findUnique({
       where: {
         ownerId_name: {
           ownerId: ownerId,
-          name: body.name,
+          name,
         },
       },
     });
@@ -30,7 +30,7 @@ export const createApplicationHandler = createKoaRoute(
     const secret = genNewToken();
     await prisma.application.create({
       data: {
-        name: body.name,
+        name,
         owner: { connect: { id: ownerId } },
         secret,
       },

@@ -28,8 +28,8 @@ if (require.main == module) {
     throw new Error("Missing APPLICATION_SECRET environment variable.");
   }
 
-  const routerWsUrl = "TODO";
-  const localServiceUrl = "TODO";
+  const routerWsUrl = "wss://dsee.io/ws";
+  const localServiceUrl = "http://localhost:3002";
   localProxyMain(
     globalConfig.localProxyPort,
     process.env.APPLICATION_SECRET,

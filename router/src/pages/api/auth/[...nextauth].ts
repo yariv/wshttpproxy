@@ -4,18 +4,7 @@ import NextAuth, { InitOptions } from "next-auth";
 import Adapters from "next-auth/adapters";
 import Providers from "next-auth/providers";
 import { googleConfig } from "../../../gapi";
-
-let prisma;
-
-if (process.env.NODE_ENV === "production") {
-  prisma = new PrismaClient();
-} else {
-  const glob = global as any;
-  if (!glob.prisma) {
-    glob.prisma = new PrismaClient();
-  }
-  prisma = glob.prisma;
-}
+import { prisma } from "../../../prisma";
 
 const options: InitOptions = {
   providers: [
@@ -34,14 +23,7 @@ const options: InitOptions = {
       from: "<no-reply@example.com>",
     }),
   ],
-  //adapter: Adapters.Prisma.Adapter({ prisma }),
-  callbacks: {
-    session: async (session, user) => {
-      // hack to add the user id to the session object
-      (session.user as any).id = (user as any).id;
-      return session;
-    },
-  },
+  adapter: Adapters.Prisma.Adapter({ prisma }),
 };
 
 const NextAuthPage = (req: NextApiRequest, res: NextApiResponse) =>

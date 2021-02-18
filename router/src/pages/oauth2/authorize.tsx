@@ -1,13 +1,12 @@
-import { createHash } from "crypto";
 import { GetServerSideProps } from "next";
 import { getSession, signIn, signOut, useSession } from "next-auth/client";
 import * as React from "react";
 import * as z from "zod";
-import { genNewToken } from "dev-in-prod-lib/src/utils";
-import { prisma } from "../../prisma";
 import { createOAuthToken } from "../../utils";
+import util from "util";
+import { prisma } from "../../prisma";
 
-const AuthorizePage = () => {
+const AuthorizePage = ({ oauthToken }: { oauthToken: string }) => {
   const [session, loading] = useSession();
 
   if (typeof window !== "undefined" && loading) return null;
@@ -24,6 +23,7 @@ const AuthorizePage = () => {
     <>
       <h1>Protected Page</h1>
       <p>You can view this page because you are signed in.</p>
+      <div>Token: {oauthToken}</div>
       <button onClick={() => signOut()}>Sign out</button>
     </>
   );
@@ -36,6 +36,12 @@ const args = z.object({
   client_id: z.string(),
 });
 
+export const log = (...x: any[]) => {
+  console.log(
+    util.inspect(x, { showHidden: false, depth: null, colors: true })
+  );
+};
+
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const { client_id, redirect_uri } = args.parse(ctx.query);
 
@@ -44,12 +50,17 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     return { props: {} };
   }
 
-  const userId = (session.user as any).id;
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email! },
+  });
+  if (!user) {
+    throw new Error("Missing user");
+  }
 
-  const token = await createOAuthToken(userId, client_id);
+  const oauthToken = await createOAuthToken(user.id, client_id);
 
   const redirectUrl = new URL(redirect_uri);
-  redirectUrl.hash = "token=" + token;
+  redirectUrl.hash = "token=" + oauthToken;
 
   return {
     redirect: { destination: redirectUrl.toString(), permanent: false },

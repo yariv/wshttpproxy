@@ -1,2 +1,3 @@
 #!/bin/sh
-yarn ts-node routerMain.ts > log.txt 2>&1 
+cd router
+yarn ts-node routerMain.ts > log.txt 2>&1 &

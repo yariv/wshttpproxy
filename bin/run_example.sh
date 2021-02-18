@@ -1,2 +1,3 @@
 #!/bin/sh
-yarn ts-node exampleMain.ts > log.txt 2>&1
+cd example
+yarn ts-node exampleMain.ts > log.txt 2>&1 &

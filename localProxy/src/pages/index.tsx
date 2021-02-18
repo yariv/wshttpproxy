@@ -1,17 +1,12 @@
-import { globalConfig } from "dev-in-prod-lib/src/utils";
 import { GetServerSideProps } from "next";
 import * as React from "react";
 
-// TODO make configurable.
-const routerAuthUrl = `${globalConfig.routerUrl}/oauth2/authorize`;
-const redirectUrl = `${globalConfig.localProxyUrl}/oauth2/callback`;
-
 const go = () => {
-  const destUrl = new URL(routerAuthUrl);
+  const destUrl = new URL("https://dsee.io/oauth2/authorize");
   destUrl.search = new URLSearchParams({
     response_type: "token",
     scope: "proxy",
-    redirect_uri: redirectUrl,
+    redirect_uri: "http://localhost:3004/oauth2/callback",
     // TODO use real client id
     client_id: "123",
   }).toString();
@@ -28,7 +23,7 @@ const Page = () => {
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   return { props: {} };
-  return { redirect: { permanent: false, destination: routerAuthUrl } };
+  //return { redirect: { permanent: false, destination: routerAuthUrl } };
 };
 
 export default Page;

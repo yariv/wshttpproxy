@@ -55,7 +55,7 @@ export const startNextServer = async (
   const requestHandler = nextApp.getRequestHandler();
 
   app.use(async (ctx) => {
-    await requestHandler(ctx.req, ctx.res);
+    return requestHandler(ctx.req, ctx.res);
   });
 
   const server = await listenOnPort(app, port);

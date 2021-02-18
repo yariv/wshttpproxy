@@ -11,8 +11,9 @@ export const exampleMain = async (port: number): Promise<AppServer> => {
   const appServer = new AppServer(server);
   const router = new Router();
   router.get("/", async (ctx) => {
-    ctx.body = "" + appServer.port;
+    ctx.body = "Hi brent! " + appServer.port;
   });
+
   app.use(router.routes()).use(router.allowedMethods);
   return appServer;
 };

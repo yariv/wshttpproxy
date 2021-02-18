@@ -9,11 +9,11 @@ import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
 export const createRouteHandler = createKoaRoute(
   routerApiSchema,
   "createRoute",
-  async (body, req: Request) => {
-    const userId = await authorize(req.method, body.oauthToken);
+  async ({ oauthToken, applicationSecret }, req: Request) => {
+    const userId = await authorize(req.method, oauthToken);
 
     // TODO replace with routingSecret
-    const secret = body.applicationSecret;
+    const secret = applicationSecret;
     const application = await prisma.application.findUnique({
       where: { secret: secret },
     });

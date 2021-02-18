@@ -97,6 +97,6 @@ export const initWebsocket = (ws: WebSocket) => {
 
   ws.on("close", () => {});
   ws.on("error", (err) => {
-    console.error("error");
+    console.error("error", err);
   });
 };

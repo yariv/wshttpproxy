@@ -1,20 +1,7 @@
-import { google } from "googleapis";
-import fs from "fs";
-
-const config = {
-  googleConfigFilePath: ".google_config.json",
-};
-
-// export const googleConfig = JSON.parse(
-//   fs.readFileSync(process.cwd() + "/" + config.googleConfigFilePath, "utf8")
-// ).web;
+// TODO move to .env
 export const googleConfig = {
-  client_id: "a",
-  client_secret: "b",
+  client_id:
+    "37807648475-ktckhrauvn8h209u5v9ma29j4h1bvkme.apps.googleusercontent.com",
+  client_secret: "9puQCe_dP9Jmpv6zQegj2rBE",
   redirect_uris: ["c"],
 };
-export const oauth2Client = new google.auth.OAuth2(
-  googleConfig.client_id,
-  googleConfig.client_secret,
-  googleConfig.redirect_uris[0]
-);
