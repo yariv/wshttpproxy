@@ -1,3 +1,4 @@
+import { genNewToken } from "dev-in-prod-lib/src/utils";
 import { GetServerSideProps } from "next";
 import * as React from "react";
 
@@ -8,7 +9,7 @@ const go = () => {
     scope: "proxy",
     redirect_uri: "http://localhost:3004/oauth2/callback",
     // TODO use real client id
-    client_id: "123",
+    client_id: "lp-" + genNewToken(),
   }).toString();
   location.href = destUrl.toString();
 };

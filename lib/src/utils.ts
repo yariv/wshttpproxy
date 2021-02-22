@@ -23,6 +23,8 @@ export const globalConfig = {
   apiPathPrefix: "/api/",
   originalHostHeader: "x-forwarded-host",
   proxyTimeout: 10000,
+  oauthAuthorizeUrl: "https://dsee.io/oauth2/authorize",
+  oauthCallbackUrl: getHttpUrl(configPorts.localProxyPort) + "/oauth2/callback",
 };
 
 // TODO move to a different file?

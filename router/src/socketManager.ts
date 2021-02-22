@@ -70,18 +70,8 @@ export class SocketManager {
       ctx.throw(400, "Invalid route key");
     }
 
-    console.log(
-      "SDFSD",
-      appSecret,
-      routeKey,
-      Object.keys(this.connectedWebSockets)
-    );
     const webSocketKey = getWebSocketKey(application.id, routeKey);
-    const wsWrapper = this.connectedWebSockets[
-      "ckl9uvyb10002wcm7vl90hrki_lxQX66"
-    ];
-    //this.connectedWebSockets[webSocketKey];
-    console.log(webSocketKey, wsWrapper, Object.keys(this.connectedWebSockets));
+    const wsWrapper = this.connectedWebSockets[webSocketKey];
     if (!wsWrapper) {
       ctx.throw(400, "Route isn't connected");
     }

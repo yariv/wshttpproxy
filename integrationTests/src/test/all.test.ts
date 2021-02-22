@@ -79,12 +79,6 @@ describe("integration", () => {
       }
     );
 
-    const res2 = await routerClient.call("createRoute", {
-      oauthToken,
-      applicationSecret,
-    });
-    const routeKey = res2.routeKey;
-
     const exampleProd = await exampleMain(0);
     defer(exampleProd.close.bind(exampleProd));
 
@@ -102,7 +96,7 @@ describe("integration", () => {
 
     const sendDevRequest = (): ReturnType<typeof sendRequest> =>
       sendRequest(sideCar.url, {
-        [globalConfig.routeKeyHeader]: routeKey,
+        [globalConfig.routeKeyHeader]: "invalid_routekey",
       });
 
     // send a dev request, verify it fails because the local proxy isn't connected
@@ -115,17 +109,18 @@ describe("integration", () => {
     const localProxy = await localProxyMain(
       0,
       applicationSecret,
+      router.apiUrl,
       router.wsUrl,
       exampleDev.url
     );
     defer(localProxy.close.bind(localProxy));
 
     const localProxyClient = new TypedHttpClient(
-      localProxy.apiUrl,
+      localProxy.appServer!.apiUrl,
       localProxyApiSchema
     );
-    await localProxyClient.call("setToken", { token: oauthToken });
-    await localProxyClient.call("setRouteKey", { routeKey });
+    await localProxyClient.call("setToken", { oauthToken });
+    await localProxyClient.call("connect");
 
     const resp2 = await sendDevRequest();
     expect(resp2.body).toBe("" + exampleDev.port);

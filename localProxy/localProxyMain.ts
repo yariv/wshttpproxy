@@ -2,25 +2,24 @@ import { AppServer, startNextServer } from "dev-in-prod-lib/src/appServer";
 import { globalConfig } from "dev-in-prod-lib/src/utils";
 import dotenv from "dotenv";
 import next from "next";
-import { initLocalProxyApp as initLocalProxyApp, wsWrapper } from "./src/app";
+import { LocalProxy } from "./src/localProxy";
 dotenv.config();
 
 export const localProxyMain = async (
   port: number,
   applicationSecret: string,
+  routerApiUrl: string,
   routerWsUrl: string,
   localServiceUrl: string
-): Promise<AppServer> => {
-  // TODO create local client id
-  const app = await initLocalProxyApp(
+): Promise<LocalProxy> => {
+  const localProxy = new LocalProxy(
     applicationSecret,
+    routerApiUrl,
     routerWsUrl,
     localServiceUrl
   );
-  const appServer = await startNextServer(port, __dirname, next, app);
-
-  appServer.onClose(async () => wsWrapper.ws.close());
-  return appServer;
+  await localProxy.listen(port, __dirname, next);
+  return localProxy;
 };
 
 if (require.main == module) {
@@ -29,10 +28,12 @@ if (require.main == module) {
   }
 
   const routerWsUrl = "wss://dsee.io/ws";
-  const localServiceUrl = "http://localhost:3002";
+  const routerApiUrl = "https://dsee.io/api";
+  const localServiceUrl = globalConfig.localProxyUrl;
   localProxyMain(
     globalConfig.localProxyPort,
     process.env.APPLICATION_SECRET,
+    routerApiUrl,
     routerWsUrl,
     localServiceUrl
   );

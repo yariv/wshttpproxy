@@ -7,7 +7,8 @@
     "sidecar",
     "localProxy",
     "typedApi",
-    "integrationTests"
+    "integrationTests",
+    "dbproxy"
   ],
   "dependencies": {}
 }

@@ -1,0 +1,11 @@
+{
+  "name": "dbproxy",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@types/mysql": "^2.15.17",
+    "mysql": "^2.18.1",
+    "mysql2": "^2.2.5"
+  }
+}
