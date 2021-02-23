@@ -8,7 +8,8 @@ export const localProxyApiSchema = {
     res: z.void(),
   },
   connect: {
-    req: z.void(),
+    // TODO support void requests
+    req: z.object({}),
     res: z.void(),
   },
 };

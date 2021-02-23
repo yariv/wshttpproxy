@@ -94,15 +94,6 @@ describe("integration", () => {
     expect(resp.status).toBe(200);
     expect(resp.body).toBe("" + exampleProd.port);
 
-    const sendDevRequest = (): ReturnType<typeof sendRequest> =>
-      sendRequest(sideCar.url, {
-        [globalConfig.routeKeyHeader]: "invalid_routekey",
-      });
-
-    // send a dev request, verify it fails because the local proxy isn't connected
-    // to the route
-    await expectHttpError(sendDevRequest(), 400, "Route isn't connected");
-
     const exampleDev = await exampleMain(0);
     defer(exampleDev.close.bind(exampleDev));
 
@@ -115,14 +106,24 @@ describe("integration", () => {
     );
     defer(localProxy.close.bind(localProxy));
 
+    const sendDevRequest = (routeKey: string): ReturnType<typeof sendRequest> =>
+      sendRequest(sideCar.url, {
+        [globalConfig.routeKeyHeader]: routeKey,
+      });
+
+    await expectHttpError(
+      sendDevRequest("invalid_key"),
+      400,
+      "Invalid route key"
+    );
+
     const localProxyClient = new TypedHttpClient(
       localProxy.appServer!.apiUrl,
       localProxyApiSchema
     );
     await localProxyClient.call("setToken", { oauthToken });
-    await localProxyClient.call("connect");
 
-    const resp2 = await sendDevRequest();
+    const resp2 = await sendDevRequest(await localProxy.getStored("routeKey"));
     expect(resp2.body).toBe("" + exampleDev.port);
     expect(resp2.status).toBe(200);
   });
