@@ -77,6 +77,10 @@ model Application {
   updatedAt DateTime @updatedAt @map(name: "updated_at")
   ownerId Int 
   owner User @relation(fields: [ownerId], references: [id])
+  mysqlHost String
+  mysqlPort Int
+  mysqlUsername String
+  mysqlPassword String
 
   @@index(secret)
   @@index(ownerId)

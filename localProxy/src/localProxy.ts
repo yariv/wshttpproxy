@@ -10,7 +10,6 @@ import logger from "koa-logger";
 import storage from "node-persist";
 import { TypedHttpClient } from "typed-api/src/httpApi";
 import { createKoaRoute } from "typed-api/src/koaAdapter";
-// TODO fix import
 import { localProxyApiSchema } from "./localProxyApiSchema";
 import { initWsClient } from "./wsClient";
 
@@ -100,6 +99,12 @@ export class LocalProxy {
     this.wsWrapper.ws.on("close", () => {
       this.wsWrapper = null;
     });
+  }
+
+  async connectToDb() {
+    const dbUrl = await this.routerClient.call("getDbUrl");
+    if (dbUrl) {
+    }
   }
 
   async listen(port: number, dirname: string, next: any) {
