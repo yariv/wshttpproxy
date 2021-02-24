@@ -69,16 +69,12 @@ const listen = async (port: number): Promise<() => Promise<void>> => {
       //console.log(parser.astify(query));
       const [results, fields] = await proxyConn.query(query);
       console.log("res", results, fields);
-      // proxyConn.query(query, (err, results, fields) => {
-      //   // TODO
-      //   if (err) throw err;
-      //   console.log("result", err, results, fields);
-      //   if (Array.isArray(results)) {
-      //     (conn as any).writeTextResult(results, fields);
-      //   } else {
-      //     (conn as any).writeOk(results);
-      //   }
-      // });
+      if (Array.isArray(results)) {
+        (conn as any).writeTextResult(results, fields);
+      } else {
+        (conn as any).writeOk(results);
+      }
+      // TODO try/catch and writeErr?
     });
     conn.on("error", (error: any) => {});
   });
@@ -97,8 +93,8 @@ const listen = async (port: number): Promise<() => Promise<void>> => {
   });
 };
 
-listen(port).then((close: () => Promise<void>) => {
-  var connection = mysql.createConnection({
+listen(port).then(async (close: () => Promise<void>) => {
+  var connection = await mysql2.createConnection({
     host: "127.0.0.1",
     user: "root",
     password: "root",
@@ -106,28 +102,18 @@ listen(port).then((close: () => Promise<void>) => {
     port,
   });
 
-  connection.connect((err) => {
-    if (err) throw err;
-  });
+  //await connection.connect();
 
   // connection.query("select * from log", function (error, results, fields) {
   //   if (error) throw error;
   //   console.log("The solution is: ", results, fields);
   //   close();
   // });
-  connection.beginTransaction((err) => {
-    if (err) throw err;
-  });
+  await connection.beginTransaction();
 
-  connection.query("select * from log", function (error, results, fields) {
-    if (error) throw error;
-    console.log("The solution is: ", results, fields);
-    //close();
-  });
-
-  connection.commit((err) => {
-    if (err) throw err;
-  });
+  const [results, fields] = await connection.query("select * from log");
+  console.log("The solution is: ", results, fields);
+  await connection.commit();
 
   // connection.query("begin", function (error, results, fields) {
   //   if (error) throw error;
@@ -138,5 +124,6 @@ listen(port).then((close: () => Promise<void>) => {
   //   if (error) throw error;
   //   console.log("The solution is: ", results);
   // });
-  connection.end();
+  await connection.end();
+  await close();
 });
