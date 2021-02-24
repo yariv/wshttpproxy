@@ -5,7 +5,9 @@
   "license": "MIT",
   "dependencies": {
     "@types/mysql": "^2.15.17",
+    "@types/node-sql-parser": "^1.1.0",
     "mysql": "^2.18.1",
-    "mysql2": "^2.2.5"
+    "mysql2": "^2.2.5",
+    "node-sql-parser": "^3.1.0"
   }
 }

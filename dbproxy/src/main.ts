@@ -2,6 +2,7 @@ import net from "net";
 import mysql from "mysql2";
 import Connection from "mysql2/typings/mysql/lib/Connection";
 import util from "util";
+import { Parser } from "node-sql-parser";
 
 // var server = net.createServer((socket) => {
 //   let conn = net.connect({ host: "127.0.0.1", port: 3306 });
@@ -28,6 +29,7 @@ const COMPRESS = 0x00000020; // from  require("mysql2/lib/constants/client");
 
 const port = 1235;
 
+const parser = new Parser();
 const getClientConnection = async (): Promise<Connection> => {
   var clientConn = mysql.createConnection({
     host: "127.0.0.1",
@@ -42,10 +44,11 @@ const getClientConnection = async (): Promise<Connection> => {
   return clientConn;
 };
 
-const listen = async (port: number) => {
+let proxyConn: Connection;
+const listen = async (port: number): Promise<() => Promise<void>> => {
   const server = (mysql as any).createServer();
   server.on("connection", async (conn: Connection) => {
-    //const proxyConn = await getClientConnection();
+    proxyConn = await getClientConnection();
 
     let flags = 0xffffff;
     flags = flags ^ COMPRESS;
@@ -61,9 +64,17 @@ const listen = async (port: number) => {
     console.log("connected");
     conn.on("query", (query: any) => {
       console.log("got query", query);
-      // proxyConn.query(query, (err, results, fields) => {
-      //   console.log("result", err, results, fields);
-      // });
+      //console.log(parser.astify(query));
+      proxyConn.query(query, (err, results, fields) => {
+        // TODO
+        if (err) throw err;
+        console.log("result", err, results, fields);
+        if (Array.isArray(results)) {
+          (conn as any).writeTextResult(results, fields);
+        } else {
+          (conn as any).writeOk(results);
+        }
+      });
     });
     conn.on("error", (error: any) => {});
   });
@@ -74,12 +85,15 @@ const listen = async (port: number) => {
         reject(err);
         return;
       }
-      resolve(server);
+      resolve(async () => {
+        server.close();
+        proxyConn?.end();
+      });
     });
   });
 };
 
-listen(port).then((server) => {
+listen(port).then((close: () => Promise<void>) => {
   var connection = mysql.createConnection({
     host: "127.0.0.1",
     user: "root",
@@ -92,10 +106,25 @@ listen(port).then((server) => {
     if (err) throw err;
   });
 
-  connection.query("select 1+1", function (error, results, fields) {
-    if (error) throw error;
-    console.log("The solution is: ", results);
+  // connection.query("select * from log", function (error, results, fields) {
+  //   if (error) throw error;
+  //   console.log("The solution is: ", results, fields);
+  //   close();
+  // });
+  connection.beginTransaction((err) => {
+    if (err) throw err;
   });
+
+  connection.query("select * from log", function (error, results, fields) {
+    if (error) throw error;
+    console.log("The solution is: ", results, fields);
+    //close();
+  });
+
+  connection.commit((err) => {
+    if (err) throw err;
+  });
+
   // connection.query("begin", function (error, results, fields) {
   //   if (error) throw error;
   //   console.log("The solution is: ", results);

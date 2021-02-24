@@ -1128,6 +1128,13 @@
   dependencies:
     "@types/node" "*"
 
+"@types/node-sql-parser@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@types/node-sql-parser/-/node-sql-parser-1.1.0.tgz#916d16864e21723e5818c9a603d7ccb1c26ea0ac"
+  integrity sha512-Y5hmrXH9+tVA/tJkel12XVMPPgv07UQv44oAt/8l/TI3raKlxbyFYPDLqo71HTQSN4hEbqlXA/ZAZy0AASsz6w==
+  dependencies:
+    node-sql-parser "*"
+
 "@types/node@*", "@types/node@^14.14.14":
   version "14.14.25"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-14.14.25.tgz#15967a7b577ff81383f9b888aa6705d43fbbae93"
@@ -1678,6 +1685,11 @@ bcrypt-pbkdf@^1.0.0:
   integrity sha1-pDAdOJtqQ/m2f/PKEaP2Y342Dp4=
   dependencies:
     tweetnacl "^0.14.3"
+
+big-integer@^1.6.48:
+  version "1.6.48"
+  resolved "https://registry.yarnpkg.com/big-integer/-/big-integer-1.6.48.tgz#8fd88bd1632cba4a1c8c3e3d7159f08bb95b4b9e"
+  integrity sha512-j51egjPa7/i+RdiRuJbPdJ2FIUYYPhvYLjzoYbcMMm62ooO6F94fETG4MTs46zPAF9Brs04OajboA/qTGuz78w==
 
 big.js@^5.2.2:
   version "5.2.2"
@@ -5686,6 +5698,13 @@ node-releases@^1.1.69:
   version "1.1.70"
   resolved "https://registry.yarnpkg.com/node-releases/-/node-releases-1.1.70.tgz#66e0ed0273aa65666d7fe78febe7634875426a08"
   integrity sha512-Slf2s69+2/uAD79pVVQo8uSiC34+g8GWY8UH2Qtqv34ZfhYrxpYpfzs9Js9d6O0mbDmALuxaTlplnBTnSELcrw==
+
+node-sql-parser@*, node-sql-parser@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/node-sql-parser/-/node-sql-parser-3.1.0.tgz#997e51581e89a218a91cabc2e863b072b5f9969f"
+  integrity sha512-bm1vct9T8EtPi4/z8GA/UbN/xEwfUQsqhvmgnwyNMRSiQ4jvukCE4Esl363HbnBnXFhc5T4V9DuO29pWtC0q6w==
+  dependencies:
+    big-integer "^1.6.48"
 
 node-uuid@~1.4.0:
   version "1.4.8"
