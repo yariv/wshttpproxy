@@ -7,7 +7,12 @@ import { setupTest } from "dev-in-prod-lib/src/testLib";
 describe("dbProxy", () => {
   const defer = setupTest();
 
-  it("works", async () => {
+  const setup = async (): Promise<{
+    directConn: Connection;
+    proxiedConn: Connection;
+    dbProxy: MySqlProxy;
+    tableName: string;
+  }> => {
     const proxyPort = await portfinder.getPortPromise();
     const dbPort = 3306;
     const connOptions = {
@@ -47,7 +52,12 @@ describe("dbProxy", () => {
       port: proxyPort,
     });
     defer(proxiedConn.end.bind(proxiedConn));
+    return { directConn, proxiedConn, dbProxy, tableName };
+  };
+
+  it("works", async () => {
     //await connection.beginTransaction();
+    const { proxiedConn, tableName } = await setup();
 
     try {
       await proxiedConn.query("rollbac");
