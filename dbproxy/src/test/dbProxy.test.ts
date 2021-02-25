@@ -58,10 +58,14 @@ describe("dbProxy", () => {
     //await connection.beginTransaction();
     const { directConn, proxiedConn, tableName } = await setup();
     await proxiedConn.query(`insert into ${tableName}(val) values('foo')`);
-    const [res1] = await proxiedConn.query("select * from " + tableName);
-    const [res2] = await proxiedConn.query("select * from " + tableName);
-    console.log("foo", res1, res2);
+    const [res1, fields1] = await proxiedConn.query(
+      "select * from " + tableName
+    );
+    const [res2, fields2] = await proxiedConn.query(
+      "select * from " + tableName
+    );
     expect(res1).toEqual(res2);
+    expect(fields1).toEqual(fields2);
 
     // try {
     //   await proxiedConn.query("rollbac");
