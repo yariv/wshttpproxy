@@ -45,7 +45,6 @@ describe("dbProxy", () => {
       await directConn.query("drop table " + tableName);
     });
     directConn.query(`delete from ${tableName}`);
-    await directConn.query(`insert into ${tableName}(val) values('foo')`);
 
     const proxiedConn = await mysql.createConnection({
       ...connOptions,
@@ -57,20 +56,22 @@ describe("dbProxy", () => {
 
   it("works", async () => {
     //await connection.beginTransaction();
-    const { proxiedConn, tableName } = await setup();
+    const { directConn, proxiedConn, tableName } = await setup();
+    await proxiedConn.query(`insert into ${tableName}(val) values('foo')`);
+    const [res1] = await proxiedConn.query("select * from " + tableName);
+    const [res2] = await proxiedConn.query("select * from " + tableName);
+    console.log("foo", res1, res2);
+    expect(res1).toEqual(res2);
 
-    try {
-      await proxiedConn.query("rollbac");
-    } catch (err) {
-      console.log("fff", err);
-    }
+    // try {
+    //   await proxiedConn.query("rollbac");
+    // } catch (err) {
+    //   console.log("fff", err);
+    // }
 
-    const [results, fields] = await proxiedConn.query(
-      `select * from ${tableName}`
-    );
-    console.log("The solution is: ", results);
-
-    // await proxiedConn.end();
-    // await directConn.end();
+    // const [results, fields] = await proxiedConn.query(
+    //   `select * from ${tableName}`
+    // );
+    // console.log("The solution is: ", results);
   });
 });
