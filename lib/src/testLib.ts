@@ -13,7 +13,9 @@ export const setupTest = (): ((deferredFunc: () => Promise<void>) => void) => {
   };
 
   afterAll(async () => {
-    await Promise.all(deferredFuncs.map((func) => func()));
+    // reversing deferredFuncs ensures
+    // dependent resources get cleaned up first
+    await Promise.all(deferredFuncs.reverse().map((func) => func()));
   });
 
   afterEach(async () => {

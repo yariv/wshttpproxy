@@ -1,4 +1,4 @@
-import mysql from "mysql2/promise";
+import mysql, { Connection } from "mysql2/promise";
 import { MySqlProxy } from "../mysqlProxy";
 import portfinder from "portfinder";
 import { genNewToken } from "dev-in-prod-lib/src/utils";
@@ -10,7 +10,6 @@ describe("dbProxy", () => {
   it("works", async () => {
     const proxyPort = await portfinder.getPortPromise();
     const dbPort = 3306;
-
     const connOptions = {
       host: "127.0.0.1",
       user: "root",
@@ -18,8 +17,12 @@ describe("dbProxy", () => {
       database: "test",
     };
 
+    const dbProxy = new MySqlProxy({ ...connOptions, port: dbPort });
+    await dbProxy.listen(proxyPort);
+    defer(dbProxy.close.bind(dbProxy));
+
     // connect to the actual db
-    var directConn = await mysql.createConnection({
+    const directConn = await mysql.createConnection({
       ...connOptions,
       port: dbPort,
     });
@@ -31,17 +34,13 @@ describe("dbProxy", () => {
     directConn.query(`
     create table ${tableName} (
         id integer auto_increment primary key,
-        val string
+        val text
         )`);
     defer(async () => {
       await directConn.query("drop table " + tableName);
     });
     directConn.query(`delete from ${tableName}`);
     await directConn.query(`insert into ${tableName}(val) values('foo')`);
-
-    const dbProxy = new MySqlProxy({ ...connOptions, port: dbPort });
-    await dbProxy.listen(proxyPort);
-    defer(dbProxy.close.bind(dbProxy));
 
     const proxiedConn = await mysql.createConnection({
       ...connOptions,
@@ -60,5 +59,8 @@ describe("dbProxy", () => {
       `select * from ${tableName}`
     );
     console.log("The solution is: ", results);
+
+    // await proxiedConn.end();
+    // await directConn.end();
   });
 });

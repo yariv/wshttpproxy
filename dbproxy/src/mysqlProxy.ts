@@ -54,7 +54,7 @@ export class MySqlProxy {
   async close() {
     const promises: Promise<void>[] = [];
     if (this.server) {
-      promises.push(util.promisify(this.server.close)());
+      promises.push(util.promisify(this.server.close.bind(this.server))());
     }
     if (this.proxyConn) {
       promises.push(this.proxyConn.end());
@@ -65,17 +65,7 @@ export class MySqlProxy {
   }
 
   async listen(port: number) {
-    return util.promisify(this.server.listen.bind(this.server, port));
-
-    // return new Promise((resolve, reject) => {
-    //   this.server.listen(port, (err: any) => {
-    //     if (err) {
-    //       reject(err);
-    //       return;
-    //     }
-    //     resolve(null);
-    //   });
-    // });
+    return util.promisify(this.server.listen.bind(this.server, port))();
   }
 
   async processQuery(conn: Connection, query: string) {
