@@ -27,7 +27,6 @@ export class MySqlProxy {
 
   async handleIncomingConnection(conn: mysqlServer.Connection) {
     console.log("got incoming connection");
-    //(conn as any).id = this.connCounter++;
 
     if (!this.proxyConn) {
       try {
@@ -50,9 +49,7 @@ export class MySqlProxy {
     conn.on("query", this.processQuery.bind(this, conn));
     conn.on("error", (err: any) => {
       console.log("Connection error", err);
-      tryClose(this.proxyConn);
       tryClose(conn);
-      this.proxyConn = undefined;
       //this.removeConn(conn);
       // TODO close?
     });
