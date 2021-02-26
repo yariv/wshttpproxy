@@ -15,6 +15,9 @@ export class MySqlProxy {
   remoteConnectionOptions: ConnectionOptions;
   proxyConn: mysql.Connection | undefined;
   server: any;
+  //clientConns: Connection[] = [];
+
+  connCounter = 0;
   constructor(remoteConnectionOptions: ConnectionOptions) {
     this.remoteConnectionOptions = remoteConnectionOptions;
     // note: createServer isn't exported by default
@@ -24,6 +27,7 @@ export class MySqlProxy {
 
   async handleIncomingConnection(conn: Connection) {
     console.log("got incoming connection");
+    //(conn as any).id = this.connCounter++;
 
     if (!this.proxyConn) {
       try {
@@ -31,7 +35,9 @@ export class MySqlProxy {
           this.remoteConnectionOptions
         );
         this.proxyConn.on("end", () => {
-          console.log("Remote DB connection closed");
+          console.log("Remote DB connection closed.");
+          // TODO retry connecting?
+          //this.clientConns.forEach((clientConn) => clientConn.destroy());
           this.proxyConn = undefined;
         });
       } catch (err) {
@@ -40,16 +46,24 @@ export class MySqlProxy {
         return;
       }
     }
+    //this.clientConns.push(conn);
     conn.on("query", this.processQuery.bind(this, conn));
     conn.on("error", (err: any) => {
       console.error("Connection error", err);
+      //this.removeConn(conn);
       // TODO close?
     });
     conn.on("end", () => {
-      console.log("connection closed");
+      console.log("Client connection closed. Closing proxy connection.");
+      //this.removeConn(conn);
+      this.proxyConn?.destroy();
     });
     sendHandshake(conn);
   }
+
+  // removeConn(conn: Connection) {
+  //   delete this.clientConns[(conn as any).id];
+  // }
 
   async close() {
     const promises: Promise<void>[] = [];
@@ -69,15 +83,26 @@ export class MySqlProxy {
   }
 
   async processQuery(conn: Connection, query: string) {
-    console.log("got query", query);
+    console.log("got query:", query);
+    if (!this.checkQuery(query)) {
+      (conn as any).writeError({
+        message: "Invalid query: " + query,
+      });
+      return;
+    }
+
     if (!this.proxyConn) {
       console.error(
         "Can't proxy the query because the remote DB connection is closed."
       );
+      // TODO retry connecting?
+      (conn as any).writeError({
+        message:
+          "Can't proxy the query because the remote DB connection is closed.",
+      });
       return;
     }
 
-    // TODO blacklist all these queries https://dev.mysql.com/doc/refman/8.0/en/implicit-commit.html
     try {
       const [results, fields] = await this.proxyConn.query(query);
       if (Array.isArray(results)) {
@@ -96,6 +121,11 @@ export class MySqlProxy {
         errno: err.errno,
       });
     }
+  }
+
+  checkQuery(query: string) {
+    const queryRe = /^(SELECT|INSERT|UPDATE|DELETE|BEGIN|START TRANSACTION|COMMIT|ROLLBACK)/i;
+    return queryRe.test(query);
   }
 }
 
