@@ -1,8 +1,8 @@
-import mysql, { Connection, RowDataPacket } from "mysql2/promise";
-import { MySqlProxy } from "../mysqlProxy";
-import portfinder from "portfinder";
-import { genNewToken } from "dev-in-prod-lib/src/utils";
 import { setupTest } from "dev-in-prod-lib/src/testLib";
+import { genNewToken } from "dev-in-prod-lib/src/utils";
+import mysql, { Connection } from "mysql2/promise";
+import portfinder from "portfinder";
+import { MySqlProxy } from "../mysqlProxy";
 
 describe("dbProxy", () => {
   const defer = setupTest();
@@ -146,5 +146,34 @@ describe("dbProxy", () => {
     await new Promise((resolve) => setTimeout(resolve, 10));
     const [res2] = (await directConn.query("show processlist")) as any;
     expect(res2.length).toBe(res1.length - 1);
+  });
+
+  it("multiple statements are disallowed", async () => {
+    const dbProxy = await setupProxy();
+    const directConn = await mysql.createConnection({
+      ...connOptions,
+      multipleStatements: true,
+      port: dbPort,
+    });
+    defer(directConn.end.bind(directConn));
+
+    const [res] = (await directConn.query("select 1; select 1;")) as any;
+    expect(res.length).toStrictEqual(2);
+
+    console.log(res);
+    const proxiedConn = await mysql.createConnection({
+      ...connOptions,
+      multipleStatements: true,
+      port: dbProxy.port,
+    });
+    defer(directConn.end.bind(directConn));
+    try {
+      await proxiedConn.query("select 1; select 1;");
+      fail();
+    } catch (e) {
+      expect(
+        e.message.startsWith("You have an error in your SQL syntax")
+      ).toBeTruthy();
+    }
   });
 });

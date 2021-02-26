@@ -45,26 +45,18 @@ export class MySqlProxy {
         return;
       }
     }
-    //this.clientConns.push(conn);
     conn.on("query", this.processQuery.bind(this, conn));
     conn.on("error", (err: any) => {
       console.log("Connection error", err);
       tryClose(conn);
-      //this.removeConn(conn);
-      // TODO close?
     });
     (conn as any).stream.on("close", () => {
       console.log("Client connection closed.");
-      //this.removeConn(conn);
       tryClose(this.proxyConn);
       this.proxyConn = undefined;
     });
     sendHandshake(conn);
   }
-
-  // removeConn(conn: Connection) {
-  //   delete this.clientConns[(conn as any).id];
-  // }
 
   async close() {
     const promises: Promise<void>[] = [];
