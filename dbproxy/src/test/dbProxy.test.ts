@@ -7,24 +7,30 @@ import { setupTest } from "dev-in-prod-lib/src/testLib";
 describe("dbProxy", () => {
   const defer = setupTest();
 
+  const connOptions = {
+    host: "127.0.0.1",
+    user: "root",
+    password: "root",
+    database: "test",
+  };
+  const dbPort = 3306;
+
+  const setupProxy = async (): Promise<MySqlProxy> => {
+    const proxyPort = await portfinder.getPortPromise();
+
+    const dbProxy = new MySqlProxy(proxyPort, { ...connOptions, port: dbPort });
+    await dbProxy.listen();
+    defer(dbProxy.close.bind(dbProxy));
+    return dbProxy;
+  };
+
   const setup = async (): Promise<{
     directConn: Connection;
     proxiedConn: Connection;
     dbProxy: MySqlProxy;
     tableName: string;
   }> => {
-    const proxyPort = await portfinder.getPortPromise();
-    const dbPort = 3306;
-    const connOptions = {
-      host: "127.0.0.1",
-      user: "root",
-      password: "root",
-      database: "test",
-    };
-
-    const dbProxy = new MySqlProxy({ ...connOptions, port: dbPort });
-    await dbProxy.listen(proxyPort);
-    defer(dbProxy.close.bind(dbProxy));
+    const dbProxy = await setupProxy();
 
     // connect to the actual db
     const directConn = await mysql.createConnection({
@@ -48,7 +54,7 @@ describe("dbProxy", () => {
 
     const proxiedConn = await mysql.createConnection({
       ...connOptions,
-      port: proxyPort,
+      port: dbProxy.port,
     });
     defer(proxiedConn.end.bind(proxiedConn));
     return { directConn, proxiedConn, dbProxy, tableName };
@@ -116,5 +122,29 @@ describe("dbProxy", () => {
         expect(e.message).toStrictEqual("Invalid query: " + query);
       }
     }
+  });
+
+  it("client disconnects when proxy conn disconnects", async () => {
+    // connect to the actual db
+    const { directConn, proxiedConn } = await setup();
+    const [res] = (await directConn.query("show processlist")) as any;
+
+    return new Promise((resolve) => {
+      proxiedConn.on("error", () => {
+        resolve(null);
+      });
+      // note: the proxy conn is the last one
+      directConn.query("kill " + res[res.length - 1].Id);
+    });
+  });
+
+  it("proxy conn disconnects after client disconnects", async () => {
+    const { directConn, proxiedConn } = await setup();
+    const [res1] = (await directConn.query("show processlist")) as any;
+    await proxiedConn.end();
+    // TODO find a less fragile way of testing this?
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    const [res2] = (await directConn.query("show processlist")) as any;
+    expect(res2.length).toBe(res1.length - 1);
   });
 });
