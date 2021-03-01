@@ -2,7 +2,7 @@ import { setupTest } from "dev-in-prod-lib/src/testLib";
 import { genNewToken } from "dev-in-prod-lib/src/utils";
 import mysql, { Connection } from "mysql2/promise";
 import portfinder from "portfinder";
-import { MySqlProxy } from "../mysqlProxy";
+import { checkCrudQuery, MySqlProxy } from "../mysqlProxy";
 
 describe("dbProxy", () => {
   const defer = setupTest();
@@ -85,8 +85,9 @@ describe("dbProxy", () => {
     expect(res1_2).toEqual(res2_2);
   });
 
-  it("allows valid queries", async () => {
-    const { proxiedConn, tableName } = await setup();
+  it("allows crud queries", async () => {
+    const { proxiedConn, tableName, dbProxy } = await setup();
+    dbProxy.onQuery = checkCrudQuery;
     const validQueries = [
       "select * from " + tableName,
       `insert into ${tableName}(val) values('foo')`,
@@ -103,8 +104,10 @@ describe("dbProxy", () => {
     }
   });
 
-  it("disallows invalid queries", async () => {
-    const { proxiedConn, tableName } = await setup();
+  it("disallows non crud queries", async () => {
+    const { proxiedConn, tableName, dbProxy } = await setup();
+    dbProxy.onQuery = checkCrudQuery;
+
     // see https://dev.mysql.com/doc/refman/8.0/en/implicit-commit.html for some bad queries
     const invalidQueries = [
       "set autocommit=1",
@@ -142,7 +145,7 @@ describe("dbProxy", () => {
     const { directConn, proxiedConn } = await setup();
     const [res1] = (await directConn.query("show processlist")) as any;
     await proxiedConn.end();
-    // TODO find a less fragile way of testing this?
+    // TODO find a less fragile way of testing this
     await new Promise((resolve) => setTimeout(resolve, 10));
     const [res2] = (await directConn.query("show processlist")) as any;
     expect(res2.length).toBe(res1.length - 1);

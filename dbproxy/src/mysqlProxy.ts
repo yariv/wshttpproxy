@@ -1,7 +1,11 @@
 import mysqlServer from "mysql2";
 import mysql, { Connection } from "mysql2/promise";
-import { ConnectionOptions } from "mysql2/typings/mysql/lib/Connection";
+import {
+  ConnectionOptions,
+  EventEmitter,
+} from "mysql2/typings/mysql/lib/Connection";
 import X from "node-sql-parser/build/mysql";
+import { createBuilderStatusReporter } from "typescript";
 import util from "util";
 
 const Parser = (X as any).Parser;
@@ -14,15 +18,23 @@ export class MySqlProxy {
   remoteConnectionOptions: ConnectionOptions;
   proxyConn: Connection | undefined;
   server: any;
-  //clientConns: Connection[] = [];
+  onProxyConn: ((conn: Connection) => void) | undefined;
+  onQuery: ((query: string) => string) | undefined;
 
   connCounter = 0;
-  constructor(port: number, remoteConnectionOptions: ConnectionOptions) {
+  constructor(
+    port: number,
+    remoteConnectionOptions: ConnectionOptions,
+    onProxyConn?: (conn: Connection) => void,
+    onQuery?: (query: string) => string
+  ) {
     this.port = port;
     this.remoteConnectionOptions = remoteConnectionOptions;
     // note: createServer isn't exported by default
     this.server = (mysqlServer as any).createServer();
     this.server.on("connection", this.handleIncomingConnection.bind(this));
+    this.onProxyConn = onProxyConn;
+    this.onQuery = onQuery;
   }
 
   async handleIncomingConnection(conn: mysqlServer.Connection) {
@@ -43,6 +55,9 @@ export class MySqlProxy {
         console.error("Can't connect to remote DB server", err);
         tryClose(conn);
         return;
+      }
+      if (this.onProxyConn) {
+        this.onProxyConn(this.proxyConn);
       }
     }
     conn.on("query", this.processQuery.bind(this, conn));
@@ -74,18 +89,20 @@ export class MySqlProxy {
   }
 
   async processQuery(conn: mysqlServer.Connection, query: string) {
-    console.log("got query:", query);
-    if (!this.checkQuery(query)) {
-      (conn as any).writeError({
-        message: "Invalid query: " + query,
-      });
-      return;
+    console.log("Got query:", query);
+    if (this.onQuery) {
+      try {
+        query = this.onQuery(query);
+        if (!query) {
+          return;
+        }
+      } catch (e) {
+        (conn as any).writeError({ message: e.message });
+        return;
+      }
     }
 
     if (!this.proxyConn) {
-      console.error(
-        "Can't proxy the query because the remote DB connection is closed."
-      );
       // TODO retry connecting?
       (conn as any).writeError({
         message:
@@ -113,12 +130,15 @@ export class MySqlProxy {
       });
     }
   }
-
-  checkQuery(query: string) {
-    const queryRe = /^(SELECT|INSERT|UPDATE|DELETE|BEGIN|START TRANSACTION|COMMIT|ROLLBACK)/i;
-    return queryRe.test(query);
-  }
 }
+const crudQueryRe = /^(SELECT|INSERT|UPDATE|DELETE|BEGIN|START TRANSACTION|COMMIT|ROLLBACK)/i;
+export const checkCrudQuery = (query: string): string => {
+  if (!crudQueryRe.test(query)) {
+    throw new Error("Invalid query: " + query);
+  }
+  return query;
+};
+
 const tryClose = (conn: Connection | mysqlServer.Connection | undefined) => {
   if (conn) {
     try {

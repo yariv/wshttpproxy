@@ -28,10 +28,13 @@
     "@types/koa-router": "^7.4.1",
     "@types/node": "^14.14.14",
     "@types/react-dom": "^17.0.0",
+    "dev-in-prod-db-proxy": "1.0.0",
     "dev-in-prod-lib": "1.0.0",
     "dotenv": "^8.2.0",
     "koa-logger": "^3.2.1",
     "koa-router": "^10.0.0",
+    "mysql2": "^2.2.5",
+    "parse-database-url": "^0.3.0",
     "react-dom": "^17.0.1",
     "typed-api": "1.0.0",
     "typescript": "^4.1.3"

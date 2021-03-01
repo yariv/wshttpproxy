@@ -12,6 +12,9 @@ import { TypedHttpClient } from "typed-api/src/httpApi";
 import { createKoaRoute } from "typed-api/src/koaAdapter";
 import { localProxyApiSchema } from "./localProxyApiSchema";
 import { initWsClient } from "./wsClient";
+import { MySqlProxy } from "dev-in-prod-db-proxy/src/mysqlProxy";
+import { ConnectionOptions } from "tls";
+import { Connection } from "mysql2/promise";
 
 type StorageKey = "oauthToken" | "routeKey";
 
@@ -22,17 +25,23 @@ export class LocalProxy {
   routerClient: TypedHttpClient<typeof routerApiSchema>;
   applicationSecret: string;
   routerWsUrl: string;
+  routerDbConnOptions: ConnectionOptions;
   localServiceUrl: string;
+  localDbPort: number;
 
   constructor(
     applicationSecret: string,
     routerApiUrl: string,
     routerWsUrl: string,
-    localServiceUrl: string
+    routerDbConnOptions: ConnectionOptions,
+    localServiceUrl: string,
+    localDbPort: number
   ) {
     this.applicationSecret = applicationSecret;
     this.routerWsUrl = routerWsUrl;
+    this.routerDbConnOptions = routerDbConnOptions;
     this.localServiceUrl = localServiceUrl;
+    this.localDbPort = localDbPort;
 
     this.wsWrapper = null;
 
@@ -41,12 +50,12 @@ export class LocalProxy {
 
     createKoaRoute(localProxyApiSchema, "setToken", async ({ oauthToken }) => {
       await this.store("oauthToken", oauthToken);
-      await this.connect();
+      await this.connectWs();
     })(apiRouter);
 
-    createKoaRoute(localProxyApiSchema, "connect", async () => this.connect())(
-      apiRouter
-    );
+    createKoaRoute(localProxyApiSchema, "connect", async () =>
+      this.connectWs()
+    )(apiRouter);
 
     const app = new Koa();
     app.use(logger());
@@ -63,11 +72,15 @@ export class LocalProxy {
     return storage.setItem(this.applicationSecret + "_" + key, val);
   }
 
-  async connect() {
+  async getOAuthToken() {
     const oauthToken = await this.getStored("oauthToken");
     if (!oauthToken) {
       throw new Error("Not authenticated");
     }
+    return oauthToken;
+  }
+
+  async getRouteKey(oauthToken: string) {
     let routeKey = await this.getStored("routeKey");
     if (!routeKey) {
       console.log("Creating new route");
@@ -79,7 +92,12 @@ export class LocalProxy {
       await this.store("routeKey", routeKey);
     }
     console.log("Using route key:", routeKey);
+    return routeKey;
+  }
 
+  async connectWs() {
+    const oauthToken = await this.getOAuthToken();
+    const routeKey = await this.getRouteKey(oauthToken);
     if (this.wsWrapper) {
       console.log("Closing open websocket");
       this.wsWrapper.ws.close();
@@ -101,10 +119,28 @@ export class LocalProxy {
     });
   }
 
-  async connectToDb() {
-    const dbUrl = await this.routerClient.call("getDbUrl");
-    if (dbUrl) {
-    }
+  async connectDb() {
+    const oauthToken = await this.getOAuthToken();
+    // TODO make sure SSL is used in prod
+    const dbProxy = new MySqlProxy(this.localDbPort, this.routerDbConnOptions);
+    await dbProxy.listen();
+    dbProxy.on("proxyConnection", async (conn: Connection) => {
+      const authQuery = {
+        type: "auth",
+        params: {
+          oauthToken,
+          applicationSecret: this.applicationSecret,
+        },
+      };
+      try {
+        await conn.query(JSON.stringify(authQuery));
+      } catch (e) {
+        console.error("Error authenticating against remote DB", e);
+        try {
+          conn.destroy();
+        } catch (e) {}
+      }
+    });
   }
 
   async listen(port: number, dirname: string, next: any) {

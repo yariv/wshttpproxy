@@ -67,7 +67,6 @@ export class SocketManager {
       },
     });
     if (!route) {
-      console.log("DFBFDB", application.id, routeKey);
       ctx.throw(400, "Invalid route key");
     }
 
