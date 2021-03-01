@@ -18,14 +18,14 @@ export class MySqlProxy {
   remoteConnectionOptions: ConnectionOptions;
   proxyConn: Connection | undefined;
   server: any;
-  onProxyConn: ((conn: Connection) => void) | undefined;
+  onProxyConn: ((conn: Connection) => Promise<void>) | undefined;
   onQuery: ((query: string) => string) | undefined;
 
   connCounter = 0;
   constructor(
     port: number,
     remoteConnectionOptions: ConnectionOptions,
-    onProxyConn?: (conn: Connection) => void,
+    onProxyConn?: (conn: Connection) => Promise<void>,
     onQuery?: (query: string) => string
   ) {
     this.port = port;
@@ -57,7 +57,14 @@ export class MySqlProxy {
         return;
       }
       if (this.onProxyConn) {
-        this.onProxyConn(this.proxyConn);
+        try {
+          await this.onProxyConn(this.proxyConn);
+        } catch (e) {
+          tryClose(this.proxyConn);
+          this.proxyConn = undefined;
+          tryClose(conn);
+          return;
+        }
       }
     }
     conn.on("query", this.processQuery.bind(this, conn));

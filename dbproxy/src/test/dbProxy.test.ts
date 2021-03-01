@@ -2,6 +2,7 @@ import { setupTest } from "dev-in-prod-lib/src/testLib";
 import { genNewToken } from "dev-in-prod-lib/src/utils";
 import mysql, { Connection } from "mysql2/promise";
 import portfinder from "portfinder";
+import { createNonNullChain } from "typescript";
 import { checkCrudQuery, MySqlProxy } from "../mysqlProxy";
 
 describe("dbProxy", () => {
@@ -178,5 +179,36 @@ describe("dbProxy", () => {
         e.message.startsWith("You have an error in your SQL syntax")
       ).toBeTruthy();
     }
+  });
+
+  it("onProxyConn works", async () => {
+    const dbProxy = await setupProxy();
+    const promise = new Promise((resolve) => {
+      dbProxy.onProxyConn = async (conn) => {
+        const [[res]] = (await conn.query("select 1 as a")) as any;
+        console.log(res);
+        expect(res.a).toStrictEqual(1);
+        resolve(null);
+      };
+    });
+    await mysql.createConnection({
+      ...connOptions,
+      port: dbProxy.port,
+    });
+    return promise;
+  });
+
+  it("onProxyConn throws", async () => {
+    const dbProxy = await setupProxy();
+    dbProxy.onProxyConn = async (conn) => {
+      throw new Error("foo");
+    };
+    try {
+      await mysql.createConnection({
+        ...connOptions,
+        port: dbProxy.port,
+      });
+      fail();
+    } catch (e) {}
   });
 });

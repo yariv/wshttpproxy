@@ -122,9 +122,7 @@ export class LocalProxy {
   async connectDb() {
     const oauthToken = await this.getOAuthToken();
     // TODO make sure SSL is used in prod
-    const dbProxy = new MySqlProxy(this.localDbPort, this.routerDbConnOptions);
-    await dbProxy.listen();
-    dbProxy.on("proxyConnection", async (conn: Connection) => {
+    const onProxyConn = async (conn: Connection) => {
       const authQuery = {
         type: "auth",
         params: {
@@ -136,11 +134,16 @@ export class LocalProxy {
         await conn.query(JSON.stringify(authQuery));
       } catch (e) {
         console.error("Error authenticating against remote DB", e);
-        try {
-          conn.destroy();
-        } catch (e) {}
+        throw e;
       }
-    });
+    };
+
+    const dbProxy = new MySqlProxy(
+      this.localDbPort,
+      this.routerDbConnOptions,
+      onProxyConn
+    );
+    await dbProxy.listen();
   }
 
   async listen(port: number, dirname: string, next: any) {
