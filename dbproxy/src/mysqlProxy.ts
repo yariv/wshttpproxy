@@ -104,11 +104,12 @@ export class MySqlProxy {
       try {
         const newQuery = await this.onQuery(conn, query);
         if (!newQuery) {
+          (conn as any).writeOk("Ok");
           return;
         }
         query = newQuery;
       } catch (e) {
-        (conn as any).writeError({ message: e.message });
+        await (conn as any).writeError({ message: e.message });
         return;
       }
     }
@@ -143,10 +144,10 @@ export class MySqlProxy {
   }
 }
 const crudQueryRe = /^(SELECT|INSERT|UPDATE|DELETE|BEGIN|START TRANSACTION|COMMIT|ROLLBACK)/i;
-export const checkCrudQuery = (
+export const checkCrudQuery: OnQuery = async (
   conn: mysqlServer.Connection,
   query: string
-): string => {
+): Promise<string | void> => {
   if (!crudQueryRe.test(query)) {
     throw new Error("Invalid query: " + query);
   }
@@ -164,6 +165,9 @@ const tryClose = (conn: Connection | mysqlServer.Connection | undefined) => {
 const sendHandshake = (conn: mysqlServer.Connection) => {
   let flags = 0xffffff;
   //    flags = flags ^ COMPRESS;
+
+  // TODO re-enable SSL
+  flags = flags ^ 0x00000800;
   (conn as any).serverHandshake({
     protocolVersion: 10,
     serverVersion: "devinprod proxy 1.0",

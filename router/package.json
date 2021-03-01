@@ -51,6 +51,7 @@
     "oauth2-server": "^3.1.1",
     "oauth2-server-typescript": "^5.0.0-dev.3",
     "pg": "^8.5.1",
+    "portfinder": "^1.0.28",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "reflect-metadata": "^0.1.13",

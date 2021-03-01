@@ -25,7 +25,7 @@ export const initDbProxy = (
   return dbProxy;
 };
 
-const schema = z.object({
+export const schema = z.object({
   type: z.literal("authenticate"),
   params: z.object({
     oauthToken: z.string(),
@@ -50,8 +50,16 @@ class DevInProdConnData {
 const onQuery: OnQuery = async (conn, query) => {
   const devInProdConn = (conn as unknown) as DevInProdConn;
   const devInProdData = devInProdConn.devInProdData;
-  if (devInProdData.authenticated) {
-    const packet = schema.parse(JSON.parse(query));
+  if (!devInProdData.authenticated) {
+    let jsonObj;
+    try {
+      jsonObj = JSON.parse(query);
+    } catch (e) {
+      throw new Error(
+        "First query should be a JSON encoded authentication packet."
+      );
+    }
+    const packet = schema.parse(jsonObj);
     const { oauthToken } = packet.params;
     const tokenObj = await prisma.oAuthToken.findUnique({
       where: { tokenHash: sha256(oauthToken) },

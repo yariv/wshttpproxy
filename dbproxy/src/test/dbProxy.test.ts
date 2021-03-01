@@ -2,7 +2,6 @@ import { setupTest } from "dev-in-prod-lib/src/testLib";
 import { genNewToken } from "dev-in-prod-lib/src/utils";
 import mysql, { Connection } from "mysql2/promise";
 import portfinder from "portfinder";
-import { createNonNullChain } from "typescript";
 import { checkCrudQuery, MySqlProxy } from "../mysqlProxy";
 
 describe("dbProxy", () => {
@@ -121,11 +120,19 @@ describe("dbProxy", () => {
     for (const query of invalidQueries) {
       try {
         const res = await proxiedConn.query(query);
-        console.log("FOO", query, res);
       } catch (e) {
         expect(e.message).toStrictEqual("Invalid query: " + query);
       }
     }
+  });
+
+  it("empty query works", async () => {
+    const { proxiedConn, tableName, dbProxy } = await setup();
+    dbProxy.onQuery = async () => {
+      return;
+    };
+    const [res] = (await proxiedConn.query("select 1")) as any;
+    expect(res.fieldCount).toStrictEqual(0);
   });
 
   it("client disconnects when proxy conn disconnects", async () => {
@@ -186,7 +193,6 @@ describe("dbProxy", () => {
     const promise = new Promise((resolve) => {
       dbProxy.onProxyConn = async (conn) => {
         const [[res]] = (await conn.query("select 1 as a")) as any;
-        console.log(res);
         expect(res.a).toStrictEqual(1);
         resolve(null);
       };
@@ -194,6 +200,20 @@ describe("dbProxy", () => {
     await mysql.createConnection({
       ...connOptions,
       port: dbProxy.port,
+    });
+    return promise;
+  });
+
+  it("onConn works", async () => {
+    const dbProxy = await setupProxy();
+    const promise = new Promise((resolve) => {
+      dbProxy.onConn = async (conn) => {
+        resolve(null);
+      };
+      mysql.createConnection({
+        ...connOptions,
+        port: dbProxy.port,
+      });
     });
     return promise;
   });
