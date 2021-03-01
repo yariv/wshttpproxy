@@ -50,7 +50,6 @@ export class MySqlProxy {
         );
         // hack to get to the right listener
         (this.proxyConn as any).connection.stream.on("close", () => {
-          console.log("Remote DB connection closed.");
           tryClose(conn);
           this.proxyConn = undefined;
         });
@@ -72,11 +71,9 @@ export class MySqlProxy {
     }
     conn.on("query", this.processQuery.bind(this, conn));
     conn.on("error", (err: any) => {
-      console.log("Connection error", err);
       tryClose(conn);
     });
     (conn as any).stream.on("close", () => {
-      console.log("Client connection closed.");
       tryClose(this.proxyConn);
       this.proxyConn = undefined;
     });
@@ -103,6 +100,7 @@ export class MySqlProxy {
     if (this.onQuery) {
       try {
         const newQuery = await this.onQuery(conn, query);
+        console.log("newQuery", newQuery);
         if (!newQuery) {
           (conn as any).writeOk("Ok");
           return;

@@ -75,6 +75,7 @@ const onQuery: OnQuery = async (conn, query) => {
     if (devInProdData.inTransaction) {
       throw new Error("Nested transactions aren't supported.");
     }
+    devInProdData.inTransaction = true;
     return "SAVEPOINT s1";
   }
   if (/^COMMIT/i.test(query)) {
@@ -86,6 +87,7 @@ const onQuery: OnQuery = async (conn, query) => {
   }
   if (/^ROLLBACK/i.test(query)) {
     if (devInProdData.inTransaction) {
+      devInProdData.inTransaction = false;
       return "ROLLBACK TO SAVEPOINT s1";
     }
     // Ignore ROLLBACK statements

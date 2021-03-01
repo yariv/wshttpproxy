@@ -50,7 +50,6 @@ describe("dbProxy", () => {
     defer(async () => {
       await directConn.query("drop table " + tableName);
     });
-    directConn.query(`delete from ${tableName}`);
 
     const proxiedConn = await mysql.createConnection({
       ...connOptions,
