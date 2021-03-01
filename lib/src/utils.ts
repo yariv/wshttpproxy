@@ -8,6 +8,7 @@ const configPorts = {
   exampleDevPort: 3003,
   localProxyPort: 3004,
   sidecarPort: 3005,
+  routerDbProxyPort: 3006,
 };
 
 export const globalConfig = {

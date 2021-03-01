@@ -3,15 +3,19 @@ import { initWebsocket } from "dev-in-prod-lib/src/typedWs";
 import Koa from "koa";
 import logger from "koa-logger";
 import route from "koa-route";
-import websockify from "koa-websocket";
+import { ConnectionOptions } from "mysql2";
 import next from "next";
 import { router as apiRouter } from "./api/router";
+import { initDbProxy } from "./dbProxy";
 import { prisma } from "./prisma";
 import { SocketManager } from "./socketManager";
+import websockify from "koa-websocket";
 
 export const routerServerStart = async (
   port: number,
-  dirname: string
+  dirname: string,
+  dbProxyPort: number,
+  remoteConnectionOptions: ConnectionOptions
 ): Promise<AppServer> => {
   const socketManager = new SocketManager();
   const appServer = await startNextServer(
@@ -21,9 +25,13 @@ export const routerServerStart = async (
     initKoaApp(socketManager)
   );
 
+  const dbProxy = await initDbProxy(dbProxyPort, remoteConnectionOptions);
+  await dbProxy.listen();
+  console.log("Mysql proxy is listening on ", dbProxyPort);
+
   appServer.onClose(async () => {
     socketManager.close();
-    await prisma.$disconnect();
+    await Promise.all([prisma.$disconnect(), dbProxy.close()]);
   });
 
   return appServer;

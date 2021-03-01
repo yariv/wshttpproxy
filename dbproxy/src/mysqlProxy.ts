@@ -1,44 +1,47 @@
 import mysqlServer from "mysql2";
 import mysql, { Connection } from "mysql2/promise";
-import {
-  ConnectionOptions,
-  EventEmitter,
-} from "mysql2/typings/mysql/lib/Connection";
-import X from "node-sql-parser/build/mysql";
-import { createBuilderStatusReporter } from "typescript";
+import { ConnectionOptions } from "mysql2/typings/mysql/lib/Connection";
 import util from "util";
 
-const Parser = (X as any).Parser;
-
-const COMPRESS = 0x00000020; // from  require("mysql2/lib/constants/client");
-const parser = new Parser();
+export type OnConn = (conn: mysqlServer.Connection) => Promise<void>;
+export type OnProxyConn = (conn: Connection) => Promise<void>;
+export type OnQuery = (
+  conn: mysqlServer.Connection,
+  query: string
+) => Promise<string | void>;
 
 export class MySqlProxy {
   port: number;
   remoteConnectionOptions: ConnectionOptions;
   proxyConn: Connection | undefined;
   server: any;
-  onProxyConn: ((conn: Connection) => Promise<void>) | undefined;
-  onQuery: ((query: string) => string) | undefined;
+  onConn: OnConn | undefined;
+  onProxyConn: OnProxyConn | undefined;
+  onQuery: OnQuery | undefined;
 
   connCounter = 0;
   constructor(
     port: number,
     remoteConnectionOptions: ConnectionOptions,
-    onProxyConn?: (conn: Connection) => Promise<void>,
-    onQuery?: (query: string) => string
+    onConn?: OnConn,
+    onProxyConn?: OnProxyConn,
+    onQuery?: OnQuery
   ) {
     this.port = port;
     this.remoteConnectionOptions = remoteConnectionOptions;
     // note: createServer isn't exported by default
     this.server = (mysqlServer as any).createServer();
     this.server.on("connection", this.handleIncomingConnection.bind(this));
+    this.onConn = onConn;
     this.onProxyConn = onProxyConn;
     this.onQuery = onQuery;
   }
 
   async handleIncomingConnection(conn: mysqlServer.Connection) {
     console.log("got incoming connection");
+    if (this.onConn) {
+      await this.onConn(conn);
+    }
 
     if (!this.proxyConn) {
       try {
@@ -99,10 +102,11 @@ export class MySqlProxy {
     console.log("Got query:", query);
     if (this.onQuery) {
       try {
-        query = this.onQuery(query);
-        if (!query) {
+        const newQuery = await this.onQuery(conn, query);
+        if (!newQuery) {
           return;
         }
+        query = newQuery;
       } catch (e) {
         (conn as any).writeError({ message: e.message });
         return;
@@ -139,7 +143,10 @@ export class MySqlProxy {
   }
 }
 const crudQueryRe = /^(SELECT|INSERT|UPDATE|DELETE|BEGIN|START TRANSACTION|COMMIT|ROLLBACK)/i;
-export const checkCrudQuery = (query: string): string => {
+export const checkCrudQuery = (
+  conn: mysqlServer.Connection,
+  query: string
+): string => {
   if (!crudQueryRe.test(query)) {
     throw new Error("Invalid query: " + query);
   }
