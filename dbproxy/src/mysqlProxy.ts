@@ -100,6 +100,7 @@ export class MySqlProxy {
     if (this.onQuery) {
       try {
         const newQuery = await this.onQuery(conn, query);
+        console.log("newQuery", newQuery);
         if (!newQuery) {
           (conn as any).writeOk("Ok");
           return;

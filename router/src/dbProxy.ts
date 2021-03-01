@@ -70,7 +70,9 @@ const onQuery: OnQuery = async (conn, query) => {
     devInProdData.authenticated = true;
     return;
   }
-  checkCrudQuery(conn, query);
+
+  await checkCrudQuery(conn, query);
+
   if (/^(BEGIN|START TRANSACTION)/i.test(query)) {
     if (devInProdData.inTransaction) {
       throw new Error("Nested transactions aren't supported.");
