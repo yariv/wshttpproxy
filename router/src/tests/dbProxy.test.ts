@@ -144,8 +144,12 @@ describe("DbProxy", () => {
     expect(res1.length).toStrictEqual(0);
   });
 
-  it("rollback works", async () => {
-    const { proxiedConn, tableName } = await setupWriteTest();
+  const doTxTest = async (
+    startTxQuery: string,
+    endTxQuery: string,
+    expectedVal: string
+  ) => {
+    const { directConn, proxiedConn, tableName } = await setupWriteTest();
     await proxiedConn.query(`insert into ${tableName}(val) values('test');`);
     const [res0] = (await proxiedConn.query(
       `select * from ${tableName}`
@@ -162,11 +166,53 @@ describe("DbProxy", () => {
     expect(res1.length).toStrictEqual(1);
     expect(res1[0].val).toStrictEqual("foo");
 
-    await proxiedConn.query("rollback");
+    await proxiedConn.query(endTxQuery);
     const [res2] = (await proxiedConn.query(
       `select * from ${tableName}`
     )) as any;
     expect(res2.length).toStrictEqual(1);
-    expect(res2[0].val).toStrictEqual("test");
+    expect(res2[0].val).toStrictEqual(expectedVal);
+
+    const [res3] = (await directConn.query(
+      `select * from ${tableName}`
+    )) as any;
+    expect(res3.length).toStrictEqual(0);
+  };
+
+  it("rollback works", async () => {
+    await doTxTest("begin", "rollback", "test");
+  });
+
+  it("commit works", async () => {
+    await doTxTest("begin", "commit", "foo");
+  });
+
+  it("start transaction rollback works", async () => {
+    await doTxTest("start transaction", "rollback", "test");
+  });
+
+  it("start transaction commit works", async () => {
+    await doTxTest("start transaction", "commit", "foo");
+  });
+
+  it("disallows non crud queries", async () => {
+    const { proxiedConn, tableName } = await setupWriteTest();
+
+    // see https://dev.mysql.com/doc/refman/8.0/en/implicit-commit.html for some bad queries
+    const invalidQueries = [
+      "set autocommit=1",
+      "set autocommit = 1",
+      "drop table " + tableName,
+      "create table foo",
+      "lock tables",
+      "unlock tables",
+    ];
+    for (const query of invalidQueries) {
+      try {
+        const res = await proxiedConn.query(query);
+      } catch (e) {
+        expect(e.message).toStrictEqual("Invalid query: " + query);
+      }
+    }
   });
 });

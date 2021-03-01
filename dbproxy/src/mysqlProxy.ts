@@ -100,13 +100,13 @@ export class MySqlProxy {
     if (this.onQuery) {
       try {
         const newQuery = await this.onQuery(conn, query);
-        console.log("newQuery", newQuery);
         if (!newQuery) {
           (conn as any).writeOk("Ok");
           return;
         }
         query = newQuery;
       } catch (e) {
+        console.log("SDFAS");
         await (conn as any).writeError({ message: e.message });
         return;
       }
@@ -131,7 +131,6 @@ export class MySqlProxy {
     } catch (err) {
       // TODO make sure the error fields are properly encoded
       // in the response
-      console.error("Remote DB returned an error", err);
       (conn as any).writeError({
         message: err.message,
         code: err.code,
@@ -141,6 +140,7 @@ export class MySqlProxy {
     }
   }
 }
+
 const crudQueryRe = /^(SELECT|INSERT|UPDATE|DELETE|BEGIN|START TRANSACTION|COMMIT|ROLLBACK)/i;
 export const checkCrudQuery: OnQuery = async (
   conn: mysqlServer.Connection,
