@@ -8,8 +8,8 @@ dotenv.config();
 export const routerMain = async (
   port: number,
   applicationSecret: string,
-  dbProxyPort?: number,
-  dbConnOptions?: ConnectionOptions
+  dbProxyPort: number,
+  dbConnOptions: ConnectionOptions
 ): Promise<AppServer> => {
   return routerServerStart(port, applicationSecret, dbProxyPort, dbConnOptions);
 };
@@ -21,17 +21,10 @@ if (require.main == module) {
     throw new Error("Missing APPLICATION_SECRET environment variable");
   }
 
-  const connOptions: ConnectionOptions = {
-    host: "localhost",
-    port: 3306,
-    user: "root",
-    password: "root",
-    database: "devinproddemo",
-  };
   routerMain(
     globalConfig.routerPort,
     applicationSecret,
     globalConfig.routerDbProxyPort,
-    connOptions
+    globalConfig.defaultDbConnOptions
   );
 }

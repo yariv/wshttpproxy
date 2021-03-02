@@ -6,7 +6,10 @@ import logger from "koa-logger";
 import mysql, { ConnectionOptions } from "mysql2/promise";
 import escape from "escape-html";
 
-export const exampleMain = async (port: number): Promise<AppServer> => {
+export const exampleMain = async (
+  port: number,
+  dbPort: number
+): Promise<AppServer> => {
   const app = new Koa();
   app.use(logger());
   const server = await listenOnPort(app, port);
@@ -14,11 +17,8 @@ export const exampleMain = async (port: number): Promise<AppServer> => {
   const router = new Router();
 
   const connOptions: ConnectionOptions = {
-    host: "localhost",
-    port: globalConfig.routerDbProxyPort,
-    user: "root",
-    password: "root",
-    database: "devinproddemo",
+    ...globalConfig.defaultDbConnOptions,
+    port: dbPort,
   };
   const conn = await mysql.createConnection(connOptions);
 
@@ -34,9 +34,10 @@ export const exampleMain = async (port: number): Promise<AppServer> => {
   });
 
   app.use(router.routes()).use(router.allowedMethods);
+  appServer.onClose(async () => conn.destroy());
   return appServer;
 };
 
 if (require.main == module) {
-  exampleMain(globalConfig.exampleProdPort);
+  exampleMain(globalConfig.exampleProdPort, globalConfig.localProxyDbProxyPort);
 }

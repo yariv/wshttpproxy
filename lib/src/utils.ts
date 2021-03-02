@@ -9,6 +9,7 @@ const configPorts = {
   localProxyPort: 3004,
   sidecarPort: 3005,
   routerDbProxyPort: 3006,
+  localProxyDbProxyPort: 3007,
 };
 
 export const globalConfig = {
@@ -26,6 +27,13 @@ export const globalConfig = {
   proxyTimeout: 10000,
   oauthAuthorizeUrl: "https://dsee.io/oauth2/authorize",
   oauthCallbackUrl: getHttpUrl(configPorts.localProxyPort) + "/oauth2/callback",
+  defaultDbConnOptions: {
+    host: "localhost",
+    port: 3306,
+    user: "root",
+    password: "root",
+    database: "devinproddemo",
+  },
 };
 
 // TODO move to a different file?

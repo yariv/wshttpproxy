@@ -33,7 +33,7 @@ export class LocalProxy {
     // TODO make sure SSL is used in prod
     const onProxyConn = async (conn: Connection) => {
       const authQuery = {
-        type: "auth",
+        type: "authenticate",
         params: {
           authToken,
         },

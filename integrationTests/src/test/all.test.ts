@@ -1,11 +1,18 @@
 import { exampleMain as exampleMain } from "dev-in-prod-example/exampleMain";
 import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
 import { setupTest } from "dev-in-prod-lib/src/testLib";
-import { genNewToken, globalConfig } from "dev-in-prod-lib/src/utils";
+import {
+  genNewToken,
+  getHttpUrl,
+  globalConfig,
+} from "dev-in-prod-lib/src/utils";
 import { localProxyMain as localProxyMain } from "dev-in-prod-local-proxy/localProxyMain";
 import { routerMain } from "dev-in-prod-router/routerMain";
+import { getRouteKey } from "dev-in-prod-router/src/utils";
 import { startSidecar } from "dev-in-prod-sidecar/src/sidecarServer";
+import portfinder from "portfinder";
 import { TypedHttpClient } from "typed-api/src/httpApi";
+import util from "util";
 
 describe("integration", () => {
   const defer = setupTest();
@@ -40,19 +47,20 @@ describe("integration", () => {
     }
   };
 
+  const emptyResponse = "<h1>no posts</h1>";
   // TODO move to /example
   it("example works", async () => {
     // start the prod service and verify it works
-    const example = await exampleMain(0);
+    const example = await exampleMain(0, 3306);
     defer(example.close.bind(example));
 
     const resp2 = await sendRequest(example.url);
     expect(resp2.status).toBe(200);
-    expect(resp2.body).toBe("" + example.port);
+    expect(resp2.body).toBe(emptyResponse);
   });
 
   it("sidecar works", async () => {
-    const exampleProd = await exampleMain(0);
+    const exampleProd = await exampleMain(0, 3306);
     defer(exampleProd.close.bind(exampleProd));
 
     const sideCar = await startSidecar(0, "secret", exampleProd.url, "foo");
@@ -61,18 +69,31 @@ describe("integration", () => {
     // sidecar should forward standard requests to prod service
     const resp3 = await sendRequest(sideCar.url);
     expect(resp3.status).toBe(200);
-    expect(resp3.body).toBe("" + exampleProd.port);
+    expect(resp3.body).toBe(emptyResponse);
   });
 
   it("routing works", async () => {
     const applicationSecret = genNewToken();
-    const router = await routerMain(0, applicationSecret);
+    const [
+      routerDbProxyPort,
+      localProxyPort,
+      localProxyDbPort,
+      exampleDevPort,
+    ] = await util.promisify(portfinder.getPorts.bind(portfinder))(4, {});
+
+    const dbConnOptions = globalConfig.defaultDbConnOptions;
+    const router = await routerMain(
+      0,
+      applicationSecret,
+      routerDbProxyPort,
+      dbConnOptions
+    );
     defer(router.close.bind(router));
 
     const routerClient = new TypedHttpClient(router.apiUrl, routerApiSchema);
     const { authToken } = await routerClient.call("createAuthToken");
 
-    const exampleProd = await exampleMain(0);
+    const exampleProd = await exampleMain(0, dbConnOptions.port);
     defer(exampleProd.close.bind(exampleProd));
 
     const sideCar = await startSidecar(
@@ -85,19 +106,21 @@ describe("integration", () => {
 
     const resp = await sendRequest(sideCar.url);
     expect(resp.status).toBe(200);
-    expect(resp.body).toBe("" + exampleProd.port);
+    expect(resp.body).toBe(emptyResponse);
 
-    const exampleDev = await exampleMain(0);
-    defer(exampleDev.close.bind(exampleDev));
-
+    console.log(localProxyPort, localProxyDbPort, exampleDevPort);
     const localProxy = await localProxyMain(
-      0,
-      applicationSecret,
-      router.apiUrl,
+      localProxyPort,
       router.wsUrl,
-      exampleDev.url
+      { ...dbConnOptions, port: routerDbProxyPort },
+      getHttpUrl(exampleDevPort),
+      localProxyDbPort,
+      authToken
     );
     defer(localProxy.close.bind(localProxy));
+
+    const exampleDev = await exampleMain(exampleDevPort, localProxyDbPort);
+    defer(exampleDev.close.bind(exampleDev));
 
     const sendDevRequest = (routeKey: string): ReturnType<typeof sendRequest> =>
       sendRequest(sideCar.url, {
@@ -107,17 +130,11 @@ describe("integration", () => {
     await expectHttpError(
       sendDevRequest("invalid_key"),
       400,
-      "Invalid route key"
+      "Route isn't connected"
     );
 
-    const localProxyClient = new TypedHttpClient(
-      localProxy.appServer!.apiUrl,
-      localProxyApiSchema
-    );
-    await localProxyClient.call("setToken", { authToken });
-
-    const resp2 = await sendDevRequest(await localProxy.getStored("routeKey"));
-    expect(resp2.body).toBe("" + exampleDev.port);
+    const resp2 = await sendDevRequest(getRouteKey(authToken));
+    expect(resp2.body).toBe(emptyResponse);
     expect(resp2.status).toBe(200);
   });
 });

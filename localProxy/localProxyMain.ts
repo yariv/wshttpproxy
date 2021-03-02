@@ -39,13 +39,6 @@ if (require.main == module) {
     password: "root",
     database: "devinproddemo",
   };
-  // const routerDbConnOptions: ConnectionOptions = {
-  //   host: "localhost",
-  //   port: 3306,
-  //   user: "root",
-  //   password: "root",
-  //   database: "devinproddemo",
-  // };
   const localDbPort = globalConfig.routerDbProxyPort;
 
   localProxyMain(
