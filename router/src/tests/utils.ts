@@ -4,6 +4,7 @@ import { ConnectionOptions } from "mysql2";
 import { TypedHttpClient } from "typed-api/src/httpApi";
 import { routerMain } from "../../routerMain";
 import portfinder from "portfinder";
+import { genNewToken } from "dev-in-prod-lib/src/utils";
 
 export const connOptions: ConnectionOptions = {
   host: "127.0.0.1",
@@ -19,12 +20,19 @@ export const setupRouterTest = async (
   client: TypedHttpClient<typeof routerApiSchema>;
   appServer: AppServer;
   dbProxyPort: number;
+  applicationSecret: string;
 }> => {
   let client: TypedHttpClient<typeof routerApiSchema>;
   const dbProxyPort = await portfinder.getPortPromise();
-  const appServer = await routerMain(0, dbProxyPort, connOptions);
+  const applicationSecret = genNewToken();
+  const appServer = await routerMain(
+    0,
+    applicationSecret,
+    dbProxyPort,
+    connOptions
+  );
   client = new TypedHttpClient(appServer.apiUrl, routerApiSchema);
   defer(appServer.close.bind(appServer));
 
-  return { client, appServer, dbProxyPort };
+  return { client, appServer, dbProxyPort, applicationSecret };
 };

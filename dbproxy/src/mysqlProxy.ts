@@ -39,7 +39,6 @@ export class MySqlProxy {
   }
 
   async handleIncomingConnection(conn: mysqlServer.Connection) {
-    console.log("got incoming connection");
     this.conn = conn;
     if (this.onConn) {
       await this.onConn(conn);
@@ -85,12 +84,10 @@ export class MySqlProxy {
   }
 
   async close() {
-    const promises: Promise<void>[] = [];
-    if (this.server) {
-      promises.push(util.promisify(this.server.close.bind(this.server))());
-    }
     this.proxyConn?.destroy();
-    await Promise.all(promises);
+    if (this.server) {
+      await util.promisify(this.server.close.bind(this.server))();
+    }
     this.server = null;
     this.proxyConn = undefined;
   }
@@ -151,8 +148,6 @@ export class MySqlProxy {
     }
   }
 }
-
-
 
 const tryClose = (conn: Connection | mysqlServer.Connection | undefined) => {
   if (conn) {

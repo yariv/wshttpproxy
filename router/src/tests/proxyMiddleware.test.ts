@@ -18,16 +18,20 @@ describe("proxy middleware", () => {
   let routerUrl: string;
   let appServer: AppServer;
   let authToken: string;
+  let applicationSecret: string;
 
   const defer = setupTest();
 
   beforeAll(async () => {
-    const { client: client1, appServer: appServer1 } = await setupRouterTest(
-      defer
-    );
+    const {
+      client: client1,
+      appServer: appServer1,
+      applicationSecret: applicationSecret1,
+    } = await setupRouterTest(defer);
     client = client1;
     appServer = appServer1;
     routerUrl = appServer.url;
+    applicationSecret = applicationSecret1;
   });
 
   beforeEach(async () => {
@@ -46,7 +50,7 @@ describe("proxy middleware", () => {
 
   it("Requires x-forwarded-host header", async () => {
     const res = await fetch(routerUrl, {
-      headers: { [globalConfig.appSecretHeader]: getAppSecret() },
+      headers: { [globalConfig.appSecretHeader]: applicationSecret },
     });
     await checkRes(res, 400, "Missing x-forwarded-host header");
   });
@@ -55,7 +59,7 @@ describe("proxy middleware", () => {
     const originalHost = "http://localhost";
     const res = await fetch(routerUrl, {
       headers: {
-        [globalConfig.appSecretHeader]: getAppSecret(),
+        [globalConfig.appSecretHeader]: applicationSecret,
         [globalConfig.originalHostHeader]: originalHost,
       },
     });
@@ -78,7 +82,6 @@ describe("proxy middleware", () => {
   };
 
   it("Requires valid route key", async () => {
-    const applicationSecret = getAppSecret();
     const originalHost = "rk-123.localhost.localhost";
     const res = await fetch(routerUrl, {
       headers: {
@@ -91,7 +94,6 @@ describe("proxy middleware", () => {
   });
 
   it("Parses route key from original host or header", async () => {
-    const applicationSecret = getAppSecret();
     const routeKey = getRouteKey(authToken);
     const originalHost = `www-rk-${routeKey}.localhost.localhost`;
     const res = await fetch(routerUrl, {
@@ -159,8 +161,6 @@ describe("proxy middleware", () => {
   });
 
   it("only one websocket per route key", async () => {
-    const applicationSecret = getAppSecret();
-    const routeKey = getRouteKey(authToken);
     const wsWrapper = await openWs();
     const wsWrapper2 = await openWs();
     let firstClosed = false;
@@ -196,22 +196,16 @@ describe("proxy middleware", () => {
   };
 
   const initConnectedTest = async (): Promise<{
-    applicationSecret: string;
     routeKey: string;
     wsWrapper: TestWsType;
   }> => {
-    const applicationSecret = getAppSecret();
     const routeKey = getRouteKey(authToken);
     const wsWrapper = await getConnectedWs(authToken);
-    return { applicationSecret, routeKey, wsWrapper };
+    return { routeKey, wsWrapper };
   };
 
   it("Forwards proxy request", async () => {
-    const {
-      applicationSecret,
-      routeKey,
-      wsWrapper,
-    } = await initConnectedTest();
+    const { routeKey, wsWrapper } = await initConnectedTest();
     return new Promise(async (resolve) => {
       wsWrapper.setHandler(
         "proxy",
@@ -264,11 +258,7 @@ describe("proxy middleware", () => {
   };
 
   it("proxyResult works", async () => {
-    const {
-      applicationSecret,
-      routeKey,
-      wsWrapper,
-    } = await initConnectedTest();
+    const { routeKey, wsWrapper } = await initConnectedTest();
     wsWrapper.setHandler("proxy", async ({ requestId }) => {
       sendProxyResult(wsWrapper, requestId);
     });
@@ -281,11 +271,7 @@ describe("proxy middleware", () => {
     sendClientMessage1: (wsWrapper: TestWsType, requestId: string) => void,
     sendClientMessage2: (wsWrapper: TestWsType, requestId: string) => void
   ) => {
-    const {
-      applicationSecret,
-      routeKey,
-      wsWrapper,
-    } = await initConnectedTest();
+    const { routeKey, wsWrapper } = await initConnectedTest();
     return new Promise(async (resolve) => {
       wsWrapper.setHandler("proxy", async ({ requestId }) => {
         wsWrapper.setHandler(
@@ -339,11 +325,7 @@ describe("proxy middleware", () => {
   });
 
   it("proxyError works", async () => {
-    const {
-      applicationSecret,
-      routeKey,
-      wsWrapper,
-    } = await initConnectedTest();
+    const { routeKey, wsWrapper } = await initConnectedTest();
     wsWrapper.setHandler("proxy", async ({ requestId }) => {
       sendProxyError(wsWrapper, requestId);
     });
@@ -352,7 +334,6 @@ describe("proxy middleware", () => {
   });
 
   it("multiple routes work", async () => {
-    const applicationSecret = getAppSecret();
     const { authToken: authToken2 } = await client.call("createAuthToken");
     const routeKey1 = getRouteKey(authToken);
     const routeKey2 = getRouteKey(authToken2);

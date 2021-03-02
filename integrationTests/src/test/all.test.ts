@@ -66,7 +66,7 @@ describe("integration", () => {
 
   it("routing works", async () => {
     const applicationSecret = genNewToken();
-    const router = await routerMain(0, applicationSecret, 0, null);
+    const router = await routerMain(0, applicationSecret);
     defer(router.close.bind(router));
 
     const routerClient = new TypedHttpClient(router.apiUrl, routerApiSchema);
