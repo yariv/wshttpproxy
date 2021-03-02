@@ -23,6 +23,11 @@ export class SocketManager {
     WsKey,
     WsWrapper<typeof clientSchema, typeof serverSchema>
   > = {};
+  applicationSecret: string;
+
+  constructor(applicationSecret: string) {
+    this.applicationSecret = applicationSecret;
+  }
 
   close() {
     this.allWebSockets.forEach((ws) => {
@@ -43,7 +48,7 @@ export class SocketManager {
     if (!appSecret) {
       return next();
     }
-    if (!(appSecret == process.env.APPLICATION_SECRET)) {
+    if (!(appSecret == this.applicationSecret)) {
       ctx.throw(400, "Invalid application secret");
     }
 

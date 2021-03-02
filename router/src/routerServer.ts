@@ -12,20 +12,28 @@ import { SocketManager } from "./socketManager";
 
 export const routerServerStart = async (
   port: number,
-  dbProxyPort: number,
-  remoteConnectionOptions: ConnectionOptions
+  applicationSecret: string,
+  dbProxyPort?: number,
+  remoteConnectionOptions?: ConnectionOptions
 ): Promise<AppServer> => {
-  const socketManager = new SocketManager();
+  const socketManager = new SocketManager(applicationSecret);
   const koa = initKoaApp(socketManager);
   const server = await listenOnPort(koa, port);
   const appServer = new AppServer(server);
 
-  const dbProxy = new DbProxy(dbProxyPort, remoteConnectionOptions);
-  await dbProxy.listen();
+  let dbProxy: DbProxy;
+  if (dbProxyPort && remoteConnectionOptions) {
+    dbProxy = new DbProxy(dbProxyPort, remoteConnectionOptions);
+    await dbProxy.listen();
+  }
 
   appServer.onClose(async () => {
     socketManager.close();
-    await Promise.all([prisma.$disconnect(), dbProxy.close()]);
+    const promises: Promise<void>[] = [prisma.$disconnect()];
+    if (dbProxy) {
+      promises.push(dbProxy.close());
+    }
+    await Promise.all(promises);
   });
 
   return appServer;

@@ -1,7 +1,7 @@
 import { exampleMain as exampleMain } from "dev-in-prod-example/exampleMain";
 import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
 import { setupTest } from "dev-in-prod-lib/src/testLib";
-import { globalConfig } from "dev-in-prod-lib/src/utils";
+import { genNewToken, globalConfig } from "dev-in-prod-lib/src/utils";
 import { localProxyMain as localProxyMain } from "dev-in-prod-local-proxy/localProxyMain";
 import { routerMain } from "dev-in-prod-router/routerMain";
 import { startSidecar } from "dev-in-prod-sidecar/src/sidecarServer";
@@ -65,18 +65,12 @@ describe("integration", () => {
   });
 
   it("routing works", async () => {
-    const router = await routerMain(0);
+    const applicationSecret = genNewToken();
+    const router = await routerMain(0, applicationSecret, 0, null);
     defer(router.close.bind(router));
 
     const routerClient = new TypedHttpClient(router.apiUrl, routerApiSchema);
-    const { authToken } = await routerClient.call("createTestauthToken");
-    const { secret: applicationSecret } = await routerClient.call(
-      "createApplication",
-      {
-        authToken,
-        name: "foo",
-      }
-    );
+    const { authToken } = await routerClient.call("createAuthToken");
 
     const exampleProd = await exampleMain(0);
     defer(exampleProd.close.bind(exampleProd));

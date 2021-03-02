@@ -30,8 +30,8 @@ export class DbProxy {
     await this.mysqlProxy.listen();
   }
 
-  async close() {
-    return Promise.all([this.prisma.$disconnect(), this.mysqlProxy.close()]);
+  async close(): Promise<void> {
+    await Promise.all([this.prisma.$disconnect(), this.mysqlProxy.close()]);
   }
 }
 
