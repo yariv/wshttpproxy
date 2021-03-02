@@ -58,6 +58,7 @@ if (require.main == module) {
     routerWsUrl,
     routerDbConnOptions,
     localServiceUrl,
-    localDbPort
+    localDbPort,
+    oauthToken
   );
 }

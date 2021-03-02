@@ -29,6 +29,7 @@ export class LocalProxy {
   localServiceUrl: string;
   localDbPort: number;
   dbProxy: MySqlProxy;
+  oauthToken: string;
 
   constructor(
     applicationSecret: string,
@@ -36,27 +37,29 @@ export class LocalProxy {
     routerWsUrl: string,
     routerDbConnOptions: ConnectionOptions,
     localServiceUrl: string,
-    localDbPort: number
+    localDbPort: number,
+    oauthToken: string
   ) {
     this.applicationSecret = applicationSecret;
     this.routerWsUrl = routerWsUrl;
     this.routerDbConnOptions = routerDbConnOptions;
     this.localServiceUrl = localServiceUrl;
     this.localDbPort = localDbPort;
+    this.oauthToken = oauthToken;
 
     this.wsWrapper = null;
 
     const apiRouter = new Router({ prefix: globalConfig.apiPathPrefix });
     this.routerClient = new TypedHttpClient(routerApiUrl, routerApiSchema);
 
-    createKoaRoute(localProxyApiSchema, "setToken", async ({ oauthToken }) => {
-      await this.store("oauthToken", oauthToken);
-      await this.connectWs();
-    })(apiRouter);
+    // createKoaRoute(localProxyApiSchema, "setToken", async ({ oauthToken }) => {
+    //   await this.store("oauthToken", oauthToken);
+    //   await this.connectWs();
+    // })(apiRouter);
 
-    createKoaRoute(localProxyApiSchema, "connect", async () => {
-      await this.connectWs();
-    })(apiRouter);
+    // createKoaRoute(localProxyApiSchema, "connect", async () => {
+    //   await this.connectWs();
+    // })(apiRouter);
 
     const app = new Koa();
     app.use(logger());
@@ -66,7 +69,6 @@ export class LocalProxy {
 
     // TODO make sure SSL is used in prod
     const onProxyConn = async (conn: Connection) => {
-      const oauthToken = await this.getOAuthToken();
       const authQuery = {
         type: "auth",
         params: {
@@ -94,20 +96,20 @@ export class LocalProxy {
     return storage.setItem(this.applicationSecret + "_" + key, val);
   }
 
-  async getOAuthToken() {
-    const oauthToken = await this.getStored("oauthToken");
-    if (!oauthToken) {
-      throw new Error("Not authenticated");
-    }
-    return oauthToken;
-  }
+  // async getOAuthToken() {
+  //   const oauthToken = await this.getStored("oauthToken");
+  //   if (!oauthToken) {
+  //     throw new Error("Not authenticated");
+  //   }
+  //   return oauthToken;
+  // }
 
-  async getRouteKey(oauthToken: string) {
+  async getRouteKey() {
     let routeKey = await this.getStored("routeKey");
     if (!routeKey) {
       console.log("Creating new route");
       const res = await this.routerClient.call("createRoute", {
-        oauthToken,
+        oauthToken: this.oauthToken,
         applicationSecret: this.applicationSecret,
       });
       routeKey = res.routeKey;
@@ -118,8 +120,7 @@ export class LocalProxy {
   }
 
   async connectWs() {
-    const oauthToken = await this.getOAuthToken();
-    const routeKey = await this.getRouteKey(oauthToken);
+    const routeKey = await this.getRouteKey();
     if (this.wsWrapper) {
       console.log("Closing open websocket");
       this.wsWrapper.ws.close();
@@ -131,7 +132,7 @@ export class LocalProxy {
         return;
       }
       this.wsWrapper.sendMsg("connect", {
-        oauthToken,
+        oauthToken: this.oauthToken,
         routeKey,
         applicationSecret: this.applicationSecret,
       });
