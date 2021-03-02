@@ -93,7 +93,7 @@ describe("proxy middleware", () => {
   it("Parses route key from original host or header", async () => {
     const applicationSecret = getAppSecret();
     const routeKey = getRouteKey(authToken);
-    const originalHost = `www-rk${routeKey}.localhost.localhost`;
+    const originalHost = `www-rk-${routeKey}.localhost.localhost`;
     const res = await fetch(routerUrl, {
       headers: {
         [globalConfig.appSecretHeader]: applicationSecret,

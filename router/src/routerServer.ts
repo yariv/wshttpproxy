@@ -6,7 +6,7 @@ import route from "koa-route";
 import websockify from "koa-websocket";
 import { ConnectionOptions } from "mysql2";
 import { router as apiRouter } from "./api/router";
-import { initDbProxy } from "./dbProxy";
+import { DbProxy } from "./dbProxy";
 import { prisma } from "./prisma";
 import { SocketManager } from "./socketManager";
 
@@ -20,7 +20,7 @@ export const routerServerStart = async (
   const server = await listenOnPort(koa, port);
   const appServer = new AppServer(server);
 
-  const dbProxy = await initDbProxy(dbProxyPort, remoteConnectionOptions);
+  const dbProxy = new DbProxy(dbProxyPort, remoteConnectionOptions);
   await dbProxy.listen();
 
   appServer.onClose(async () => {

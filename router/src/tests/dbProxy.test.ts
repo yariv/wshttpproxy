@@ -1,11 +1,7 @@
 import { setupTest } from "dev-in-prod-lib/src/testLib";
-import { ConnectionOptions } from "mysql2/typings/mysql";
-import { routerMain } from "../../routerMain";
-import { initDbProxy } from "../dbProxy";
-import { connOptions, setupRouterTest } from "./utils";
 import mysql, { Connection } from "mysql2/promise";
-import { Schema } from "zod";
-import { createauthToken, genNewToken } from "../utils";
+import { genNewToken } from "../utils";
+import { connOptions, setupRouterTest } from "./utils";
 
 describe("DbProxy", () => {
   const defer = setupTest();
@@ -158,7 +154,7 @@ describe("DbProxy", () => {
     expect(res0.length).toStrictEqual(1);
     expect(res0[0].val).toStrictEqual("test");
 
-    await proxiedConn.query("begin");
+    await proxiedConn.query(startTxQuery);
     await proxiedConn.query(`update ${tableName} set val="foo" `);
     const [res1] = (await proxiedConn.query(
       `select * from ${tableName}`
@@ -193,6 +189,26 @@ describe("DbProxy", () => {
 
   it("start transaction commit works", async () => {
     await doTxTest("start transaction", "commit", "foo");
+  });
+
+  it("auto commits savepoint on second begin", async () => {
+    const { directConn, proxiedConn, tableName } = await setupWriteTest();
+    await proxiedConn.query("begin");
+    await proxiedConn.query(`insert into ${tableName}(val) values('test');`);
+    await proxiedConn.query("begin");
+    await proxiedConn.query(`update ${tableName} set val="foo" `);
+    const [res0] = (await proxiedConn.query(
+      `select * from ${tableName}`
+    )) as any;
+    expect(res0.length).toStrictEqual(1);
+    expect(res0[0].val).toStrictEqual("foo");
+    await proxiedConn.query("rollback");
+    const [res1] = (await proxiedConn.query(
+      `select * from ${tableName}`
+    )) as any;
+    console.log(res1);
+    expect(res1.length).toStrictEqual(1);
+    expect(res1[0].val).toStrictEqual("test");
   });
 
   it("disallows non crud queries", async () => {

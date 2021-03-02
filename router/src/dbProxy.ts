@@ -26,6 +26,11 @@ export class DbProxy {
     );
     this.prisma = new PrismaClient();
   }
+
+  async listen() {
+    await this.mysqlProxy.listen();
+  }
+
   async close() {
     return Promise.all([this.prisma.$disconnect(), this.mysqlProxy.close()]);
   }
@@ -74,7 +79,7 @@ const onQuery: OnQuery = async (conn, query) => {
       throw new Error("Invalid authToken");
     }
     devInProdData.authenticated = true;
-    return;
+    return [];
   }
 
   await checkCrudQuery(conn, query);
@@ -84,22 +89,22 @@ const onQuery: OnQuery = async (conn, query) => {
       return ["RELEASE SAVEPOINT s1", "SAVEPOINT s1"];
     }
     devInProdData.inTransaction = true;
-    return "SAVEPOINT s1";
+    return ["SAVEPOINT s1"];
   }
   if (/^COMMIT/i.test(query)) {
     if (devInProdData.inTransaction) {
-      return "RELEASE SAVEPOINT s1";
+      return ["RELEASE SAVEPOINT s1"];
     }
     // Ignore COMMIT statements
-    return;
+    return [];
   }
   if (/^ROLLBACK/i.test(query)) {
     if (devInProdData.inTransaction) {
       devInProdData.inTransaction = false;
-      return "ROLLBACK TO SAVEPOINT s1";
+      return ["ROLLBACK TO SAVEPOINT s1"];
     }
     // Ignore ROLLBACK statements
-    return;
+    return [];
   }
-  return query;
+  return [query];
 };
