@@ -17,7 +17,7 @@ export const genNewToken = (): string => {
   return res;
 };
 
-export const createOAuthToken = async (): Promise<string> => {
+export const createauthToken = async (): Promise<string> => {
   const token = genNewToken();
   const tokenHash = sha256(token);
 
@@ -29,5 +29,4 @@ export const createOAuthToken = async (): Promise<string> => {
 };
 
 export type WsKey = string;
-export const getRouteKey = (oauthToken: string): WsKey =>
-  oauthToken.substr(0, 6);
+export const getRouteKey = (authToken: string): WsKey => authToken.substr(0, 6);

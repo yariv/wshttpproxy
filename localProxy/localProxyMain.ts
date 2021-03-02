@@ -11,14 +11,14 @@ export const localProxyMain = async (
   routerDbConnOptions: ConnectionOptions,
   localServiceUrl: string,
   localDbPort: number,
-  oauthToken: string
+  authToken: string
 ): Promise<LocalProxy> => {
   const localProxy = new LocalProxy(
     routerWsUrl,
     routerDbConnOptions,
     localServiceUrl,
     localDbPort,
-    oauthToken
+    authToken
   );
   await localProxy.listen(port, __dirname, next);
   return localProxy;

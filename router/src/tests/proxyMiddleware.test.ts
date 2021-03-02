@@ -17,7 +17,7 @@ describe("proxy middleware", () => {
   let client: TypedHttpClient<typeof routerApiSchema>;
   let routerUrl: string;
   let appServer: AppServer;
-  let oauthToken: string;
+  let authToken: string;
 
   const defer = setupTest();
 
@@ -31,8 +31,8 @@ describe("proxy middleware", () => {
   });
 
   beforeEach(async () => {
-    const { oauthToken: token } = await client.call("createAuthToken");
-    oauthToken = token;
+    const { authToken: token } = await client.call("createAuthToken");
+    authToken = token;
   });
 
   const checkRes = async (
@@ -92,7 +92,7 @@ describe("proxy middleware", () => {
 
   it("Parses route key from original host or header", async () => {
     const applicationSecret = getAppSecret();
-    const routeKey = getRouteKey(oauthToken);
+    const routeKey = getRouteKey(authToken);
     const originalHost = `www-rk${routeKey}.localhost.localhost`;
     const res = await fetch(routerUrl, {
       headers: {
@@ -152,7 +152,7 @@ describe("proxy middleware", () => {
   it("connect requires valid oauth token", async () => {
     await testConnectError(
       {
-        oauthToken: "abcdefg",
+        authToken: "abcdefg",
       },
       "Invalid oauth token"
     );
@@ -160,7 +160,7 @@ describe("proxy middleware", () => {
 
   it("only one websocket per route key", async () => {
     const applicationSecret = getAppSecret();
-    const routeKey = getRouteKey(oauthToken);
+    const routeKey = getRouteKey(authToken);
     const wsWrapper = await openWs();
     const wsWrapper2 = await openWs();
     let firstClosed = false;
@@ -175,22 +175,22 @@ describe("proxy middleware", () => {
         }
       });
       wsWrapper.sendMsg("connect", {
-        oauthToken,
+        authToken,
       });
       wsWrapper2.sendMsg("connect", {
-        oauthToken,
+        authToken,
       });
     });
   });
 
-  const getConnectedWs = async (oauthToken: string): Promise<TestWsType> => {
+  const getConnectedWs = async (authToken: string): Promise<TestWsType> => {
     const wsWrapper = await openWs();
     return new Promise((resolve) => {
       wsWrapper.setHandler("connected", async () => {
         resolve(wsWrapper);
       });
       wsWrapper.sendMsg("connect", {
-        oauthToken,
+        authToken,
       });
     });
   };
@@ -201,8 +201,8 @@ describe("proxy middleware", () => {
     wsWrapper: TestWsType;
   }> => {
     const applicationSecret = getAppSecret();
-    const routeKey = getRouteKey(oauthToken);
-    const wsWrapper = await getConnectedWs(oauthToken);
+    const routeKey = getRouteKey(authToken);
+    const wsWrapper = await getConnectedWs(authToken);
     return { applicationSecret, routeKey, wsWrapper };
   };
 
@@ -325,7 +325,7 @@ describe("proxy middleware", () => {
   });
 
   it("proxyError requires valid requestId", async () => {
-    const wsWrapper = await getConnectedWs(oauthToken);
+    const wsWrapper = await getConnectedWs(authToken);
     return new Promise(async (resolve) => {
       wsWrapper.setHandler("invalidRequestId", async ({ requestId }) => {
         expect(requestId).toBe("foo");
@@ -353,11 +353,11 @@ describe("proxy middleware", () => {
 
   it("multiple routes work", async () => {
     const applicationSecret = getAppSecret();
-    const { oauthToken: oauthToken2 } = await client.call("createAuthToken");
-    const routeKey1 = getRouteKey(oauthToken);
-    const routeKey2 = getRouteKey(oauthToken2);
-    const wsWrapper1 = await getConnectedWs(oauthToken);
-    const wsWrapper2 = await getConnectedWs(oauthToken2);
+    const { authToken: authToken2 } = await client.call("createAuthToken");
+    const routeKey1 = getRouteKey(authToken);
+    const routeKey2 = getRouteKey(authToken2);
+    const wsWrapper1 = await getConnectedWs(authToken);
+    const wsWrapper2 = await getConnectedWs(authToken2);
     let resp2: Response;
     wsWrapper1.setHandler("proxy", async ({ requestId }) => {
       resp2 = await sendProxyRequest(applicationSecret, routeKey2);

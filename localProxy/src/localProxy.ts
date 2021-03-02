@@ -12,7 +12,7 @@ export class LocalProxy {
   localServiceUrl: string;
   localDbPort: number;
   dbProxy: MySqlProxy;
-  oauthToken: string;
+  authToken: string;
 
   constructor(
     // applicationSecret: string,
@@ -20,13 +20,13 @@ export class LocalProxy {
     routerDbConnOptions: ConnectionOptions,
     localServiceUrl: string,
     localDbPort: number,
-    oauthToken: string
+    authToken: string
   ) {
     this.routerWsUrl = routerWsUrl;
     this.routerDbConnOptions = routerDbConnOptions;
     this.localServiceUrl = localServiceUrl;
     this.localDbPort = localDbPort;
-    this.oauthToken = oauthToken;
+    this.authToken = authToken;
 
     this.wsWrapper = null;
 
@@ -35,7 +35,7 @@ export class LocalProxy {
       const authQuery = {
         type: "auth",
         params: {
-          oauthToken,
+          authToken,
         },
       };
       try {
@@ -52,7 +52,6 @@ export class LocalProxy {
   }
 
   async connectWs() {
-    //const routeKey = await this.getRouteKey();
     if (this.wsWrapper) {
       console.log("Closing open websocket");
       this.wsWrapper.ws.close();
@@ -64,7 +63,7 @@ export class LocalProxy {
         return;
       }
       this.wsWrapper.sendMsg("connect", {
-        oauthToken: this.oauthToken,
+        authToken: this.authToken,
       });
     });
     this.wsWrapper.ws.on("close", () => {

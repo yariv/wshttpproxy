@@ -28,7 +28,7 @@ export const initDbProxy = (
 export const schema = z.object({
   type: z.literal("authenticate"),
   params: z.object({
-    oauthToken: z.string(),
+    authToken: z.string(),
   }),
 });
 
@@ -60,12 +60,12 @@ const onQuery: OnQuery = async (conn, query) => {
       );
     }
     const packet = schema.parse(jsonObj);
-    const { oauthToken } = packet.params;
+    const { authToken } = packet.params;
     const tokenObj = await prisma.authToken.findUnique({
-      where: { tokenHash: sha256(oauthToken) },
+      where: { tokenHash: sha256(authToken) },
     });
     if (!tokenObj) {
-      throw new Error("Invalid oauthToken");
+      throw new Error("Invalid authToken");
     }
     devInProdData.authenticated = true;
     return;

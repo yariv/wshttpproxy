@@ -5,7 +5,7 @@ import { initDbProxy } from "../dbProxy";
 import { connOptions, setupRouterTest } from "./utils";
 import mysql, { Connection } from "mysql2/promise";
 import { Schema } from "zod";
-import { createOAuthToken, genNewToken } from "../utils";
+import { createauthToken, genNewToken } from "../utils";
 
 describe("DbProxy", () => {
   const defer = setupTest();
@@ -34,7 +34,7 @@ describe("DbProxy", () => {
   it("Checks schema", async () => {
     const packet = {
       type: "foo",
-      params: { oauthToken: "asdf" },
+      params: { authToken: "asdf" },
     };
 
     const packetStr = JSON.stringify(packet);
@@ -42,27 +42,27 @@ describe("DbProxy", () => {
     expect(msg.startsWith("1 validation issue(s)")).toBeTruthy();
   });
 
-  it("requires valid oauthToken", async () => {
+  it("requires valid authToken", async () => {
     const packet = {
       type: "authenticate",
-      params: { oauthToken: "asdf" },
+      params: { authToken: "asdf" },
     };
 
     const packetStr = JSON.stringify(packet);
     const msg = await getAuthError(packetStr);
-    expect(msg).toStrictEqual("Invalid oauthToken");
+    expect(msg).toStrictEqual("Invalid authToken");
   });
 
   const authenticate = async (): Promise<Connection> => {
     const { client, dbProxyPort } = await setupRouterTest(defer);
-    const { oauthToken } = await client.call("createAuthToken");
+    const { authToken } = await client.call("createAuthToken");
     const conn = await mysql.createConnection({
       ...connOptions,
       port: dbProxyPort,
     });
     const packet = {
       type: "authenticate",
-      params: { oauthToken },
+      params: { authToken },
     };
     await conn.query(JSON.stringify(packet));
     return conn;

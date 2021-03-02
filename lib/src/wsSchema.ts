@@ -2,7 +2,7 @@ import * as z from "zod";
 
 export const clientSchema = {
   connect: z.object({
-    oauthToken: z.string(),
+    authToken: z.string(),
     // applicationSecret: z.string(),
     // routeKey: z.string(),
   }),

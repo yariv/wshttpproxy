@@ -116,20 +116,20 @@ export class SocketManager {
     });
 
     const wrapper = new WsWrapper(ws, clientSchema, serverSchema);
-    wrapper.setHandler("connect", async ({ oauthToken }) => {
+    wrapper.setHandler("connect", async ({ authToken }) => {
       const sendErrMsg = (message: string) => {
         wrapper.sendMsg("connectionError", { message });
         wrapper.ws.close();
       };
       const token = await prisma.authToken.findUnique({
-        where: { tokenHash: sha256(oauthToken) },
+        where: { tokenHash: sha256(authToken) },
       });
       if (!token) {
         sendErrMsg("Invalid oauth token");
         return;
       }
 
-      const webSocketKey = getRouteKey(oauthToken);
+      const webSocketKey = getRouteKey(authToken);
       if (this.connectedWebSockets[webSocketKey]) {
         // TODO make sure this doesn't remove the new ws
         this.connectedWebSockets[webSocketKey].ws.close();

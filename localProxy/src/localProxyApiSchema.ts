@@ -3,7 +3,7 @@ import * as z from "zod";
 export const localProxyApiSchema = {
   setToken: {
     req: z.object({
-      oauthToken: z.string(),
+      authToken: z.string(),
     }),
     res: z.void(),
   },

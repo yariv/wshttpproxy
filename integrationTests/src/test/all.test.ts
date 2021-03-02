@@ -70,11 +70,11 @@ describe("integration", () => {
     defer(router.close.bind(router));
 
     const routerClient = new TypedHttpClient(router.apiUrl, routerApiSchema);
-    const { oauthToken } = await routerClient.call("createTestOAuthToken");
+    const { authToken } = await routerClient.call("createTestauthToken");
     const { secret: applicationSecret } = await routerClient.call(
       "createApplication",
       {
-        oauthToken,
+        authToken,
         name: "foo",
       }
     );
@@ -121,7 +121,7 @@ describe("integration", () => {
       localProxy.appServer!.apiUrl,
       localProxyApiSchema
     );
-    await localProxyClient.call("setToken", { oauthToken });
+    await localProxyClient.call("setToken", { authToken });
 
     const resp2 = await sendDevRequest(await localProxy.getStored("routeKey"));
     expect(resp2.body).toBe("" + exampleDev.port);
