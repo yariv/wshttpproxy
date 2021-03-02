@@ -2,7 +2,6 @@ import {
   MySqlProxy,
   OnProxyConn,
   OnQuery,
-  checkCrudQuery,
 } from "dev-in-prod-db-proxy/src/mysqlProxy";
 import { Connection } from "mysql2/promise";
 import { prisma } from "./prisma";
@@ -105,6 +104,17 @@ const onQuery: OnQuery = async (conn, query) => {
     }
     // Ignore ROLLBACK statements
     return [];
+  }
+  return [query];
+};
+
+const crudQueryRe = /^(SELECT|INSERT|UPDATE|DELETE|BEGIN|START TRANSACTION|COMMIT|ROLLBACK)/i;
+const checkCrudQuery: OnQuery = async (
+  conn: mysql2.Connection,
+  query: string
+): Promise<string[]> => {
+  if (!crudQueryRe.test(query)) {
+    throw new Error("Invalid query: " + query);
   }
   return [query];
 };

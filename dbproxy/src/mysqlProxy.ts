@@ -152,16 +152,7 @@ export class MySqlProxy {
   }
 }
 
-const crudQueryRe = /^(SELECT|INSERT|UPDATE|DELETE|BEGIN|START TRANSACTION|COMMIT|ROLLBACK)/i;
-export const checkCrudQuery: OnQuery = async (
-  conn: mysqlServer.Connection,
-  query: string
-): Promise<string[]> => {
-  if (!crudQueryRe.test(query)) {
-    throw new Error("Invalid query: " + query);
-  }
-  return [query];
-};
+
 
 const tryClose = (conn: Connection | mysqlServer.Connection | undefined) => {
   if (conn) {

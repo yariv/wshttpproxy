@@ -2,7 +2,7 @@ import { setupTest } from "dev-in-prod-lib/src/testLib";
 import { genNewToken } from "dev-in-prod-lib/src/utils";
 import mysql, { Connection } from "mysql2/promise";
 import portfinder from "portfinder";
-import { checkCrudQuery, MySqlProxy } from "../mysqlProxy";
+import { MySqlProxy } from "../mysqlProxy";
 
 describe("dbProxy", () => {
   const defer = setupTest();
@@ -82,47 +82,6 @@ describe("dbProxy", () => {
       val: "foo",
     });
     expect(res1_2).toEqual(res2_2);
-  });
-
-  it("allows crud queries", async () => {
-    const { proxiedConn, tableName, dbProxy } = await setup();
-    dbProxy.onQuery = checkCrudQuery;
-    const validQueries = [
-      "select * from " + tableName,
-      `insert into ${tableName}(val) values('foo')`,
-      `update ${tableName} set val='bar'`,
-      "delete from " + tableName,
-      "begin",
-      "commit",
-      "start transaction",
-      "rollback",
-    ];
-    for (const query of validQueries) {
-      // this will throw if not valid
-      await proxiedConn.query(query);
-    }
-  });
-
-  it("disallows non crud queries", async () => {
-    const { proxiedConn, tableName, dbProxy } = await setup();
-    dbProxy.onQuery = checkCrudQuery;
-
-    // see https://dev.mysql.com/doc/refman/8.0/en/implicit-commit.html for some bad queries
-    const invalidQueries = [
-      "set autocommit=1",
-      "set autocommit = 1",
-      "drop table " + tableName,
-      "create table foo",
-      "lock tables",
-      "unlock tables",
-    ];
-    for (const query of invalidQueries) {
-      try {
-        const res = await proxiedConn.query(query);
-      } catch (e) {
-        expect(e.message).toStrictEqual("Invalid query: " + query);
-      }
-    }
   });
 
   it("empty onQuery result works", async () => {
