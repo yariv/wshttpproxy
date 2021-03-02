@@ -8,7 +8,7 @@ export const routerMain = async (
   dbProxyPort: number,
   dbConnOptions: ConnectionOptions
 ): Promise<AppServer> => {
-  return routerServerStart(port, __dirname, dbProxyPort, dbConnOptions);
+  return routerServerStart(port, dbProxyPort, dbConnOptions);
 };
 
 if (require.main == module) {

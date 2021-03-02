@@ -12,7 +12,6 @@ import { SocketManager } from "./socketManager";
 
 export const routerServerStart = async (
   port: number,
-  dirname: string,
   dbProxyPort: number,
   remoteConnectionOptions: ConnectionOptions
 ): Promise<AppServer> => {

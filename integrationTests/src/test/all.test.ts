@@ -3,7 +3,6 @@ import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
 import { setupTest } from "dev-in-prod-lib/src/testLib";
 import { globalConfig } from "dev-in-prod-lib/src/utils";
 import { localProxyMain as localProxyMain } from "dev-in-prod-local-proxy/localProxyMain";
-import { localProxyApiSchema } from "dev-in-prod-local-proxy/src/localProxyApiSchema";
 import { routerMain } from "dev-in-prod-router/routerMain";
 import { startSidecar } from "dev-in-prod-sidecar/src/sidecarServer";
 import { TypedHttpClient } from "typed-api/src/httpApi";

@@ -8,7 +8,7 @@ export type OnProxyConn = (conn: Connection) => Promise<void>;
 export type OnQuery = (
   conn: mysqlServer.Connection,
   query: string
-) => Promise<string | void>;
+) => Promise<string[]>;
 
 export class MySqlProxy {
   port: number;
@@ -102,21 +102,6 @@ export class MySqlProxy {
 
   async processQuery(conn: mysqlServer.Connection, query: string) {
     console.log("Got query:", query);
-    if (this.onQuery) {
-      try {
-        const newQuery = await this.onQuery(conn, query);
-        console.log("newQuery", newQuery);
-        if (!newQuery) {
-          (conn as any).writeOk("Ok");
-          return;
-        }
-        query = newQuery;
-      } catch (e) {
-        await (conn as any).writeError({ message: e.message });
-        return;
-      }
-    }
-
     if (!this.proxyConn) {
       // TODO retry connecting?
       (conn as any).writeError({
@@ -125,9 +110,30 @@ export class MySqlProxy {
       });
       return;
     }
+    let queries = [query];
+    if (this.onQuery) {
+      try {
+        queries = await this.onQuery(conn, query);
+      } catch (e) {
+        await (conn as any).writeError({ message: e.message });
+        return;
+      }
+    }
+    await this.sendQueries(conn, queries);
+  }
 
+  async sendQueries(conn: mysqlServer.Connection, queries: string[]) {
+    // Note: we only return the result of the last query
+    const lastQuery = queries.pop();
+    if (!lastQuery) {
+      (conn as any).writeOk("Ok");
+      return;
+    }
     try {
-      const [results, fields] = await this.proxyConn.query(query);
+      for (const query of queries) {
+        await this.proxyConn!.query(query);
+      }
+      const [results, fields] = await this.proxyConn!.query(lastQuery);
       if (Array.isArray(results)) {
         (conn as any).writeTextResult(results, fields);
       } else {
@@ -150,11 +156,11 @@ const crudQueryRe = /^(SELECT|INSERT|UPDATE|DELETE|BEGIN|START TRANSACTION|COMMI
 export const checkCrudQuery: OnQuery = async (
   conn: mysqlServer.Connection,
   query: string
-): Promise<string | void> => {
+): Promise<string[]> => {
   if (!crudQueryRe.test(query)) {
     throw new Error("Invalid query: " + query);
   }
-  return query;
+  return [query];
 };
 
 const tryClose = (conn: Connection | mysqlServer.Connection | undefined) => {

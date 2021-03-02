@@ -125,13 +125,23 @@ describe("dbProxy", () => {
     }
   });
 
-  it("empty query works", async () => {
+  it("empty onQuery result works", async () => {
     const { proxiedConn, tableName, dbProxy } = await setup();
     dbProxy.onQuery = async () => {
-      return;
+      return [];
     };
     const [res] = (await proxiedConn.query("select 1")) as any;
     expect(res.fieldCount).toStrictEqual(0);
+  });
+
+  it("multiple onQuery results works", async () => {
+    const { proxiedConn, tableName, dbProxy } = await setup();
+    dbProxy.onQuery = async () => {
+      return ["select 1", "select 2 as a"];
+    };
+    const [res] = (await proxiedConn.query("select 1")) as any;
+    expect(res.length).toStrictEqual(1);
+    expect(res[0].a).toStrictEqual(2);
   });
 
   it("client disconnects when proxy conn disconnects", async () => {

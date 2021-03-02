@@ -10,20 +10,26 @@ import { sha256 } from "./utils";
 import * as z from "zod";
 import mysql2 from "mysql2";
 import { ConnectionOptions } from "mysql2/typings/mysql";
+import { PrismaClient } from "@prisma/client";
 
-export const initDbProxy = (
-  port: number,
-  remoteConnectionOptions: ConnectionOptions
-) => {
-  const dbProxy = new MySqlProxy(
-    port,
-    remoteConnectionOptions,
-    onConn,
-    onProxyConn,
-    onQuery
-  );
-  return dbProxy;
-};
+export class DbProxy {
+  prisma: PrismaClient;
+  mysqlProxy: MySqlProxy;
+
+  constructor(port: number, remoteConnectionOptions: ConnectionOptions) {
+    this.mysqlProxy = new MySqlProxy(
+      port,
+      remoteConnectionOptions,
+      onConn,
+      onProxyConn,
+      onQuery
+    );
+    this.prisma = new PrismaClient();
+  }
+  async close() {
+    return Promise.all([this.prisma.$disconnect(), this.mysqlProxy.close()]);
+  }
+}
 
 export const schema = z.object({
   type: z.literal("authenticate"),
@@ -75,7 +81,7 @@ const onQuery: OnQuery = async (conn, query) => {
 
   if (/^(BEGIN|START TRANSACTION)/i.test(query)) {
     if (devInProdData.inTransaction) {
-      throw new Error("Nested transactions aren't supported.");
+      return ["RELEASE SAVEPOINT s1", "SAVEPOINT s1"];
     }
     devInProdData.inTransaction = true;
     return "SAVEPOINT s1";
