@@ -1,9 +1,10 @@
+import { genNewToken } from "dev-in-prod-lib/src/utils";
 import mysqlServer from "mysql2";
 import mysql, { Connection } from "mysql2/promise";
 import { ConnectionOptions } from "mysql2/typings/mysql/lib/Connection";
 import util from "util";
 
-export type OnConn = (conn: mysqlServer.Connection) => Promise<void>;
+export type OnConn = (conn: mysqlServer.Connection) => Promise<string>;
 export type OnProxyConn = (conn: Connection) => Promise<void>;
 export type OnQuery = (
   conn: mysqlServer.Connection,
@@ -13,12 +14,17 @@ export type OnQuery = (
 export class MySqlProxy {
   port: number;
   remoteConnectionOptions: ConnectionOptions;
-  proxyConn: Connection | undefined;
+  connections: Record<
+    string,
+    {
+      proxyConn: Connection;
+      clientConns: Record<string, mysqlServer.Connection>;
+    }
+  > = {};
   server: any;
   onConn: OnConn | undefined;
   onProxyConn: OnProxyConn | undefined;
   onQuery: OnQuery | undefined;
-  conn: mysqlServer.Connection | undefined;
 
   connCounter = 0;
   constructor(
@@ -38,58 +44,90 @@ export class MySqlProxy {
     this.onQuery = onQuery;
   }
 
-  async handleIncomingConnection(conn: mysqlServer.Connection) {
-    this.conn = conn;
-    if (this.onConn) {
-      await this.onConn(conn);
+  disconnectAll(connGroupKey: string) {
+    if (!(connGroupKey in this.connections)) {
+      return;
     }
+    const connGroup = this.connections[connGroupKey];
+    Object.values(connGroup.clientConns).forEach((conn) => tryClose(conn));
+    tryClose(connGroup.proxyConn);
+    delete this.connections[connGroupKey];
+  }
 
-    if (!this.proxyConn) {
+  async handleIncomingConnection(conn: mysqlServer.Connection) {
+    // TODO use shorter ids?
+    const connId = genNewToken();
+    (conn as any).devInProdId = connId;
+
+    let connGroupKey = "default";
+    if (this.onConn) {
+      connGroupKey = await this.onConn(conn);
+    }
+    (conn as any).connGroupKey = connGroupKey;
+
+    if (connGroupKey in this.connections) {
+      this.connections[connGroupKey].clientConns[connId] = conn;
+    } else {
       try {
-        this.proxyConn = await mysql.createConnection(
+        const proxyConn = await mysql.createConnection(
           this.remoteConnectionOptions
         );
         // hack to get to the right listener
-        (this.proxyConn as any).connection.stream.on("close", () => {
-          tryClose(conn);
-          this.proxyConn = undefined;
+        (proxyConn as any).connection.stream.on("close", () => {
+          this.disconnectAll(connGroupKey);
         });
+        if (this.onProxyConn) {
+          try {
+            await this.onProxyConn(proxyConn);
+          } catch (e) {
+            tryClose(proxyConn);
+            tryClose(conn);
+            return;
+          }
+        }
+        this.connections[connGroupKey] = {
+          clientConns: { [connId]: conn },
+          proxyConn,
+        };
       } catch (err) {
         console.error("Can't connect to remote DB server", err);
         tryClose(conn);
         return;
       }
-      if (this.onProxyConn) {
-        try {
-          await this.onProxyConn(this.proxyConn);
-        } catch (e) {
-          console.log("proxy conn error", e);
-          tryClose(this.proxyConn);
-          this.proxyConn = undefined;
-          tryClose(conn);
-          return;
-        }
-      }
     }
+
     conn.on("query", this.processQuery.bind(this, conn));
     conn.on("error", (err: any) => {
       console.log("Client connection error", err);
       tryClose(conn);
     });
     (conn as any).stream.on("close", () => {
-      tryClose(this.proxyConn);
-      this.proxyConn = undefined;
+      if (connGroupKey in this.connections) {
+        const connGroup = this.connections[connGroupKey];
+        delete connGroup.clientConns[connId];
+        if (
+          Object.keys(this.connections[connGroupKey].clientConns).length === 0
+        ) {
+          tryClose(connGroup.proxyConn);
+          this.connections[connGroupKey];
+        }
+      }
     });
     sendHandshake(conn);
   }
 
+  getConnId(conn: mysqlServer.Connection): string {
+    return (conn as any).devInProdId;
+  }
+
   async close() {
-    this.proxyConn?.destroy();
+    for (const connGroupKey of Object.keys(this.connections)) {
+      this.disconnectAll(connGroupKey);
+    }
     if (this.server) {
       await util.promisify(this.server.close.bind(this.server))();
     }
     this.server = null;
-    this.proxyConn = undefined;
   }
 
   async listen() {
@@ -99,14 +137,16 @@ export class MySqlProxy {
 
   async processQuery(conn: mysqlServer.Connection, query: string) {
     console.log("Got query:", query);
-    if (!this.proxyConn) {
-      // TODO retry connecting?
+    const connGroupKey = (conn as any).connGroupKey;
+    const connGroup = this.connections[connGroupKey];
+    if (!connGroup) {
+      console.error("Missing connection group for ", connGroupKey);
       (conn as any).writeError({
-        message:
-          "Can't proxy the query because the remote DB connection is closed.",
+        message: "Connection error",
       });
       return;
     }
+
     let queries = [query];
     if (this.onQuery) {
       try {
@@ -116,10 +156,14 @@ export class MySqlProxy {
         return;
       }
     }
-    await this.sendQueries(conn, queries);
+    await this.sendQueries(conn, connGroup.proxyConn, queries);
   }
 
-  async sendQueries(conn: mysqlServer.Connection, queries: string[]) {
+  async sendQueries(
+    conn: mysqlServer.Connection,
+    proxyConn: Connection,
+    queries: string[]
+  ) {
     // Note: we only return the result of the last query
     const lastQuery = queries.pop();
     if (!lastQuery) {
@@ -128,9 +172,9 @@ export class MySqlProxy {
     }
     try {
       for (const query of queries) {
-        await this.proxyConn!.query(query);
+        await proxyConn.query(query);
       }
-      const [results, fields] = await this.proxyConn!.query(lastQuery);
+      const [results, fields] = await proxyConn.query(lastQuery);
       if (Array.isArray(results)) {
         (conn as any).writeTextResult(results, fields);
       } else {

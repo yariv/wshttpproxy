@@ -60,7 +60,6 @@ describe("dbProxy", () => {
   };
 
   it("works", async () => {
-    //await connection.beginTransaction();
     const { directConn, proxiedConn, tableName } = await setup();
     const getResults = async () => {
       const query = "select * from " + tableName;
@@ -139,13 +138,12 @@ describe("dbProxy", () => {
     const [res] = (await directConn.query("select 1; select 1;")) as any;
     expect(res.length).toStrictEqual(2);
 
-    console.log(res);
     const proxiedConn = await mysql.createConnection({
       ...connOptions,
       multipleStatements: true,
       port: dbProxy.port,
     });
-    defer(directConn.end.bind(directConn));
+    defer(proxiedConn.end.bind(proxiedConn));
     try {
       await proxiedConn.query("select 1; select 1;");
       fail();
@@ -177,6 +175,7 @@ describe("dbProxy", () => {
     const promise = new Promise((resolve) => {
       dbProxy.onConn = async (conn) => {
         resolve(null);
+        return "test";
       };
       mysql.createConnection({
         ...connOptions,
