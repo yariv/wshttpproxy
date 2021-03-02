@@ -28,6 +28,7 @@ export class LocalProxy {
   routerDbConnOptions: ConnectionOptions;
   localServiceUrl: string;
   localDbPort: number;
+  dbProxy: MySqlProxy;
 
   constructor(
     applicationSecret: string,
@@ -53,15 +54,36 @@ export class LocalProxy {
       await this.connectWs();
     })(apiRouter);
 
-    createKoaRoute(localProxyApiSchema, "connect", async () =>
-      this.connectWs()
-    )(apiRouter);
+    createKoaRoute(localProxyApiSchema, "connect", async () => {
+      await this.connectWs();
+    })(apiRouter);
 
     const app = new Koa();
     app.use(logger());
     app.use(apiRouter.routes());
     app.use(apiRouter.allowedMethods());
     this.app = app;
+
+    // TODO make sure SSL is used in prod
+    const onProxyConn = async (conn: Connection) => {
+      const oauthToken = await this.getOAuthToken();
+      const authQuery = {
+        type: "auth",
+        params: {
+          oauthToken,
+        },
+      };
+      try {
+        await conn.query(JSON.stringify(authQuery));
+      } catch (e) {
+        console.error("Error authenticating against remote DB", e);
+        throw e;
+      }
+    };
+
+    const dbProxy = new MySqlProxy(this.localDbPort, this.routerDbConnOptions);
+    dbProxy.onProxyConn = onProxyConn;
+    this.dbProxy = dbProxy;
   }
 
   async getStored(key: StorageKey) {
@@ -119,37 +141,11 @@ export class LocalProxy {
     });
   }
 
-  async connectDb() {
-    const oauthToken = await this.getOAuthToken();
-    // TODO make sure SSL is used in prod
-    const onProxyConn = async (conn: Connection) => {
-      const authQuery = {
-        type: "auth",
-        params: {
-          oauthToken,
-          applicationSecret: this.applicationSecret,
-        },
-      };
-      try {
-        await conn.query(JSON.stringify(authQuery));
-      } catch (e) {
-        console.error("Error authenticating against remote DB", e);
-        throw e;
-      }
-    };
-
-    const dbProxy = new MySqlProxy(
-      this.localDbPort,
-      this.routerDbConnOptions,
-      onProxyConn
-    );
-    await dbProxy.listen();
-  }
-
   async listen(port: number, dirname: string, next: any) {
     assert(!this.appServer);
     await storage.init();
     this.appServer = await startNextServer(port, dirname, next, this.app);
+    await this.dbProxy.listen();
   }
 
   async close() {

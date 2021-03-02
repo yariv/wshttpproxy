@@ -27,7 +27,6 @@ export const routerServerStart = async (
 
   const dbProxy = await initDbProxy(dbProxyPort, remoteConnectionOptions);
   await dbProxy.listen();
-  console.log("Mysql proxy is listening on ", dbProxyPort);
 
   appServer.onClose(async () => {
     socketManager.close();

@@ -18,6 +18,7 @@ export class MySqlProxy {
   onConn: OnConn | undefined;
   onProxyConn: OnProxyConn | undefined;
   onQuery: OnQuery | undefined;
+  conn: mysqlServer.Connection | undefined;
 
   connCounter = 0;
   constructor(
@@ -39,6 +40,7 @@ export class MySqlProxy {
 
   async handleIncomingConnection(conn: mysqlServer.Connection) {
     console.log("got incoming connection");
+    this.conn = conn;
     if (this.onConn) {
       await this.onConn(conn);
     }
@@ -50,6 +52,7 @@ export class MySqlProxy {
         );
         // hack to get to the right listener
         (this.proxyConn as any).connection.stream.on("close", () => {
+          console.log("Server connection closed");
           tryClose(conn);
           this.proxyConn = undefined;
         });
@@ -62,6 +65,7 @@ export class MySqlProxy {
         try {
           await this.onProxyConn(this.proxyConn);
         } catch (e) {
+          console.log("proxy conn error", e);
           tryClose(this.proxyConn);
           this.proxyConn = undefined;
           tryClose(conn);
@@ -71,6 +75,7 @@ export class MySqlProxy {
     }
     conn.on("query", this.processQuery.bind(this, conn));
     conn.on("error", (err: any) => {
+      console.log("Client connection error", err);
       tryClose(conn);
     });
     (conn as any).stream.on("close", () => {
@@ -92,7 +97,8 @@ export class MySqlProxy {
   }
 
   async listen() {
-    return util.promisify(this.server.listen.bind(this.server, this.port))();
+    await util.promisify(this.server.listen.bind(this.server, this.port))();
+    console.log("MySQL proxy is listening on ", this.port);
   }
 
   async processQuery(conn: mysqlServer.Connection, query: string) {
@@ -107,7 +113,6 @@ export class MySqlProxy {
         }
         query = newQuery;
       } catch (e) {
-        console.log("SDFAS");
         await (conn as any).writeError({ message: e.message });
         return;
       }
@@ -166,7 +171,7 @@ const sendHandshake = (conn: mysqlServer.Connection) => {
   //    flags = flags ^ COMPRESS;
 
   // TODO re-enable SSL
-  flags = flags ^ 0x00000800;
+  //flags = flags ^ 0x00000800;
   (conn as any).serverHandshake({
     protocolVersion: 10,
     serverVersion: "devinprod proxy 1.0",

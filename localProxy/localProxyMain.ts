@@ -1,6 +1,8 @@
 import { globalConfig } from "dev-in-prod-lib/src/utils";
 import dotenv from "dotenv";
+import { ConnectionOptions } from "mysql2";
 import next from "next";
+import { rootCertificates } from "tls";
 import { LocalProxy } from "./src/localProxy";
 dotenv.config();
 
@@ -9,13 +11,17 @@ export const localProxyMain = async (
   applicationSecret: string,
   routerApiUrl: string,
   routerWsUrl: string,
-  localServiceUrl: string
+  routerDbConnOptions: ConnectionOptions,
+  localServiceUrl: string,
+  localDbPort: number
 ): Promise<LocalProxy> => {
   const localProxy = new LocalProxy(
     applicationSecret,
     routerApiUrl,
     routerWsUrl,
-    localServiceUrl
+    routerDbConnOptions,
+    localServiceUrl,
+    localDbPort
   );
   await localProxy.listen(port, __dirname, next);
   return localProxy;
@@ -29,11 +35,29 @@ if (require.main == module) {
   const routerWsUrl = "wss://dsee.io/ws";
   const routerApiUrl = "https://dsee.io/api";
   const localServiceUrl = globalConfig.localProxyUrl;
+  // const routerDbConnOptions: ConnectionOptions = {
+  //   host: "devinproddemo.com",
+  //   port: globalConfig.routerDbProxyPort,
+  //   user: "root",
+  //   password: "root",
+  //   database: "devinproddemo",
+  // };
+  const routerDbConnOptions: ConnectionOptions = {
+    host: "localhost",
+    port: 3306,
+    user: "root",
+    password: "root",
+    database: "devinproddemo",
+  };
+  const localDbPort = globalConfig.routerDbProxyPort;
+
   localProxyMain(
     globalConfig.localProxyPort,
     process.env.APPLICATION_SECRET,
     routerApiUrl,
     routerWsUrl,
-    localServiceUrl
+    routerDbConnOptions,
+    localServiceUrl,
+    localDbPort
   );
 }
