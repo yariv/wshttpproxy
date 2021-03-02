@@ -1,6 +1,7 @@
 import { setupTest } from "dev-in-prod-lib/src/testLib";
 import { genNewToken } from "dev-in-prod-lib/src/utils";
 import mysql, { Connection } from "mysql2/promise";
+import { resolveHref } from "next/dist/next-server/lib/router/router";
 import portfinder from "portfinder";
 import { MySqlProxy } from "../mysqlProxy";
 
@@ -174,51 +175,38 @@ describe("dbProxy", () => {
   });
 
   it("onConn works", async () => {
-    const { dbProxy, proxiedConn } = await setup();
+    const dbProxy = await setupProxy();
 
+    await checkNumConns(dbProxy, 0);
+
+    let called = false;
     dbProxy.onConn = async (conn) => {
-      return "test";
+      called = true;
     };
-
-    await checkNumConns(dbProxy, 1);
-
     const conn1 = await mysql.createConnection({
       ...connOptions,
       port: dbProxy.port,
     });
-    await checkNumConns(dbProxy, 2);
+    expect(called).toBeTruthy();
+    await checkNumConns(dbProxy, 1);
+
     const conn2 = await mysql.createConnection({
       ...connOptions,
       port: dbProxy.port,
     });
-    await checkNumConns(dbProxy, 2);
-
-    dbProxy.onConn = async (conn) => {
-      return "test2";
-    };
-    const conn3 = await mysql.createConnection({
-      ...connOptions,
-      port: dbProxy.port,
-    });
-    await checkNumConns(dbProxy, 3);
+    await checkNumConns(dbProxy, 1);
 
     conn1.destroy();
     await new Promise((resolve) => {
       process.nextTick(resolve);
     });
-    await checkNumConns(dbProxy, 3);
+    await checkNumConns(dbProxy, 1);
 
     conn2.destroy();
     await new Promise((resolve) => {
       setTimeout(resolve, 5);
     });
-    await checkNumConns(dbProxy, 2);
-
-    conn3.destroy();
-    await new Promise((resolve) => {
-      setTimeout(resolve, 5);
-    });
-    await checkNumConns(dbProxy, 1);
+    await checkNumConns(dbProxy, 0);
   });
 
   it("onProxyConn throws", async () => {

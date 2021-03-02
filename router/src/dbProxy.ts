@@ -1,5 +1,6 @@
 import {
   MySqlProxy,
+  OnConn,
   OnProxyConn,
   OnQuery,
 } from "dev-in-prod-db-proxy/src/mysqlProxy";
@@ -42,8 +43,9 @@ export const schema = z.object({
   }),
 });
 
-const onConn = async (conn: mysql2.Connection) => {
+const onConn: OnConn = async (conn: mysql2.Connection): Promise<string> => {
   (conn as any).devInProdData = new DevInProdConnData();
+  return "default";
 };
 
 type DevInProdConn = Connection & { devInProdData: DevInProdConnData };

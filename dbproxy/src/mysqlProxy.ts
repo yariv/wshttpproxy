@@ -4,7 +4,7 @@ import mysql, { Connection } from "mysql2/promise";
 import { ConnectionOptions } from "mysql2/typings/mysql/lib/Connection";
 import util from "util";
 
-export type OnConn = (conn: mysqlServer.Connection) => Promise<string>;
+export type OnConn = (conn: mysqlServer.Connection) => Promise<void>;
 export type OnProxyConn = (conn: Connection) => Promise<void>;
 export type OnQuery = (
   conn: mysqlServer.Connection,
@@ -59,9 +59,9 @@ export class MySqlProxy {
     const connId = genNewToken();
     (conn as any).devInProdId = connId;
 
-    let connGroupKey = "default";
+    const connGroupKey = "default";
     if (this.onConn) {
-      connGroupKey = await this.onConn(conn);
+      await this.onConn(conn);
     }
     (conn as any).connGroupKey = connGroupKey;
 
