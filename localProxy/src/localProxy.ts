@@ -52,10 +52,6 @@ export class LocalProxy {
   }
 
   async connectWs() {
-    if (this.wsWrapper) {
-      console.log("Closing open websocket");
-      this.wsWrapper.ws.close();
-    }
     this.wsWrapper = initWsClient(this.routerWsUrl, this.localServiceUrl);
     this.wsWrapper.ws.on("open", () => {
       if (!this.wsWrapper) {

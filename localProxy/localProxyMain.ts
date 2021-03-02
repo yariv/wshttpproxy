@@ -21,13 +21,11 @@ export const localProxyMain = async (
     authToken
   );
   await localProxy.listen(port, __dirname, next);
+  await localProxy.connectWs();
   return localProxy;
 };
 
 if (require.main == module) {
-  if (!process.env.APPLICATION_SECRET) {
-    throw new Error("Missing APPLICATION_SECRET environment variable.");
-  }
   if (!process.env.AUTH_TOKEN) {
     throw new Error("Missing AUTH_TOKEN environment variable.");
   }

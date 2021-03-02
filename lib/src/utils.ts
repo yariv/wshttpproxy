@@ -20,7 +20,7 @@ export const globalConfig = {
   sidecarUrl: getHttpUrl(configPorts.sidecarPort),
   routeKeyHeader: "dev-in-prod-route-key",
   appSecretHeader: "dev-in-prod-app-secret",
-  routeKeyRegex: /^.+-rk(.+)$/,
+  routeKeyRegex: /^.+-rk-(.+)$/,
   apiPathPrefix: "/api/",
   originalHostHeader: "x-forwarded-host",
   proxyTimeout: 10000,
