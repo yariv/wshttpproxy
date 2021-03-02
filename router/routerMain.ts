@@ -1,8 +1,7 @@
-import { routerServerStart } from "./src/routerServer";
-import { globalConfig } from "dev-in-prod-lib/src/utils";
 import { AppServer } from "dev-in-prod-lib/src/appServer";
+import { globalConfig } from "dev-in-prod-lib/src/utils";
 import { ConnectionOptions } from "mysql2/typings/mysql";
-import mysql from "mysql2/promise";
+import { routerServerStart } from "./src/routerServer";
 
 export const routerMain = async (
   port: number,

@@ -22,7 +22,7 @@ export const createOAuthToken = async (
   clientId: string
 ): Promise<string> => {
   const token = genNewToken();
-  const tokenHash = createHash("sha256").update(token).digest("hex");
+  const tokenHash = sha256(token);
 
   // delete existing tokens from the same client
   await prisma.oAuthToken.deleteMany({
@@ -37,7 +37,5 @@ export const createOAuthToken = async (
 };
 
 export type WsKey = string;
-export const getWebSocketKey = (
-  applicationId: string,
-  routeKey: string
-): WsKey => applicationId + "_" + routeKey;
+export const getRouteKey = (oauthToken: string): WsKey =>
+  oauthToken.substr(0, 6);

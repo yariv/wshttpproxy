@@ -1,12 +1,8 @@
 import { globalConfig } from "dev-in-prod-lib/src/utils";
 import Router from "koa-router";
-import { createApplicationHandler } from "./handlers/createApplication";
-import { createRouteHandler } from "./handlers/createRoute";
-import { createTestOAuthTokenHandler } from "./handlers/createTestOAuthToken";
+import { createAuthTokenHandler } from "./handlers/createAuthToken";
 
 export const router = new Router({
   prefix: globalConfig.apiPathPrefix,
 });
-createApplicationHandler(router);
-createRouteHandler(router);
-createTestOAuthTokenHandler(router);
+createAuthTokenHandler(router);

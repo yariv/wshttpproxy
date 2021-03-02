@@ -7,7 +7,7 @@ import {
 import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
 import Koa from "koa";
 import { prisma } from "./prisma";
-import { getWebSocketKey, sha256, WsKey } from "./utils";
+import { getRouteKey, sha256, WsKey } from "./utils";
 import WebSocket from "ws";
 import { log } from "dev-in-prod-lib/src/log";
 import getRawBody from "raw-body";
@@ -43,8 +43,11 @@ export class SocketManager {
     if (!appSecret) {
       return next();
     }
-    const originalHost = ctx.header[globalConfig.originalHostHeader];
+    if (!(appSecret == process.env.APPLICATION_SECRET)) {
+      ctx.throw(400, "Invalid application secret");
+    }
 
+    const originalHost = ctx.header[globalConfig.originalHostHeader];
     if (!originalHost) {
       ctx.throw(400, `Missing ${globalConfig.originalHostHeader} header`);
     }
@@ -54,23 +57,7 @@ export class SocketManager {
       ctx.throw(400, "Missing route key");
     }
 
-    const application = await prisma.application.findUnique({
-      where: { secret: appSecret },
-    });
-    if (!application) {
-      ctx.throw(400, "Invalid application secret");
-    }
-
-    const route = await prisma.route.findUnique({
-      where: {
-        applicationId_key: { applicationId: application.id, key: routeKey },
-      },
-    });
-    if (!route) {
-      ctx.throw(400, "Invalid route key");
-    }
-
-    const webSocketKey = getWebSocketKey(application.id, routeKey);
+    const webSocketKey = getRouteKey(routeKey);
     const wsWrapper = this.connectedWebSockets[webSocketKey];
     if (!wsWrapper) {
       ctx.throw(400, "Route isn't connected");
@@ -129,60 +116,36 @@ export class SocketManager {
     });
 
     const wrapper = new WsWrapper(ws, clientSchema, serverSchema);
-    wrapper.setHandler(
-      "connect",
-      async ({ oauthToken, applicationSecret, routeKey }) => {
-        const sendErrMsg = (message: string) => {
-          wrapper.sendMsg("connectionError", { message });
-          wrapper.ws.close();
-        };
-        const token = await prisma.oAuthToken.findUnique({
-          where: { tokenHash: sha256(oauthToken) },
-        });
-        if (!token) {
-          sendErrMsg("Invalid oauth token");
-          return;
-        }
-        // TODO use a different secret
-        const application = await prisma.application.findUnique({
-          where: { secret: applicationSecret },
-        });
-        if (!application) {
-          sendErrMsg("Invalid application secret");
-          return;
-        }
-
-        const route = await prisma.route.findUnique({
-          where: {
-            applicationId_key: {
-              applicationId: application.id,
-              key: routeKey,
-            },
-          },
-        });
-        if (!route) {
-          sendErrMsg("Invalid route key");
-          return;
-        }
-
-        const webSocketKey = getWebSocketKey(application.id, routeKey);
-        if (this.connectedWebSockets[webSocketKey]) {
-          console.log("Closing existing websocket with key", webSocketKey);
-          // TODO make sure this doesn't remove the new ws
-          this.connectedWebSockets[webSocketKey].ws.close();
-        }
-        this.connectedWebSockets[webSocketKey] = wrapper;
-        wrapper.ws.on("close", () => {
-          if (this.connectedWebSockets[webSocketKey] === wrapper) {
-            delete this.connectedWebSockets[webSocketKey];
-          } else {
-            log("keeping existing ws", webSocketKey);
-          }
-        });
-
-        wrapper.sendMsg("connected");
+    wrapper.setHandler("connect", async ({ oauthToken }) => {
+      const sendErrMsg = (message: string) => {
+        wrapper.sendMsg("connectionError", { message });
+        wrapper.ws.close();
+      };
+      const token = await prisma.oAuthToken.findUnique({
+        where: { tokenHash: sha256(oauthToken) },
+      });
+      if (!token) {
+        sendErrMsg("Invalid oauth token");
+        return;
       }
-    );
+
+      const webSocketKey = getRouteKey(oauthToken);
+      if (this.connectedWebSockets[webSocketKey]) {
+        console.log("Closing existing websocket with key", webSocketKey);
+        // TODO make sure this doesn't remove the new ws
+        this.connectedWebSockets[webSocketKey].ws.close();
+      }
+      this.connectedWebSockets[webSocketKey] = wrapper;
+      wrapper.ws.on("close", () => {
+        if (this.connectedWebSockets[webSocketKey] === wrapper) {
+          delete this.connectedWebSockets[webSocketKey];
+        } else {
+          log("keeping existing ws", webSocketKey);
+        }
+      });
+
+      wrapper.sendMsg("connected");
+    });
 
     wrapper.setHandler("proxyError", async ({ requestId, message }) => {
       this.sendProxyResponse(wrapper, requestId, (ctx) => {

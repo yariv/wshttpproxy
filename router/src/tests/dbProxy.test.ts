@@ -55,7 +55,7 @@ describe("DbProxy", () => {
 
   const authenticate = async (): Promise<Connection> => {
     const { client, dbProxyPort } = await setupRouterTest(defer);
-    const { oauthToken } = await client.call("createTestOAuthToken");
+    const { oauthToken } = await client.call("createAuthToken");
     const conn = await mysql.createConnection({
       ...connOptions,
       port: dbProxyPort,
