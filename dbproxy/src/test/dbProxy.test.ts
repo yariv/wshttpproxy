@@ -116,14 +116,17 @@ describe("dbProxy", () => {
     });
   });
 
+  const checkNumConns = async (dbProxy: MySqlProxy, num: number) => {
+    expect(dbProxy.numProxyConns).toBe(num);
+  };
+
   it("proxy conn disconnects after client disconnects", async () => {
-    const { directConn, proxiedConn } = await setup();
-    const [res1] = (await directConn.query("show processlist")) as any;
+    const { directConn, proxiedConn, dbProxy } = await setup();
+    const numConns = dbProxy.numProxyConns;
     await proxiedConn.end();
     // TODO find a less fragile way of testing this
     await new Promise((resolve) => setTimeout(resolve, 10));
-    const [res2] = (await directConn.query("show processlist")) as any;
-    expect(res2.length).toBe(res1.length - 1);
+    await checkNumConns(dbProxy, numConns - 1);
   });
 
   it("multiple statements are disallowed", async () => {
@@ -171,18 +174,51 @@ describe("dbProxy", () => {
   });
 
   it("onConn works", async () => {
-    const dbProxy = await setupProxy();
-    const promise = new Promise((resolve) => {
-      dbProxy.onConn = async (conn) => {
-        resolve(null);
-        return "test";
-      };
-      mysql.createConnection({
-        ...connOptions,
-        port: dbProxy.port,
-      });
+    const { dbProxy, proxiedConn } = await setup();
+
+    dbProxy.onConn = async (conn) => {
+      return "test";
+    };
+
+    await checkNumConns(dbProxy, 1);
+
+    const conn1 = await mysql.createConnection({
+      ...connOptions,
+      port: dbProxy.port,
     });
-    return promise;
+    await checkNumConns(dbProxy, 2);
+    const conn2 = await mysql.createConnection({
+      ...connOptions,
+      port: dbProxy.port,
+    });
+    await checkNumConns(dbProxy, 2);
+
+    dbProxy.onConn = async (conn) => {
+      return "test2";
+    };
+    const conn3 = await mysql.createConnection({
+      ...connOptions,
+      port: dbProxy.port,
+    });
+    await checkNumConns(dbProxy, 3);
+
+    conn1.destroy();
+    await new Promise((resolve) => {
+      process.nextTick(resolve);
+    });
+    await checkNumConns(dbProxy, 3);
+
+    conn2.destroy();
+    await new Promise((resolve) => {
+      setTimeout(resolve, 5);
+    });
+    await checkNumConns(dbProxy, 2);
+
+    conn3.destroy();
+    await new Promise((resolve) => {
+      setTimeout(resolve, 5);
+    });
+    await checkNumConns(dbProxy, 1);
   });
 
   it("onProxyConn throws", async () => {

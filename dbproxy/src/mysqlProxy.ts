@@ -116,6 +116,10 @@ export class MySqlProxy {
     sendHandshake(conn);
   }
 
+  get numProxyConns(): number {
+    return Object.keys(this.connections).length;
+  }
+
   getConnId(conn: mysqlServer.Connection): string {
     return (conn as any).devInProdId;
   }
