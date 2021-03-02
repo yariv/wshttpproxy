@@ -202,7 +202,7 @@ describe("proxy middleware", () => {
   }> => {
     const applicationSecret = getAppSecret();
     const routeKey = getRouteKey(oauthToken);
-    const wsWrapper = await getConnectedWs(routeKey);
+    const wsWrapper = await getConnectedWs(oauthToken);
     return { applicationSecret, routeKey, wsWrapper };
   };
 
