@@ -28,8 +28,8 @@ if (require.main == module) {
   if (!process.env.APPLICATION_SECRET) {
     throw new Error("Missing APPLICATION_SECRET environment variable.");
   }
-  if (!process.env.OAUTH_TOKEN) {
-    throw new Error("Missing OAUTH_TOKEN environment variable.");
+  if (!process.env.AUTH_TOKEN) {
+    throw new Error("Missing AUTH_TOKEN environment variable.");
   }
 
   const routerWsUrl = "wss://dsee.io/ws";
@@ -56,6 +56,6 @@ if (require.main == module) {
     routerDbConnOptions,
     localServiceUrl,
     localDbPort,
-    process.env.OAUTH_TOKEN
+    process.env.AUTH_TOKEN
   );
 }

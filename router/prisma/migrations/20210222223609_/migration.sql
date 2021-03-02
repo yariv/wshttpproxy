@@ -91,13 +91,13 @@ UNIQUE INDEX `route.applicationId_key_unique`(`applicationId`, `key`),
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `oauth_token` (
+CREATE TABLE `AUTH_TOKEN` (
     `tokenHash` VARCHAR(191) NOT NULL,
     `clientId` VARCHAR(191) NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
     `userId` INTEGER NOT NULL,
-UNIQUE INDEX `oauth_token.userId_clientId_unique`(`userId`, `clientId`),
+UNIQUE INDEX `AUTH_TOKEN.userId_clientId_unique`(`userId`, `clientId`),
 
     PRIMARY KEY (`tokenHash`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -112,4 +112,4 @@ ALTER TABLE `route` ADD FOREIGN KEY (`ownerId`) REFERENCES `users`(`id`) ON DELE
 ALTER TABLE `route` ADD FOREIGN KEY (`applicationId`) REFERENCES `application`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `oauth_token` ADD FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `AUTH_TOKEN` ADD FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
