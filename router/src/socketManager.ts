@@ -131,7 +131,6 @@ export class SocketManager {
 
       const webSocketKey = getRouteKey(oauthToken);
       if (this.connectedWebSockets[webSocketKey]) {
-        console.log("Closing existing websocket with key", webSocketKey);
         // TODO make sure this doesn't remove the new ws
         this.connectedWebSockets[webSocketKey].ws.close();
       }

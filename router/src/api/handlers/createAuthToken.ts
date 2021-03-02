@@ -11,7 +11,6 @@ export const createAuthTokenHandler = createKoaRoute(
   routerApiSchema,
   "createAuthToken",
   async (body, req: Request) => {
-    console.log(req.socket.remoteAddress);
     if (!req.socket.remoteAddress?.endsWith("127.0.0.1")) {
       throw new Error("This endpoint is only callable from localhost.");
     }

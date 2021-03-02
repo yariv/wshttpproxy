@@ -1,5 +1,4 @@
 import { Server } from "http";
-import Koa from "koa";
 import util from "util";
 import { getHttpUrl, globalConfig } from "./utils";
 const logger = require("koa-logger");
@@ -37,39 +36,6 @@ export class AppServer {
     return `ws://localhost:${this.port}/ws`;
   }
 }
-
-export const startNextServer = async (
-  port: number,
-  dirname: string,
-  // note: next is a parameter instead of an import to prevent
-  // duplicate imports of react, which causes errors
-  next: (params: any) => any,
-  app: Koa
-): Promise<AppServer> => {
-  const dev = process.env.NODE_ENV !== "production";
-
-  const nextConf = require(dirname + "/next.config.js");
-  const nextApp = next({ dev, conf: nextConf, dir: dirname });
-  await nextApp.prepare();
-
-  const requestHandler = nextApp.getRequestHandler();
-
-  app.use(async (ctx) => {
-    return requestHandler(ctx.req, ctx.res);
-  });
-
-  const server = await listenOnPort(app, port);
-
-  const closeNextFunc = async () => {
-    // Unfortunately, 'close' is a protected method, so we cast
-    // nextApp as any to be able to access it.
-    await (nextApp as any).close();
-  };
-
-  const appServer = new AppServer(server);
-  appServer.onClose(closeNextFunc);
-  return appServer;
-};
 
 interface CanListen {
   listen(port: number): Server;

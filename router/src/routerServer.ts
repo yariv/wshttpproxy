@@ -1,15 +1,14 @@
-import { AppServer, startNextServer } from "dev-in-prod-lib/src/appServer";
+import { AppServer, listenOnPort } from "dev-in-prod-lib/src/appServer";
 import { initWebsocket } from "dev-in-prod-lib/src/typedWs";
 import Koa from "koa";
 import logger from "koa-logger";
 import route from "koa-route";
+import websockify from "koa-websocket";
 import { ConnectionOptions } from "mysql2";
-import next from "next";
 import { router as apiRouter } from "./api/router";
 import { initDbProxy } from "./dbProxy";
 import { prisma } from "./prisma";
 import { SocketManager } from "./socketManager";
-import websockify from "koa-websocket";
 
 export const routerServerStart = async (
   port: number,
@@ -18,12 +17,9 @@ export const routerServerStart = async (
   remoteConnectionOptions: ConnectionOptions
 ): Promise<AppServer> => {
   const socketManager = new SocketManager();
-  const appServer = await startNextServer(
-    port,
-    dirname,
-    next,
-    initKoaApp(socketManager)
-  );
+  const koa = initKoaApp(socketManager);
+  const server = await listenOnPort(koa, port);
+  const appServer = new AppServer(server);
 
   const dbProxy = await initDbProxy(dbProxyPort, remoteConnectionOptions);
   await dbProxy.listen();

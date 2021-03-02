@@ -25,6 +25,7 @@
     "@types/koa-router": "^7.4.1",
     "@types/koa-websocket": "^5.0.5",
     "@types/koa__router": "^8.0.4",
+    "@types/node-fetch": "^2.5.8",
     "@types/oauth2-server": "^3.0.12",
     "@types/pg": "^7.14.7",
     "@types/react": "^17.0.0",

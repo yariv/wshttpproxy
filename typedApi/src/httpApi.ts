@@ -7,6 +7,7 @@ import {
   ReqSchema,
   ResSchema,
 } from "./types";
+import fetch from "node-fetch";
 
 export type HttpResponse<ParsedBodyType> = HandlerResult<ParsedBodyType> & {
   response?: Response;
