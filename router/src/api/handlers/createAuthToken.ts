@@ -15,8 +15,7 @@ export const createAuthTokenHandler = createKoaRoute(
     if (!req.socket.remoteAddress?.endsWith("127.0.0.1")) {
       throw new Error("This endpoint is only callable from localhost.");
     }
-    const user = await prisma.user.create({ data: {} });
-    const oauthToken = await createOAuthToken(user.id, clientId);
+    const oauthToken = await createOAuthToken();
     return { oauthToken };
   }
 );

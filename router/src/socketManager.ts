@@ -121,7 +121,7 @@ export class SocketManager {
         wrapper.sendMsg("connectionError", { message });
         wrapper.ws.close();
       };
-      const token = await prisma.oAuthToken.findUnique({
+      const token = await prisma.authToken.findUnique({
         where: { tokenHash: sha256(oauthToken) },
       });
       if (!token) {

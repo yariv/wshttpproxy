@@ -17,20 +17,12 @@ export const genNewToken = (): string => {
   return res;
 };
 
-export const createOAuthToken = async (
-  userId: number,
-  clientId: string
-): Promise<string> => {
+export const createOAuthToken = async (): Promise<string> => {
   const token = genNewToken();
   const tokenHash = sha256(token);
 
-  // delete existing tokens from the same client
-  await prisma.oAuthToken.deleteMany({
-    where: { userId, clientId },
-  });
-
-  await prisma.oAuthToken.create({
-    data: { clientId, tokenHash, userId },
+  await prisma.authToken.create({
+    data: { tokenHash },
   });
 
   return token;

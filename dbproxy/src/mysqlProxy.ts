@@ -52,7 +52,6 @@ export class MySqlProxy {
         );
         // hack to get to the right listener
         (this.proxyConn as any).connection.stream.on("close", () => {
-          console.log("Server connection closed");
           tryClose(conn);
           this.proxyConn = undefined;
         });

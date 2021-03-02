@@ -61,7 +61,7 @@ const onQuery: OnQuery = async (conn, query) => {
     }
     const packet = schema.parse(jsonObj);
     const { oauthToken } = packet.params;
-    const tokenObj = await prisma.oAuthToken.findUnique({
+    const tokenObj = await prisma.authToken.findUnique({
       where: { tokenHash: sha256(oauthToken) },
     });
     if (!tokenObj) {
