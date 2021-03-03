@@ -54,7 +54,7 @@ describe("integration", () => {
     const example = await exampleMain(0, 3306);
     defer(example.close.bind(example));
 
-    const resp2 = await sendRequest(example.url);
+    const resp2 = await sendRequest(example.appServer.url);
     expect(resp2.status).toBe(200);
     expect(resp2.body).toBe(emptyResponse);
   });
@@ -63,7 +63,12 @@ describe("integration", () => {
     const exampleProd = await exampleMain(0, 3306);
     defer(exampleProd.close.bind(exampleProd));
 
-    const sideCar = await startSidecar(0, "secret", exampleProd.url, "foo");
+    const sideCar = await startSidecar(
+      0,
+      "secret",
+      exampleProd.appServer.url,
+      "foo"
+    );
     defer(sideCar.close.bind(sideCar));
 
     // sidecar should forward standard requests to prod service
@@ -99,7 +104,7 @@ describe("integration", () => {
     const sideCar = await startSidecar(
       0,
       applicationSecret,
-      exampleProd.url,
+      exampleProd.appServer.url,
       router.url
     );
     defer(sideCar.close.bind(sideCar));
@@ -136,5 +141,14 @@ describe("integration", () => {
     const resp2 = await sendDevRequest(getRouteKey(authToken));
     expect(resp2.body).toBe(emptyResponse);
     expect(resp2.status).toBe(200);
+
+    await exampleDev.conn.query("insert into post(content) values('test')");
+    const resp3 = await sendDevRequest(getRouteKey(authToken));
+    expect(resp3.body).toBe("<h1>posts</h1><div>test</div>");
+    expect(resp3.status).toBe(200);
+
+    const resp4 = await sendRequest(sideCar.url);
+    expect(resp4.status).toBe(200);
+    expect(resp4.body).toBe(emptyResponse);
   });
 });
