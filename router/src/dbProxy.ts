@@ -17,12 +17,15 @@ export class DbProxy {
   mysqlProxy: MySqlProxy;
 
   constructor(port: number, remoteConnectionOptions: ConnectionOptions) {
+    // TODO group by token hash
+    const groupConnections = false;
     this.mysqlProxy = new MySqlProxy(
       port,
       remoteConnectionOptions,
+      groupConnections,
       onConn,
       onProxyConn,
-      onQuery
+      this.onQuery.bind(this)
     );
     this.prisma = new PrismaClient();
   }
@@ -34,6 +37,58 @@ export class DbProxy {
   async close(): Promise<void> {
     await Promise.all([this.prisma.$disconnect(), this.mysqlProxy.close()]);
   }
+
+  async onQuery(conn: mysql2.Connection, query: string) {
+    const devInProdConn = (conn as unknown) as DevInProdConn;
+    const devInProdData = devInProdConn.devInProdData;
+    if (!devInProdData.authenticated) {
+      let jsonObj;
+      try {
+        jsonObj = JSON.parse(query);
+      } catch (e) {
+        throw new Error(
+          "First query should be a JSON encoded authentication packet."
+        );
+      }
+      const packet = schema.parse(jsonObj);
+      const { authToken } = packet.params;
+      const tokenHash = sha256(authToken);
+      const tokenObj = await prisma.authToken.findUnique({
+        where: { tokenHash },
+      });
+      if (!tokenObj) {
+        throw new Error("Invalid authToken");
+      }
+      devInProdData.authenticated = true;
+      return [];
+    }
+
+    await checkCrudQuery(conn, query);
+
+    if (/^(BEGIN|START TRANSACTION)/i.test(query)) {
+      if (devInProdData.inTransaction) {
+        return ["RELEASE SAVEPOINT s1", "SAVEPOINT s1"];
+      }
+      devInProdData.inTransaction = true;
+      return ["SAVEPOINT s1"];
+    }
+    if (/^COMMIT/i.test(query)) {
+      if (devInProdData.inTransaction) {
+        return ["RELEASE SAVEPOINT s1"];
+      }
+      // Ignore COMMIT statements
+      return [];
+    }
+    if (/^ROLLBACK/i.test(query)) {
+      if (devInProdData.inTransaction) {
+        devInProdData.inTransaction = false;
+        return ["ROLLBACK TO SAVEPOINT s1"];
+      }
+      // Ignore ROLLBACK statements
+      return [];
+    }
+    return [query];
+  }
 }
 
 export const schema = z.object({
@@ -43,9 +98,8 @@ export const schema = z.object({
   }),
 });
 
-const onConn: OnConn = async (conn: mysql2.Connection): Promise<string> => {
+const onConn: OnConn = async (conn) => {
   (conn as any).devInProdData = new DevInProdConnData();
-  return "default";
 };
 
 type DevInProdConn = Connection & { devInProdData: DevInProdConnData };
@@ -58,57 +112,6 @@ class DevInProdConnData {
   authenticated = false;
   inTransaction = false;
 }
-
-const onQuery: OnQuery = async (conn, query) => {
-  const devInProdConn = (conn as unknown) as DevInProdConn;
-  const devInProdData = devInProdConn.devInProdData;
-  if (!devInProdData.authenticated) {
-    let jsonObj;
-    try {
-      jsonObj = JSON.parse(query);
-    } catch (e) {
-      throw new Error(
-        "First query should be a JSON encoded authentication packet."
-      );
-    }
-    const packet = schema.parse(jsonObj);
-    const { authToken } = packet.params;
-    const tokenObj = await prisma.authToken.findUnique({
-      where: { tokenHash: sha256(authToken) },
-    });
-    if (!tokenObj) {
-      throw new Error("Invalid authToken");
-    }
-    devInProdData.authenticated = true;
-    return [];
-  }
-
-  await checkCrudQuery(conn, query);
-
-  if (/^(BEGIN|START TRANSACTION)/i.test(query)) {
-    if (devInProdData.inTransaction) {
-      return ["RELEASE SAVEPOINT s1", "SAVEPOINT s1"];
-    }
-    devInProdData.inTransaction = true;
-    return ["SAVEPOINT s1"];
-  }
-  if (/^COMMIT/i.test(query)) {
-    if (devInProdData.inTransaction) {
-      return ["RELEASE SAVEPOINT s1"];
-    }
-    // Ignore COMMIT statements
-    return [];
-  }
-  if (/^ROLLBACK/i.test(query)) {
-    if (devInProdData.inTransaction) {
-      devInProdData.inTransaction = false;
-      return ["ROLLBACK TO SAVEPOINT s1"];
-    }
-    // Ignore ROLLBACK statements
-    return [];
-  }
-  return [query];
-};
 
 const crudQueryRe = /^(SELECT|INSERT|UPDATE|DELETE|BEGIN|START TRANSACTION|COMMIT|ROLLBACK)/i;
 const checkCrudQuery: OnQuery = async (

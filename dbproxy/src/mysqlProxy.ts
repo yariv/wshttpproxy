@@ -25,11 +25,13 @@ export class MySqlProxy {
   onConn: OnConn | undefined;
   onProxyConn: OnProxyConn | undefined;
   onQuery: OnQuery | undefined;
+  groupConnections: boolean;
 
   connCounter = 0;
   constructor(
     port: number,
     remoteConnectionOptions: ConnectionOptions,
+    groupConnections: boolean,
     onConn?: OnConn,
     onProxyConn?: OnProxyConn,
     onQuery?: OnQuery
@@ -42,6 +44,7 @@ export class MySqlProxy {
     this.onConn = onConn;
     this.onProxyConn = onProxyConn;
     this.onQuery = onQuery;
+    this.groupConnections = groupConnections;
   }
 
   disconnectAll(connGroupKey: string) {
@@ -59,7 +62,7 @@ export class MySqlProxy {
     const connId = genNewToken();
     (conn as any).devInProdId = connId;
 
-    const connGroupKey = "default";
+    const connGroupKey = this.groupConnections ? "default" : genNewToken();
     if (this.onConn) {
       await this.onConn(conn);
     }
