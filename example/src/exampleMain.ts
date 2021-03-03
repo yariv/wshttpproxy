@@ -40,10 +40,11 @@ export const exampleMain = async (
     const [results] = (await conn.query("select * from post")) as any;
     console.log(results);
     const body = results.length
-      ? "<h1>posts</h1>" +
+      ? "<h1>posts</h1><ul>" +
         results
-          .map((result: any) => "<div>" + escape(result.content) + "</div>")
-          .join(" ")
+          .map((result: any) => "<li>" + escape(result.content) + "</li>")
+          .join(" ") +
+        "</ul>"
       : "<h1>no posts</h1>";
     ctx.body = body;
   });

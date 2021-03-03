@@ -31,7 +31,7 @@ if (require.main == module) {
   }
 
   const routerWsUrl = "wss://dsee.io/ws";
-  const localServiceUrl = globalConfig.localProxyUrl;
+  const localServiceUrl = globalConfig.exampleProdUrl;
   const routerDbConnOptions: ConnectionOptions = {
     host: "devinproddemo.com",
     port: globalConfig.routerDbProxyPort,

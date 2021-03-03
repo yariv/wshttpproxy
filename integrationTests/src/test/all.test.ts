@@ -1,4 +1,4 @@
-import { exampleMain as exampleMain } from "dev-in-prod-example/exampleMain";
+import { exampleMain as exampleMain } from "dev-in-prod-example/src/exampleMain";
 import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
 import { setupTest } from "dev-in-prod-lib/src/testLib";
 import {
