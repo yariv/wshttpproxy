@@ -46,7 +46,11 @@ export class LocalProxy {
       }
     };
 
-    const dbProxy = new MySqlProxy(this.localDbPort, this.routerDbConnOptions);
+    const dbProxy = new MySqlProxy(
+      this.localDbPort,
+      this.routerDbConnOptions,
+      false
+    );
     dbProxy.onProxyConn = onProxyConn;
     this.dbProxy = dbProxy;
   }

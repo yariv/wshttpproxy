@@ -53,5 +53,5 @@ export const exampleMain = async (
 };
 
 if (require.main == module) {
-  exampleMain(globalConfig.exampleProdPort, globalConfig.localProxyDbProxyPort);
+  exampleMain(globalConfig.exampleProdPort, globalConfig.routerDbProxyPort);
 }

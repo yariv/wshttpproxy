@@ -53,11 +53,11 @@ export const getRouteKeyFromCtx = (
     hostname: string;
   },
   hostnameHeader?: string
-): string | null => {
-  return (
+): string | undefined => {
+  const res =
     ctx.headers[globalConfig.routeKeyHeader] ||
-    getRouteKeyFromHostname(hostnameHeader || ctx.hostname)
-  );
+    getRouteKeyFromHostname(hostnameHeader || ctx.hostname);
+  return res?.toLowerCase();
 };
 
 const charSet =

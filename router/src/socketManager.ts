@@ -62,8 +62,7 @@ export class SocketManager {
       ctx.throw(400, "Missing route key");
     }
 
-    const webSocketKey = getRouteKey(routeKey);
-    const wsWrapper = this.connectedWebSockets[webSocketKey];
+    const wsWrapper = this.connectedWebSockets[routeKey];
     if (!wsWrapper) {
       ctx.throw(400, "Route isn't connected");
     }
