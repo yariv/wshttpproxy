@@ -87,6 +87,7 @@ export class DbProxy {
       // Ignore ROLLBACK statements
       return [];
     }
+    
     return [query];
   }
 }

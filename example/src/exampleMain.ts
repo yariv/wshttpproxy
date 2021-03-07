@@ -37,10 +37,10 @@ export const exampleMain = async (
   const conn = await mysql.createConnection(connOptions);
 
   router.get("/", async (ctx) => {
+    await conn.query("delete from post");
     const [results] = (await conn.query("select * from post")) as any;
-    console.log(results);
     const body = results.length
-      ? "<h1>posts</h1><ul>" +
+      ? "<h1>Posts</h1><ul>" +
         results
           .map((result: any) => "<li>" + escape(result.content) + "</li>")
           .join(" ") +
