@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-export const schema = {
+export const testSchema = {
   sayHi: {
     req: z.object({
       name: z.string(),

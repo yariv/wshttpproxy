@@ -9,19 +9,17 @@ export const createKoaRoute = <
   ApiSchemaType extends AbstractApiSchemaType,
   MethodType extends keyof ApiSchemaType
 >(
+  router: Router,
   schema: ApiSchemaType,
   methodName: MethodType,
   handler: TypedServerFunc<ApiSchemaType, MethodType, Request>
-): ((router: Router) => void) => {
-  return (router) => {
-    const httpHandler = createHttpHandler(
-      typedServerFunc(schema, methodName, handler)
-    );
-    // TODO remove hardcoded prefix
-    router.post(methodName as string, bodyParser(), async (ctx) => {
-      const resp = await httpHandler(ctx.request.body, ctx.request);
-      ctx.status = resp.status;
-      ctx.body = resp.body;
-    });
-  };
+) => {
+  const httpHandler = createHttpHandler(
+    typedServerFunc(schema, methodName, handler)
+  );
+  router.post(methodName as string, bodyParser(), async (ctx) => {
+    const resp = await httpHandler(ctx.request.body, ctx.request);
+    ctx.status = resp.status;
+    ctx.body = resp.body;
+  });
 };

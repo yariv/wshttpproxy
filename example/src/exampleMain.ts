@@ -37,7 +37,6 @@ export const exampleMain = async (
   const conn = await mysql.createConnection(connOptions);
 
   router.get("/", async (ctx) => {
-    await conn.query("delete from post");
     const [results] = (await conn.query("select * from post")) as any;
     const body = results.length
       ? "<h1>Posts</h1><ul>" +
