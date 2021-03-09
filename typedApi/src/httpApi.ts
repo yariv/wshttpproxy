@@ -61,7 +61,6 @@ export const createHttpHandler = <
       return { status: 200, body: JSON.stringify(resp) };
     } catch (err) {
       if (err instanceof ZodError) {
-        // TODO send more informative error messages
         console.error("Zod error", err);
         return { status: 400, body: "Invalid request" };
       }

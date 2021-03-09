@@ -1,22 +1,22 @@
 import Koa from "koa";
 import Router from "koa-router";
 import { Server } from "net";
-import portfinder from "portfinder";
-import { TypedHttpClient } from "../src/httpApi";
 import { createKoaRoute } from "../src/koaAdapter";
 import { ApiHttpError } from "../src/types";
-import { testSchema } from "./schema";
+import portfinder from "portfinder";
+
+import { TypedHttpClient } from "../src/httpApi";
+
+import { testSchema } from "./testSchema";
 
 const pathPrefix = "/api";
-
-const createServer = async (port: number): Promise<Server> => {
+const createServer = (port: number): Server => {
   const koa = new Koa();
   const apiRouter = new Router({
     prefix: pathPrefix,
   });
 
   createKoaRoute(apiRouter, testSchema, "divide", async ({ num1, num2 }) => {
-    console.log(num1, num2);
     if (num2 === 0) {
       throw new ApiHttpError("Can't divide by 0", 400);
     }
@@ -32,13 +32,22 @@ const createServer = async (port: number): Promise<Server> => {
   return koa.listen(port);
 };
 
-describe("typedApi", () => {
+// const testClient = async () => {
+//   const client = new TypedHttpClient("http://localhost:3001/api", testSchema);
+//   let result = await client.call("divide", { num1: 10, num2: 2 });
+//   result = "test";
+// };
+
+// testClient();
+
+describe("typedApi createKoaRoute", () => {
   let client: TypedHttpClient<typeof testSchema>;
   let server: Server;
 
   beforeAll(async () => {
     const port = await portfinder.getPortPromise();
-    client = new TypedHttpClient(
+
+    const client = new TypedHttpClient(
       "http://localhost:" + port + pathPrefix,
       testSchema
     );
@@ -65,6 +74,14 @@ describe("typedApi", () => {
       fail();
     } catch (e) {
       expect(e.message).toStrictEqual("Can't divide by 0");
+    }
+  });
+
+  test("schema error", async () => {
+    try {
+      await client.call("divide", {} as any);
+    } catch (e) {
+      console.error(e);
     }
   });
 });
