@@ -1,6 +1,16 @@
-import { AbstractApiSchemaType, ReqSchema, ResSchema } from "./types";
+import {
+  AbstractApiSchemaType,
+  ReqSchema,
+  ResSchema,
+  TypedServerFunc,
+  UntypedServerFunc,
+} from "./types";
 
-export const typedClientFunc = <
+// Takes a schema, method name, and a function with an unknown
+// return type, and returns a function with a return type
+// matching the response schema. If the response
+// doesn't match the schema, a Zod error is thrown.
+export const getTypedClientFunc = <
   ApiSchemaType extends AbstractApiSchemaType,
   MethodName extends keyof ApiSchemaType
 >(
@@ -17,25 +27,12 @@ export const typedClientFunc = <
   };
 };
 
-export type TypedServerFunc<
-  ApiSchemaType extends AbstractApiSchemaType,
-  MethodType extends keyof ApiSchemaType,
-  ReqType
-> = (
-  params: ReqSchema<ApiSchemaType, MethodType>,
-  req: ReqType
-) => Promise<ResSchema<ApiSchemaType, MethodType>>;
-
-export type UntypedServerFunc<
-  ApiSchemaType extends AbstractApiSchemaType,
-  MethodType extends keyof ApiSchemaType,
-  ReqType
-> = (
-  reqBody: any,
-  req: ReqType
-) => Promise<ResSchema<ApiSchemaType, MethodType>>;
-
-export const typedServerFunc = <
+// This function takes a TypedServerFunc
+// and returns an UntypedServerFunc that
+// performs validation on the request body,
+// potentially throwing a Zod error if the
+// request doesn't match the schema.
+export const getUntypedServerFunc = <
   ApiSchemaType extends AbstractApiSchemaType,
   MethodType extends keyof ApiSchemaType,
   ReqType

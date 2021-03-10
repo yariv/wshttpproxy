@@ -5,11 +5,10 @@ import { createKoaRoute } from "../src/koaAdapter";
 import { ApiHttpError } from "../src/types";
 import portfinder from "portfinder";
 
-import { TypedHttpClient } from "../src/httpApi";
-
 import { testSchema } from "./testSchema";
+import { TypedHttpClient } from "../src/httpClient";
 
-const pathPrefix = "/api";
+const pathPrefix = "/api/";
 const createServer = (port: number): Server => {
   const koa = new Koa();
   const apiRouter = new Router({
@@ -32,14 +31,6 @@ const createServer = (port: number): Server => {
   return koa.listen(port);
 };
 
-// const testClient = async () => {
-//   const client = new TypedHttpClient("http://localhost:3001/api", testSchema);
-//   let result = await client.call("divide", { num1: 10, num2: 2 });
-//   result = "test";
-// };
-
-// testClient();
-
 describe("typedApi createKoaRoute", () => {
   let client: TypedHttpClient<typeof testSchema>;
   let server: Server;
@@ -47,7 +38,7 @@ describe("typedApi createKoaRoute", () => {
   beforeAll(async () => {
     const port = await portfinder.getPortPromise();
 
-    const client = new TypedHttpClient(
+    client = new TypedHttpClient(
       "http://localhost:" + port + pathPrefix,
       testSchema
     );
@@ -80,8 +71,52 @@ describe("typedApi createKoaRoute", () => {
   test("schema error", async () => {
     try {
       await client.call("divide", {} as any);
+      fail();
     } catch (e) {
-      console.error(e);
+      expect(e.message).toStrictEqual(
+        JSON.stringify([
+          {
+            code: "invalid_type",
+            expected: "number",
+            received: "undefined",
+            path: ["num1"],
+            message: "Required",
+          },
+          {
+            code: "invalid_type",
+            expected: "number",
+            received: "undefined",
+            path: ["num2"],
+            message: "Required",
+          },
+        ])
+      );
+    }
+  });
+
+  test("schema error", async () => {
+    try {
+      await client.call("divide", {} as any);
+      fail();
+    } catch (e) {
+      expect(e.message).toStrictEqual(
+        JSON.stringify([
+          {
+            code: "invalid_type",
+            expected: "number",
+            received: "undefined",
+            path: ["num1"],
+            message: "Required",
+          },
+          {
+            code: "invalid_type",
+            expected: "number",
+            received: "undefined",
+            path: ["num2"],
+            message: "Required",
+          },
+        ])
+      );
     }
   });
 });

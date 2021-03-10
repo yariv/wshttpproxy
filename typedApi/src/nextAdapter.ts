@@ -1,8 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { TypedServerFunc } from "./baseApi";
-import { createHttpHandler } from "./httpApi";
-import { AbstractApiSchemaType, ResSchema } from "./types";
+import { createHttpHandler } from "./httpServer";
+import { AbstractApiSchemaType, ResSchema, TypedServerFunc } from "./types";
 
+// Create a NextJS API handler for the method of the given schema.
 export const createNextHandler = <
   ApiSchemaType extends AbstractApiSchemaType,
   MethodType extends keyof ApiSchemaType

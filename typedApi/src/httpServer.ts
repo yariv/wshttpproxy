@@ -1,7 +1,14 @@
 import { ZodError } from "zod";
-import { TypedServerFunc } from "./baseApi";
-import { AbstractApiSchemaType, HttpHandler } from "./types";
+import { AbstractApiSchemaType, TypedServerFunc } from "./types";
 
+type HttpHandler<ReqType> = (
+  body: any,
+  req: ReqType
+) => Promise<{ status: number; body: any }>;
+
+// Create a a function that takes an untyped request and returns a
+// an object representing a HTTP response containing a status
+// and body. The body is a JSON serialized string.
 export const createHttpHandler = <
   ApiSchemaType extends AbstractApiSchemaType,
   MethodType extends keyof ApiSchemaType,
@@ -15,14 +22,9 @@ export const createHttpHandler = <
       return { status: 200, body: JSON.stringify(resp) };
     } catch (err) {
       if (err instanceof ZodError) {
-        // TODO send more informative error messages
-        console.error("Zod error", err);
-        return { status: 400, body: "Invalid request" };
+        return { status: 400, body: JSON.stringify(err.errors) };
       }
-      if (!err.status || err.status === 500) {
-        console.error("Unexpected error", err);
-      }
-      return { status: err.status || 500, body: err.message };
+      return { status: err.status || 500, body: JSON.stringify(err.message) };
     }
   };
 };

@@ -1,16 +1,11 @@
-import { typedClientFunc } from "./baseApi";
+import { getTypedClientFunc } from "./baseApi";
 import {
   AbstractApiSchemaType,
   ApiHttpError,
-  HandlerResult,
+
   ReqSchema,
-  ResSchema,
+  ResSchema
 } from "./types";
-
-export type HttpResponse<ParsedBodyType> = HandlerResult<ParsedBodyType> & {
-  response?: Response;
-};
-
 
 export class TypedHttpClient<ApiSchemaType extends AbstractApiSchemaType> {
   baseUrl: string;
@@ -25,7 +20,7 @@ export class TypedHttpClient<ApiSchemaType extends AbstractApiSchemaType> {
     methodName: MethodName,
     reqBody: ReqSchema<ApiSchemaType, typeof methodName> = {}
   ): Promise<ResSchema<ApiSchemaType, typeof methodName>> {
-    return typedClientFunc(this.schema, methodName, async (reqBody) => {
+    return getTypedClientFunc(this.schema, methodName, async (reqBody) => {
       const res = await fetch(this.baseUrl + methodName, {
         method: "POST",
         body: JSON.stringify(reqBody),
