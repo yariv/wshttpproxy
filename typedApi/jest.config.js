@@ -9,10 +9,5 @@ module.exports = {
   },
   testTimeout: 5000,
   testEnvironment: "node",
-  globals: {
-    "ts-jest": {
-      tsconfig: "tsconfig.test.json",
-    },
-  },
   modulePaths: ["<rootDir>"],
 };
