@@ -2,10 +2,10 @@ import { getTypedClientFunc } from "./baseApi";
 import {
   AbstractApiSchemaType,
   ApiHttpError,
-
   ReqSchema,
-  ResSchema
+  ResSchema,
 } from "./types";
+import fetch from "node-fetch";
 
 export class TypedHttpClient<ApiSchemaType extends AbstractApiSchemaType> {
   baseUrl: string;
@@ -30,10 +30,7 @@ export class TypedHttpClient<ApiSchemaType extends AbstractApiSchemaType> {
       if (res.status >= 400 && res.status < 600) {
         throw new ApiHttpError(respText, res.status);
       }
-      if (respText) {
-        return JSON.parse(respText);
-      }
-      return;
+      return JSON.parse(respText);
     })(reqBody);
   }
 }

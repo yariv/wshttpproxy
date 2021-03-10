@@ -22,6 +22,6 @@ export const createKoaRoute = <
   router.post(methodName as string, bodyParser(), async (ctx) => {
     const resp = await httpHandler(ctx.request.body, ctx.request);
     ctx.status = resp.status;
-    ctx.body = resp.body;
+    ctx.body = resp.status === 200 ? JSON.stringify(resp.body) : resp.body;
   });
 };

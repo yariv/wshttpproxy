@@ -8,7 +8,7 @@ type HttpHandler<ReqType> = (
 
 // Create a a function that takes an untyped request and returns a
 // an object representing a HTTP response containing a status
-// and body. The body is a JSON serialized string.
+// and body, which is unserialized.
 export const createHttpHandler = <
   ApiSchemaType extends AbstractApiSchemaType,
   MethodType extends keyof ApiSchemaType,
@@ -19,12 +19,12 @@ export const createHttpHandler = <
   return async (reqBody, req) => {
     try {
       const resp = await typedFunc(reqBody, req);
-      return { status: 200, body: JSON.stringify(resp) };
+      return { status: 200, body: resp };
     } catch (err) {
       if (err instanceof ZodError) {
-        return { status: 400, body: JSON.stringify(err.errors) };
+        return { status: 400, body: err.errors };
       }
-      return { status: err.status || 500, body: JSON.stringify(err.message) };
+      return { status: err.status || 500, body: err.message };
     }
   };
 };
