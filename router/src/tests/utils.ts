@@ -1,10 +1,10 @@
-import { AppServer } from "dev-in-prod-lib/src/appServer";
-import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
+import { AppServer } from "../../../lib/src/appServer";
+import { routerApiSchema } from "../../../lib/src/routerApiSchema";
 import { ConnectionOptions } from "mysql2";
-import { TypedHttpClient } from "typed-api/src/httpApi";
+import { TypedHttpClient } from "infer-rpc/dist/httpClient";
 import { routerMain } from "../../routerMain";
 import portfinder from "portfinder";
-import { genNewToken } from "dev-in-prod-lib/src/utils";
+import { genNewToken } from "../../../lib/src/utils";
 
 export const connOptions: ConnectionOptions = {
   host: "127.0.0.1",

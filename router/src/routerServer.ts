@@ -46,12 +46,12 @@ const initKoaApp = (socketManager: WsProxy): Koa => {
   koa.use(apiRouter.allowedMethods());
   koa.use(apiRouter.routes());
 
-  const app = websockify(koa);
+  const app = websockify(koa as any);
   app.ws.use(
     route.all("/ws", (ctx) => {
       initWebsocket(ctx.websocket);
       socketManager.registerWebSocket(ctx.websocket);
     })
   );
-  return app;
+  return app as any;
 };

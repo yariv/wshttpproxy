@@ -193,11 +193,11 @@ describe("dbProxy", () => {
       ...connOptions,
       port: dbProxy.port,
     });
-    await checkNumConns(dbProxy, 1);
+    await checkNumConns(dbProxy, 2);
 
     conn1.destroy();
     await new Promise((resolve) => {
-      process.nextTick(resolve);
+      setTimeout(resolve, 10);
     });
     await checkNumConns(dbProxy, 1);
 

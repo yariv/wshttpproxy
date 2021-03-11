@@ -78,7 +78,7 @@ export class WsProxy {
     wsWrapper.sendMsg("proxy", {
       requestId: requestId,
       method: ctx.method,
-      headers: ctx.headers,
+      headers: ctx.headers as Record<string, string>, // TODO remove casting
       body: body,
       path: ctx.path,
     });

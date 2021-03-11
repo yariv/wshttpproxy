@@ -36,15 +36,22 @@ export const globalConfig = {
   },
 };
 
-// TODO move to a different file?
-export const getRouteKeyFromHostname = (hostname: string): string | null => {
-  const toks = hostname.split(".");
-  if (toks.length < 3) {
-    return null;
+export const getRouteKeyFromHostname = (
+  hostname: string | string[]
+): string | null => {
+  const hostnames = Array.isArray(hostname) ? hostname : [hostname];
+  for (const hostname of hostnames) {
+    const toks = hostname.split(".");
+    if (toks.length < 3) {
+      return null;
+    }
+    const lastSubdomain = toks[toks.length - 3];
+    const reRes = globalConfig.routeKeyRegex.exec(lastSubdomain);
+    if (reRes) {
+      return reRes[1];
+    }
   }
-  const lastSubdomain = toks[toks.length - 3];
-  const reRes = globalConfig.routeKeyRegex.exec(lastSubdomain);
-  return reRes ? reRes[1] : null;
+  return null;
 };
 
 export const getRouteKeyFromCtx = (
@@ -55,7 +62,7 @@ export const getRouteKeyFromCtx = (
   hostnameHeader?: string | string[]
 ): string | undefined => {
   const res =
-    ctx.headers[globalConfig.routeKeyHeader] ||
+    (ctx.headers[globalConfig.routeKeyHeader] as string) ||
     getRouteKeyFromHostname(hostnameHeader || ctx.hostname);
   return res?.toLowerCase();
 };
