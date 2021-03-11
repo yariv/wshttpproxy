@@ -13,14 +13,14 @@
   },
   "dependencies": {
     "axios": "^0.21.1",
+    "dev-in-prod-example": "1.0.0",
+    "dev-in-prod-lib": "1.0.0",
+    "dev-in-prod-local-proxy": "1.0.0",
+    "dev-in-prod-router": "1.0.0",
+    "dev-in-prod-sidecar": "1.0.0",
     "fetch": "^1.1.0",
     "http-terminator": "^2.0.3",
-    "node-fetch": "^2.6.1",
-    "dev-in-prod-router": "1.0.0",
-    "dev-in-prod-example": "1.0.0",
-    "dev-in-prod-local-proxy": "1.0.0",
-    "dev-in-prod-sidecar": "1.0.0",
-    "dev-in-prod-lib": "1.0.0",
-    "solid-rpc": "1.0.0"
+    "infer-rpc": "^1.0.2",
+    "node-fetch": "^2.6.1"
   }
 }

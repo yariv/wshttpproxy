@@ -11,7 +11,7 @@ import { routerMain } from "dev-in-prod-router/routerMain";
 import { getRouteKey } from "dev-in-prod-router/src/utils";
 import { startSidecar } from "dev-in-prod-sidecar/src/sidecarServer";
 import portfinder from "portfinder";
-import { TypedHttpClient } from "typed-api/src/httpApi";
+import { TypedHttpClient } from "infer-rpc/dist/httpClient";
 import util from "util";
 
 describe("integration", () => {
@@ -144,7 +144,7 @@ describe("integration", () => {
 
     await exampleDev.conn.query("insert into post(content) values('test')");
     const resp3 = await sendDevRequest(getRouteKey(authToken));
-    expect(resp3.body).toBe("<h1>posts</h1><div>test</div>");
+    expect(resp3.body).toBe("<h1>Posts</h1><ul><li>test</li></ul>");
     expect(resp3.status).toBe(200);
 
     const resp4 = await sendRequest(sideCar.url);
