@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import { ConnectionOptions } from "mysql2";
 import next from "next";
 import { LocalProxy } from "./src/localProxy";
-dotenv.config();
+dotenv.config({ path: __dirname + "/.env" });
 
 export const localProxyMain = async (
   port: number,

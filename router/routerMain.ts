@@ -3,7 +3,7 @@ import { globalConfig } from "../lib/src/utils";
 import { ConnectionOptions } from "mysql2/typings/mysql";
 import { routerServerStart } from "./src/routerServer";
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config({ path: __dirname + "/.env" });
 
 export const routerMain = async (
   port: number,
