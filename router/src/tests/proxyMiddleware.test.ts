@@ -1,10 +1,10 @@
-import { AppServer } from "dev-in-prod-lib/src/appServer";
-import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
-import { setupTest } from "dev-in-prod-lib/src/testLib";
-import { WsWrapper } from "dev-in-prod-lib/src/typedWs";
-import { globalConfig } from "dev-in-prod-lib/src/utils";
-import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
-import { TypedHttpClient } from "typed-api/src/httpApi";
+import { AppServer } from "../../../lib/src/appServer";
+import { routerApiSchema } from "../../../lib/src/routerApiSchema";
+import { setupTest } from "../../../lib/src/testLib";
+import { WsWrapper } from "../../../lib/src/typedWs";
+import { globalConfig } from "../../../lib/src/utils";
+import { clientSchema, serverSchema } from "../../../lib/src/wsSchema";
+import { TypedHttpClient } from "infer-rpc/dist/httpClient";
 import WebSocket from "ws";
 import * as z from "zod";
 import { getRouteKey } from "../utils";

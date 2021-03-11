@@ -49,10 +49,10 @@ export const getRouteKeyFromHostname = (hostname: string): string | null => {
 
 export const getRouteKeyFromCtx = (
   ctx: {
-    headers: Record<string, string | null>;
+    headers: Record<string, string | string[] | undefined>;
     hostname: string;
   },
-  hostnameHeader?: string
+  hostnameHeader?: string | string[]
 ): string | undefined => {
   const res =
     ctx.headers[globalConfig.routeKeyHeader] ||

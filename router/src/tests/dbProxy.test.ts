@@ -1,4 +1,4 @@
-import { setupTest } from "dev-in-prod-lib/src/testLib";
+import { setupTest } from "../../../lib/src/testLib";
 import mysql, { Connection } from "mysql2/promise";
 import { genNewToken } from "../utils";
 import { connOptions, setupRouterTest } from "./utils";
