@@ -71,7 +71,7 @@ export class LocalProxy {
     });
   }
 
-  async listen(port: number, dirname: string, next: any) {
+  async listen() {
     await this.dbProxy.listen();
   }
 

@@ -123,35 +123,62 @@ This connection is authenticated with a JSON-encoded handshake sent as the first
 
 # Usage Instructions
 
-DevInProd is available as an open source set of package that you can install and run yourself.
+DevInProd is available as an open source package that you can install and run yourself.
 
-1. To install the router, call
+1. To install DevInProd, call
 
 ```
-npm install @devinprod/router
+npm install devinprod
 ```
 
-2. Set up your router's `routingSecret`
+2. Run the Router by calling
+
+```
+cd devinprod
+npm router
+```
+
+The first time you run the router, it generates a new `RoutingKey`, which it saves in a local `.env` file. This `RoutingKey` must be included in all reverse-proxy HTTP requests to the router within the `dev-in-prod-routing-key` header. This ensures that only your reverse proxy can initiate reverse-proxy requests to the router.
+
+The router exposes 2 ports: one for HTTP requests and one for the DB proxy. [TODO explain how to configure].
 
 3. Configure your reverse proxy to forward requests that match a route key to the Router. Here's a sample Nginx config: [ TODO LINK ]. You can also use the `sidecar` project in the repo [TODO explain].
 
-4. Start the router using the command
-
-```
-npx ts-node routerMain.ts
-```
-
-5. To create a new `AuthToken`, call
+4. To create a new `AuthToken`, call
 
 ```
 curl -X POST http://localhost:3001/api/createToken
 ```
 
-Note that for security reasons, this endpoint is by default restricted to clients whose origin address is localhost.
+Note that for security reasons, this endpoint is by default restricted to clients whose origin address is localhost. It ensures that you can only generate `AuthToken`s if you can ssh into the machine on which the router is running.
 
-6. To install and run the example app, call
+5. To run the example app, call
 
 ```
-npm install @devinprod/example
-npx ts-node exampleMain.ts
+npm example
 ```
+
+### Dev environment setup
+
+1. Install the same dev-in-prod npm package as in the prod environment:
+
+```
+git clone dev-in-prod [TODO]
+cd dev-in-prod
+```
+
+2. Configure the localProxy so it knows how to connect to your Router, both on the HTTP and MySQL Proxy port. This includes configuring its `AuthToken`. The first 6 characters of the `AuthToken` are used as the `RouteKey` for your localProxy. [TODO explain]
+
+3. Run your localProxy by calling
+
+```
+npm localProxy
+```
+
+4. Run the same example app locally by calling
+
+```
+npm example
+```
+
+5. Your local example app is now ready to accept requests from your `Router`. To initiate a request, go to `www-[route-key].yourdomain.com`. If you don't have wildcard DNS set up, you can also send the `RouteKey` in a HTTP header.

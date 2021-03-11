@@ -1,9 +1,9 @@
-import { globalConfig } from "../lib/src/utils";
 import dotenv from "dotenv";
 import { ConnectionOptions } from "mysql2";
-import next from "next";
+import { globalConfig } from "../lib/src/utils";
 import { LocalProxy } from "./src/localProxy";
-dotenv.config({ path: __dirname + "/.env" });
+const envFileName = __dirname + "/.env";
+dotenv.config({ path: envFileName });
 
 export const localProxyMain = async (
   port: number,
@@ -20,14 +20,17 @@ export const localProxyMain = async (
     localDbPort,
     authToken
   );
-  await localProxy.listen(port, __dirname, next);
+  await localProxy.listen();
   await localProxy.connectWs();
   return localProxy;
 };
 
 if (require.main == module) {
   if (!process.env.AUTH_TOKEN) {
-    throw new Error("Missing AUTH_TOKEN environment variable.");
+    console.error(
+      `Missing AUTH_TOKEN environment variable. Please add it in ${envFileName}.`
+    );
+    process.exit();
   }
 
   const authToken = process.env.AUTH_TOKEN;
