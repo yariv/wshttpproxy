@@ -1,6 +1,6 @@
-import { MySqlProxy } from "dev-in-prod-db-proxy/src/mysqlProxy";
-import { WsWrapper } from "dev-in-prod-lib/src/typedWs";
-import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
+import { MySqlProxy } from "../../dbproxy/src/mysqlProxy";
+import { WsWrapper } from "../../lib/src/typedWs";
+import { clientSchema, serverSchema } from "../../lib/src/wsSchema";
 import { Connection } from "mysql2/promise";
 import { ConnectionOptions } from "tls";
 import { initWsClient } from "./wsClient";
@@ -57,7 +57,7 @@ export class LocalProxy {
 
   async connectWs() {
     this.wsWrapper = initWsClient(this.routerWsUrl, this.localServiceUrl);
-    this.wsWrapper.ws.on("open", () => {
+    this.wsWrapper!.ws.on("open", () => {
       if (!this.wsWrapper) {
         console.error("Lost websocket");
         return;
@@ -66,7 +66,7 @@ export class LocalProxy {
         authToken: this.authToken,
       });
     });
-    this.wsWrapper.ws.on("close", () => {
+    this.wsWrapper!.ws.on("close", () => {
       this.wsWrapper = null;
     });
   }

@@ -1,5 +1,5 @@
-import { AppServer, listenOnPort } from "dev-in-prod-lib/src/appServer";
-import { getRouteKeyFromCtx, globalConfig } from "dev-in-prod-lib/src/utils";
+import { AppServer, listenOnPort } from "../../lib/src/appServer";
+import { getRouteKeyFromCtx, globalConfig } from "../../lib/src/utils";
 import Koa from "koa";
 import proxy from "koa-better-http-proxy";
 

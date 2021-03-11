@@ -1,5 +1,5 @@
-import { AppServer } from "dev-in-prod-lib/src/appServer";
-import { globalConfig } from "dev-in-prod-lib/src/utils";
+import { AppServer } from "../lib/src/appServer";
+import { globalConfig } from "../lib/src/utils";
 import { ConnectionOptions } from "mysql2/typings/mysql";
 import { routerServerStart } from "./src/routerServer";
 import dotenv from "dotenv";

@@ -1,4 +1,4 @@
-import { globalConfig } from "dev-in-prod-lib/src/utils";
+import { globalConfig } from "../lib/src/utils";
 import dotenv from "dotenv";
 import { ConnectionOptions } from "mysql2";
 import next from "next";

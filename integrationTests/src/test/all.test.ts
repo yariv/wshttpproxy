@@ -1,15 +1,11 @@
-import { exampleMain as exampleMain } from "dev-in-prod-example/src/exampleMain";
-import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
-import { setupTest } from "dev-in-prod-lib/src/testLib";
-import {
-  genNewToken,
-  getHttpUrl,
-  globalConfig,
-} from "dev-in-prod-lib/src/utils";
-import { localProxyMain as localProxyMain } from "dev-in-prod-local-proxy/localProxyMain";
-import { routerMain } from "dev-in-prod-router/routerMain";
-import { getRouteKey } from "dev-in-prod-router/src/utils";
-import { startSidecar } from "dev-in-prod-sidecar/src/sidecarServer";
+import { exampleMain as exampleMain } from "../../../example/src/exampleMain";
+import { routerApiSchema } from "../../../lib/src/routerApiSchema";
+import { setupTest } from "../../../lib/src/testLib";
+import { genNewToken, getHttpUrl, globalConfig } from "../../../lib/src/utils";
+import { localProxyMain as localProxyMain } from "../../../localProxy/localProxyMain";
+import { routerMain } from "../../../router/routerMain";
+import { getRouteKey } from "../../../router/src/utils";
+import { startSidecar } from "../../../sidecar/src/sidecarServer";
 import portfinder from "portfinder";
 import { TypedHttpClient } from "infer-rpc/dist/httpClient";
 import util from "util";

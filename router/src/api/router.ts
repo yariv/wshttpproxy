@@ -1,5 +1,5 @@
-import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
-import { globalConfig } from "dev-in-prod-lib/src/utils";
+import { routerApiSchema } from "../../../lib/src/routerApiSchema";
+import { globalConfig } from "../../../lib/src/utils";
 import Router from "koa-router";
 import { createKoaRoute } from "infer-rpc/dist/koaAdapter";
 import { createAuthToken } from "../utils";

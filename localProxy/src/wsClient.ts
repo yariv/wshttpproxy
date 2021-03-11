@@ -1,6 +1,6 @@
-import { log } from "dev-in-prod-lib/src/log";
-import { initWebsocket, WsWrapper } from "dev-in-prod-lib/src/typedWs";
-import { clientSchema, serverSchema } from "dev-in-prod-lib/src/wsSchema";
+import { log } from "../../lib/src/log";
+import { initWebsocket, WsWrapper } from "../../lib/src/typedWs";
+import { clientSchema, serverSchema } from "../../lib/src/wsSchema";
 import WebSocket from "ws";
 
 export const initWsClient = (

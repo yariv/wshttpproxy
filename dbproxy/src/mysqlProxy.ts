@@ -1,4 +1,4 @@
-import { genNewToken } from "dev-in-prod-lib/src/utils";
+import { genNewToken } from "../../lib/src/utils";
 import mysqlServer from "mysql2";
 import mysql, { Connection } from "mysql2/promise";
 import { ConnectionOptions } from "mysql2/typings/mysql/lib/Connection";
@@ -31,7 +31,7 @@ export class MySqlProxy {
   constructor(
     port: number,
     remoteConnectionOptions: ConnectionOptions,
-    groupConnections: boolean,
+    groupConnections: boolean = false,
     onConn?: OnConn,
     onProxyConn?: OnProxyConn,
     onQuery?: OnQuery

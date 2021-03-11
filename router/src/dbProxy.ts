@@ -3,7 +3,7 @@ import {
   OnConn,
   OnProxyConn,
   OnQuery,
-} from "dev-in-prod-db-proxy/src/mysqlProxy";
+} from "../../dbproxy/src/mysqlProxy";
 import { Connection } from "mysql2/promise";
 import { prisma } from "./prisma";
 import { sha256 } from "./utils";
@@ -87,7 +87,7 @@ export class DbProxy {
       // Ignore ROLLBACK statements
       return [];
     }
-    
+
     return [query];
   }
 }

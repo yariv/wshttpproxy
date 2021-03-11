@@ -1,5 +1,5 @@
-import { AppServer, listenOnPort } from "dev-in-prod-lib/src/appServer";
-import { initWebsocket } from "dev-in-prod-lib/src/typedWs";
+import { AppServer, listenOnPort } from "../../lib/src/appServer";
+import { initWebsocket } from "../../lib/src/typedWs";
 import Koa from "koa";
 import logger from "koa-logger";
 import route from "koa-route";
@@ -8,7 +8,7 @@ import { ConnectionOptions } from "mysql2";
 import { router as apiRouter } from "./api/router";
 import { DbProxy } from "./dbProxy";
 import { prisma } from "./prisma";
-import { SocketManager } from "./socketManager";
+import { WsProxy } from "./wsProxy";
 
 export const routerServerStart = async (
   port: number,
@@ -16,7 +16,7 @@ export const routerServerStart = async (
   dbProxyPort?: number,
   remoteConnectionOptions?: ConnectionOptions
 ): Promise<AppServer> => {
-  const socketManager = new SocketManager(applicationSecret);
+  const socketManager = new WsProxy(applicationSecret);
   const koa = initKoaApp(socketManager);
   const server = await listenOnPort(koa, port);
   const appServer = new AppServer(server);
@@ -39,7 +39,7 @@ export const routerServerStart = async (
   return appServer;
 };
 
-const initKoaApp = (socketManager: SocketManager): Koa => {
+const initKoaApp = (socketManager: WsProxy): Koa => {
   const koa = new Koa();
   koa.use(logger());
   koa.use(socketManager.proxyMiddleware.bind(socketManager));

@@ -1,5 +1,5 @@
-import { AppServer, listenOnPort } from "dev-in-prod-lib/src/appServer";
-import { globalConfig } from "dev-in-prod-lib/src/utils";
+import { AppServer, listenOnPort } from "../../lib/src/appServer";
+import { globalConfig } from "../../lib/src/utils";
 import Koa from "koa";
 import Router from "koa-router";
 import logger from "koa-logger";

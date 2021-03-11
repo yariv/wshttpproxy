@@ -1,7 +1,6 @@
-import { setupTest } from "dev-in-prod-lib/src/testLib";
-import { genNewToken } from "dev-in-prod-lib/src/utils";
+import { setupTest } from "../../../lib/src/testLib";
+import { genNewToken } from "../../../lib/src/utils";
 import mysql, { Connection } from "mysql2/promise";
-import { resolveHref } from "next/dist/next-server/lib/router/router";
 import portfinder from "portfinder";
 import { MySqlProxy } from "../mysqlProxy";
 

@@ -3,8 +3,6 @@ import * as z from "zod";
 export const clientSchema = {
   connect: z.object({
     authToken: z.string(),
-    // applicationSecret: z.string(),
-    // routeKey: z.string(),
   }),
   proxyError: z.object({
     requestId: z.string(),
