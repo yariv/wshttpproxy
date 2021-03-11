@@ -6,7 +6,9 @@
   "scripts": {
     "test": "jest",
     "gen-prisma": "prisma generate --schema router/prisma/schema.prisma && prisma db push --preview-feature --schema router/prisma/schema.prisma",
-    "router": "ts-node router/routerMain.ts"
+    "router": "ts-node router/routerMain.ts",
+    "example": "ts-node example/src/exampleMain.ts",
+    "localProxy": "ts-node localProxy/localProxyMain.ts"
   },
   "jest": {
     "testEnvironment": "node"

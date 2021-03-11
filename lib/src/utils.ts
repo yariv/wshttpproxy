@@ -15,18 +15,12 @@ const configPorts = {
 export const globalConfig = {
   ...configPorts,
   exampleProdUrl: getHttpUrl(configPorts.exampleProdPort),
-  exampleDevUrl: getHttpUrl(configPorts.exampleDevPort),
-  localProxyUrl: getHttpUrl(configPorts.localProxyPort),
-  routerUrl: getHttpUrl(configPorts.routerPort),
-  sidecarUrl: getHttpUrl(configPorts.sidecarPort),
   routeKeyHeader: "dev-in-prod-route-key",
   appSecretHeader: "dev-in-prod-app-secret",
   routeKeyRegex: /^.+-(.+)$/,
   apiPathPrefix: "/api/",
   originalHostHeader: "x-forwarded-host",
   proxyTimeout: 10000,
-  oauthAuthorizeUrl: "https://dsee.io/oauth2/authorize",
-  oauthCallbackUrl: getHttpUrl(configPorts.localProxyPort) + "/oauth2/callback",
   defaultDbConnOptions: {
     host: "localhost",
     port: 3306,

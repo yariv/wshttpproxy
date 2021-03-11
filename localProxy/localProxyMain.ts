@@ -30,6 +30,7 @@ if (require.main == module) {
     throw new Error("Missing AUTH_TOKEN environment variable.");
   }
 
+  const authToken = process.env.AUTH_TOKEN;
   const routerWsUrl = "wss://dsee.io/ws";
   const localServiceUrl = globalConfig.exampleProdUrl;
   const routerDbConnOptions: ConnectionOptions = {
@@ -47,6 +48,6 @@ if (require.main == module) {
     routerDbConnOptions,
     localServiceUrl,
     localDbPort,
-    process.env.AUTH_TOKEN
+    authToken
   );
 }
