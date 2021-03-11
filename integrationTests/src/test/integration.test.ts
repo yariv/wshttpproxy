@@ -80,7 +80,9 @@ describe("integration", () => {
       localProxyPort,
       localProxyDbPort,
       exampleDevPort,
-    ] = await util.promisify(portfinder.getPorts.bind(portfinder))(4, {});
+    ] = await util.promisify(portfinder.getPorts.bind(portfinder))(4, {
+      startPort: 9000, // prevents race conditions with other tests
+    });
 
     const dbConnOptions = globalConfig.defaultDbConnOptions;
     const router = await routerMain(
