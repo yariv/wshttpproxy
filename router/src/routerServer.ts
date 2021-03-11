@@ -12,11 +12,11 @@ import { WsProxy } from "./wsProxy";
 
 export const routerServerStart = async (
   port: number,
-  applicationSecret: string,
+  routingSecret: string,
   dbProxyPort?: number,
   remoteConnectionOptions?: ConnectionOptions
 ): Promise<AppServer> => {
-  const socketManager = new WsProxy(applicationSecret);
+  const socketManager = new WsProxy(routingSecret);
   const koa = initKoaApp(socketManager);
   const server = await listenOnPort(koa, port);
   const appServer = new AppServer(server);

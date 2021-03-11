@@ -74,7 +74,7 @@ describe("integration", () => {
   });
 
   it("routing works", async () => {
-    const applicationSecret = genNewToken();
+    const routingSecret = genNewToken();
     const [
       routerDbProxyPort,
       localProxyPort,
@@ -87,7 +87,7 @@ describe("integration", () => {
     const dbConnOptions = globalConfig.defaultDbConnOptions;
     const router = await routerMain(
       0,
-      applicationSecret,
+      routingSecret,
       routerDbProxyPort,
       dbConnOptions
     );
@@ -101,7 +101,7 @@ describe("integration", () => {
 
     const sideCar = await startSidecar(
       0,
-      applicationSecret,
+      routingSecret,
       exampleProd.appServer.url,
       router.url
     );

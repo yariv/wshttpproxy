@@ -15,7 +15,7 @@ export class LocalProxy {
   authToken: string;
 
   constructor(
-    // applicationSecret: string,
+    // routingSecret: string,
     routerWsUrl: string,
     routerDbConnOptions: ConnectionOptions,
     localServiceUrl: string,

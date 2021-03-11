@@ -5,7 +5,7 @@ import proxy from "koa-better-http-proxy";
 
 export const startSidecar = async (
   port: number,
-  appSecret: string,
+  routingSecret: string,
   prodUrl: string,
   routerUrl: string
 ): Promise<AppServer> => {
@@ -25,7 +25,7 @@ export const startSidecar = async (
         return getRouteKeyFromCtx(ctx) != null;
       },
       proxyReqOptDecorator: (opts, ctx) => {
-        opts.headers[globalConfig.appSecretHeader] = appSecret;
+        opts.headers[globalConfig.routingSecretHeader] = routingSecret;
         opts.headers[globalConfig.routeKeyHeader] = getRouteKeyFromCtx(ctx);
         opts.headers[globalConfig.originalHostHeader] = ctx.host;
         return opts;

@@ -131,7 +131,7 @@ DevInProd is available as an open source set of package that you can install and
 npm install @devinprod/router
 ```
 
-2. Set up your router's `ApplicationSecret`
+2. Set up your router's `routingSecret`
 
 3. Configure your reverse proxy to forward requests that match a route key to the Router. Here's a sample Nginx config: [ TODO LINK ]. You can also use the `sidecar` project in the repo [TODO explain].
 

@@ -18,7 +18,7 @@ describe("proxy middleware", () => {
   let routerUrl: string;
   let appServer: AppServer;
   let authToken: string;
-  let applicationSecret: string;
+  let routingSecret: string;
 
   const defer = setupTest();
 
@@ -26,12 +26,12 @@ describe("proxy middleware", () => {
     const {
       client: client1,
       appServer: appServer1,
-      applicationSecret: applicationSecret1,
+      routingSecret: routingSecret1,
     } = await setupRouterTest(defer);
     client = client1;
     appServer = appServer1;
     routerUrl = appServer.url;
-    applicationSecret = applicationSecret1;
+    routingSecret = routingSecret1;
   });
 
   beforeEach(async () => {
@@ -50,7 +50,7 @@ describe("proxy middleware", () => {
 
   it("Requires x-forwarded-host header", async () => {
     const res = await fetch(routerUrl, {
-      headers: { [globalConfig.appSecretHeader]: applicationSecret },
+      headers: { [globalConfig.routingSecretHeader]: routingSecret },
     });
     await checkRes(res, 400, "Missing x-forwarded-host header");
   });
@@ -59,7 +59,7 @@ describe("proxy middleware", () => {
     const originalHost = "http://localhost";
     const res = await fetch(routerUrl, {
       headers: {
-        [globalConfig.appSecretHeader]: applicationSecret,
+        [globalConfig.routingSecretHeader]: routingSecret,
         [globalConfig.originalHostHeader]: originalHost,
       },
     });
@@ -70,22 +70,22 @@ describe("proxy middleware", () => {
     const originalHost = "rk-123.localhost.localhost";
     const res = await fetch(routerUrl, {
       headers: {
-        [globalConfig.appSecretHeader]: "foo",
+        [globalConfig.routingSecretHeader]: "foo",
         [globalConfig.originalHostHeader]: originalHost,
       },
     });
     await checkRes(res, 400, "Invalid application secret");
   });
 
-  const getAppSecret = (): string => {
-    return process.env.APPLICATION_SECRET!;
+  const getroutingSecret = (): string => {
+    return process.env.ROUTING_SECRET!;
   };
 
   it("Requires valid route key", async () => {
     const originalHost = "rk-123.localhost.localhost";
     const res = await fetch(routerUrl, {
       headers: {
-        [globalConfig.appSecretHeader]: applicationSecret,
+        [globalConfig.routingSecretHeader]: routingSecret,
         [globalConfig.originalHostHeader]: originalHost,
         [globalConfig.routeKeyHeader]: "foo",
       },
@@ -98,13 +98,13 @@ describe("proxy middleware", () => {
     const originalHost = `www-rk-${routeKey}.localhost.localhost`;
     const res = await fetch(routerUrl, {
       headers: {
-        [globalConfig.appSecretHeader]: applicationSecret,
+        [globalConfig.routingSecretHeader]: routingSecret,
         [globalConfig.originalHostHeader]: originalHost,
       },
     });
     await checkRes(res, 400, "Route isn't connected");
 
-    const res2 = await sendProxyRequest(applicationSecret, routeKey);
+    const res2 = await sendProxyRequest(routingSecret, routeKey);
     await checkRes(res2, 400, "Route isn't connected");
   });
 
@@ -123,12 +123,12 @@ describe("proxy middleware", () => {
   };
 
   const sendProxyRequest = (
-    applicationSecret: string,
+    routingSecret: string,
     routeKey: string
   ): Promise<Response> => {
     return fetch(routerUrl + testPath, {
       headers: {
-        [globalConfig.appSecretHeader]: applicationSecret,
+        [globalConfig.routingSecretHeader]: routingSecret,
         [globalConfig.originalHostHeader]: "localhost",
         [globalConfig.routeKeyHeader]: routeKey,
       },
@@ -221,7 +221,7 @@ describe("proxy middleware", () => {
           resolve(null);
         }
       );
-      const resp = await sendProxyRequest(applicationSecret, routeKey);
+      const resp = await sendProxyRequest(routingSecret, routeKey);
       await checkRes(resp, 500, "Proxy error");
     });
   });
@@ -262,7 +262,7 @@ describe("proxy middleware", () => {
     wsWrapper.setHandler("proxy", async ({ requestId }) => {
       sendProxyResult(wsWrapper, requestId);
     });
-    const resp = await sendProxyRequest(applicationSecret, routeKey);
+    const resp = await sendProxyRequest(routingSecret, routeKey);
     await checkRes(resp, 213, testBody);
     expect(resp.headers.get("foo")).toStrictEqual("bar");
   });
@@ -285,7 +285,7 @@ describe("proxy middleware", () => {
         sendClientMessage1(wsWrapper, requestId);
         sendClientMessage2(wsWrapper, requestId);
       });
-      await sendProxyRequest(applicationSecret, routeKey);
+      await sendProxyRequest(routingSecret, routeKey);
     });
   };
 
@@ -329,7 +329,7 @@ describe("proxy middleware", () => {
     wsWrapper.setHandler("proxy", async ({ requestId }) => {
       sendProxyError(wsWrapper, requestId);
     });
-    const resp = await sendProxyRequest(applicationSecret, routeKey);
+    const resp = await sendProxyRequest(routingSecret, routeKey);
     await checkRes(resp, 500, proxyError);
   });
 
@@ -341,13 +341,13 @@ describe("proxy middleware", () => {
     const wsWrapper2 = await getConnectedWs(authToken2);
     let resp2: Response;
     wsWrapper1.setHandler("proxy", async ({ requestId }) => {
-      resp2 = await sendProxyRequest(applicationSecret, routeKey2);
+      resp2 = await sendProxyRequest(routingSecret, routeKey2);
       sendProxyResult(wsWrapper1, requestId, "testBody1");
     });
     wsWrapper2.setHandler("proxy", async ({ requestId }) => {
       sendProxyResult(wsWrapper2, requestId, "testBody2");
     });
-    const resp1 = await sendProxyRequest(applicationSecret, routeKey1);
+    const resp1 = await sendProxyRequest(routingSecret, routeKey1);
     await checkRes(resp1, 213, "testBody1");
     await checkRes(resp2!, 213, "testBody2");
   });

@@ -16,7 +16,7 @@ export const globalConfig = {
   ...configPorts,
   exampleProdUrl: getHttpUrl(configPorts.exampleProdPort),
   routeKeyHeader: "dev-in-prod-route-key",
-  appSecretHeader: "dev-in-prod-app-secret",
+  routingSecretHeader: "dev-in-prod-routing-secret",
   routeKeyRegex: /^.+-(.+)$/,
   apiPathPrefix: "/api/",
   originalHostHeader: "x-forwarded-host",

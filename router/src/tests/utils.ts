@@ -20,19 +20,19 @@ export const setupRouterTest = async (
   client: TypedHttpClient<typeof routerApiSchema>;
   appServer: AppServer;
   dbProxyPort: number;
-  applicationSecret: string;
+  routingSecret: string;
 }> => {
   let client: TypedHttpClient<typeof routerApiSchema>;
   const dbProxyPort = await portfinder.getPortPromise();
-  const applicationSecret = genNewToken();
+  const routingSecret = genNewToken();
   const appServer = await routerMain(
     0,
-    applicationSecret,
+    routingSecret,
     dbProxyPort,
     connOptions
   );
   client = new TypedHttpClient(appServer.apiUrl, routerApiSchema);
   defer(appServer.close.bind(appServer));
 
-  return { client, appServer, dbProxyPort, applicationSecret };
+  return { client, appServer, dbProxyPort, routingSecret };
 };

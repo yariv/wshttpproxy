@@ -23,10 +23,10 @@ export class WsProxy {
     WsKey,
     WsWrapper<typeof clientSchema, typeof serverSchema>
   > = {};
-  applicationSecret: string;
+  routingSecret: string;
 
-  constructor(applicationSecret: string) {
-    this.applicationSecret = applicationSecret;
+  constructor(routingSecret: string) {
+    this.routingSecret = routingSecret;
   }
 
   close() {
@@ -44,11 +44,11 @@ export class WsProxy {
   }
 
   async proxyMiddleware(ctx: Koa.Context, next: Koa.Next): Promise<void> {
-    const appSecret = ctx.header[globalConfig.appSecretHeader];
-    if (!appSecret) {
+    const routingSecret = ctx.header[globalConfig.routingSecretHeader];
+    if (!routingSecret) {
       return next();
     }
-    if (!(appSecret == this.applicationSecret)) {
+    if (!(routingSecret == this.routingSecret)) {
       ctx.throw(400, "Invalid application secret");
     }
 
@@ -69,7 +69,7 @@ export class WsProxy {
 
     const requestId = genNewToken();
 
-    delete ctx.headers[globalConfig.appSecretHeader];
+    delete ctx.headers[globalConfig.routingSecretHeader];
     delete ctx.headers[globalConfig.routeKeyHeader];
 
     // TODO deal with non utf-8 blobs
