@@ -1,6 +1,5 @@
 import WebSocket from "ws";
 import * as z from "zod";
-import { log } from "./log";
 
 export type WsSchema = Record<string, z.ZodType<any>>;
 
@@ -14,7 +13,6 @@ const genericMsgSchema = z.object({
   params: z.any(),
 });
 
-// TODO use ping/pong messages
 export class WsWrapper<
   IncomingSchemaType extends WsSchema,
   OutgoingSchemaType extends WsSchema
@@ -37,25 +35,24 @@ export class WsWrapper<
     this.handlers = {} as any; // TODO figure out why this casting is necessary
 
     this.ws.on("message", (event) => {
-      log("message", event);
       let unserialized;
       try {
         const msgStr = event.toString("utf-8");
         unserialized = JSON.parse(msgStr);
       } catch (e) {
-        log("Error parsing", event);
+        console.error("Error parsing", event);
         // TODO close?
         return;
       }
 
       const parseResult = genericMsgSchema.safeParse(unserialized);
       if (!parseResult.success) {
-        log("Invalid message", parseResult.error);
+        console.warn("Invalid message", parseResult.error);
         return;
       }
       const { type, params } = parseResult.data;
       if (!(type in this.handlers)) {
-        log("Missing message handler", type);
+        console.warn("Missing message handler", type);
         // TODO close?
         return;
       }
@@ -63,11 +60,11 @@ export class WsWrapper<
       const parseResult2 = incomingSchema[type].safeParse(params);
       if (parseResult2.success) {
         this.handlers[type](parseResult2.data).catch((err) => {
-          log("Error in handling message", event, err.message);
+          console.error("Error in handling message", event, err.message);
           this.ws.close();
         });
       } else {
-        log("Invalid message", event, parseResult2.error);
+        console.warn("Invalid message", event, parseResult2.error);
         return;
       }
     });
@@ -84,7 +81,6 @@ export class WsWrapper<
     type: MsgType,
     params?: z.infer<OutgoingSchemaType[MsgType]>
   ) {
-    log("sending", { type, params });
     this.ws.send(JSON.stringify({ type, params }));
   }
 }
@@ -92,7 +88,7 @@ export class WsWrapper<
 // TODO clean up
 export const initWebsocket = (ws: WebSocket) => {
   ws.on("open", () => {
-    log("open");
+    console.log("open");
   });
 
   ws.on("close", () => {});

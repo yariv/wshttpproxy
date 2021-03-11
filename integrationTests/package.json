@@ -21,6 +21,6 @@
     "dev-in-prod-local-proxy": "1.0.0",
     "dev-in-prod-sidecar": "1.0.0",
     "dev-in-prod-lib": "1.0.0",
-    "typed-api": "1.0.0"
+    "solid-rpc": "1.0.0"
   }
 }

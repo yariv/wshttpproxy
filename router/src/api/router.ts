@@ -1,7 +1,7 @@
 import { routerApiSchema } from "dev-in-prod-lib/src/routerApiSchema";
 import { globalConfig } from "dev-in-prod-lib/src/utils";
 import Router from "koa-router";
-import { createKoaRoute } from "typed-api/src/koaAdapter";
+import { createKoaRoute } from "infer-rpc/dist/koaAdapter";
 import { createAuthToken } from "../utils";
 
 export const router = new Router({
