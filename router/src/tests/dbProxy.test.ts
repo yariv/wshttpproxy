@@ -3,7 +3,7 @@ import mysql, { Connection } from "mysql2/promise";
 import { genNewToken } from "../utils";
 import { connOptions, setupRouterTest } from "./utils";
 
-describe("DbProxy", () => {
+describe("Router DbProxy", () => {
   const defer = setupTest();
 
   const getAuthError = async (query: string): Promise<string> => {
