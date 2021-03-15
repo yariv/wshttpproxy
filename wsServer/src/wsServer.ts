@@ -1,4 +1,4 @@
-import { WsWrapper } from "../../lib/src/typedWs";
+import { initWebsocket, WsWrapper } from "../../lib/src/typedWs";
 import {
   genNewToken,
   getRouteKeyFromCtx,
@@ -11,8 +11,49 @@ import { getRouteKey, sha256, WsKey } from "./utils";
 import WebSocket from "ws";
 import { log } from "../../lib/src/log";
 import getRawBody from "raw-body";
+import { AppServer, listenOnPort } from "lib/src/appServer";
 
-export class WsProxy {
+import logger from "koa-logger";
+import route from "koa-route";
+import websockify from "koa-websocket";
+import { router as apiRouter } from "./api/router";
+
+export const wsServerStart = async (
+  port: number,
+  routingSecret: string
+): Promise<AppServer> => {
+  const socketManager = new wsServer(routingSecret);
+  const koa = initKoaApp(socketManager);
+  const server = await listenOnPort(koa, port);
+  const appServer = new AppServer(server);
+
+  appServer.onClose(async () => {
+    socketManager.close();
+    const promises: Promise<void>[] = [prisma.$disconnect()];
+    await Promise.all(promises);
+  });
+
+  return appServer;
+};
+
+const initKoaApp = (socketManager: wsServer): Koa => {
+  const koa = new Koa();
+  koa.use(logger());
+  koa.use(socketManager.proxyMiddleware.bind(socketManager));
+  koa.use(apiRouter.allowedMethods());
+  koa.use(apiRouter.routes());
+
+  const app = websockify(koa as any);
+  app.ws.use(
+    route.all("/ws", (ctx) => {
+      initWebsocket(ctx.websocket);
+      socketManager.registerWebSocket(ctx.websocket);
+    })
+  );
+  return app as any;
+};
+
+export class wsServer {
   proxyRequests: Record<
     string,
     { timeoutId: NodeJS.Timeout; ctx: Koa.Context; resolve: () => void }

@@ -13,7 +13,7 @@ import fetch, { Response } from "node-fetch";
 
 type TestWsType = WsWrapper<typeof serverSchema, typeof clientSchema>;
 
-describe("wsProxy", () => {
+describe("wsServer", () => {
   let client: TypedHttpClient<typeof routerApiSchema>;
   let routerUrl: string;
   let appServer: AppServer;

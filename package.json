@@ -5,10 +5,10 @@
   "main": "",
   "scripts": {
     "test": "jest",
-    "gen-prisma": "prisma generate --schema wsProxy/prisma/schema.prisma && prisma db push --preview-feature --schema wsProxy/prisma/schema.prisma",
-    "wsProxy": "ts-node wsProxy/wsProxy.ts",
+    "gen-prisma": "prisma generate --schema wsServer/prisma/schema.prisma && prisma db push --preview-feature --schema wsServer/prisma/schema.prisma",
+    "wsServer": "ts-node wsServer/wsServer.ts",
     "example": "ts-node example/src/exampleMain.ts",
-    "localProxy": "ts-node localProxy/localProxyMain.ts"
+    "wsClient": "ts-node wsClient/wsClientMain.ts"
   },
   "jest": {
     "testEnvironment": "node"

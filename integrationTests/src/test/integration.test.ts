@@ -15,8 +15,8 @@ import {
 } from "../../../lib/src/utils";
 import { startReverseProxy as startReverseProxy } from "../../../reverseProxy/src/reverseProxy";
 import { wsClientMain as wsClientMain } from "../../../wsClient/wsClientMain";
-import { getRouteKey } from "../../../wsProxy/src/utils";
-import { routerMain as wsProxyMain } from "../../../wsProxy/wsProxyMain";
+import { getRouteKey } from "../../../wsServer/src/utils";
+import { routerMain as wsServerMain } from "../../../wsServer/wsServerMain";
 
 describe("integration", () => {
   const defer = setupTest();
@@ -92,7 +92,7 @@ describe("integration", () => {
     });
 
     const dbConnOptions = globalConfig.defaultDbConnOptions;
-    const router = await wsProxyMain(0, routingSecret);
+    const router = await wsServerMain(0, routingSecret);
     defer(router.close.bind(router));
 
     const routerClient = new TypedHttpClient(router.apiUrl, routerApiSchema);

@@ -3,7 +3,7 @@ import portfinder from "portfinder";
 import { AppServer } from "../../../lib/src/appServer";
 import { routerApiSchema } from "../../../lib/src/routerApiSchema";
 import { genNewToken } from "../../../lib/src/utils";
-import { routerMain } from "../../wsProxyMain";
+import { routerMain } from "../../wsServerMain";
 
 export const setupRouterTest = async (
   defer: (func: () => Promise<void>) => void

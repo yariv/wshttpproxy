@@ -1,9 +1,8 @@
 import dotenv from "dotenv";
 import { writeFileSync } from "fs";
-import { ConnectionOptions } from "mysql2/typings/mysql";
 import { AppServer } from "../lib/src/appServer";
 import { genNewToken, globalConfig } from "../lib/src/utils";
-import { routerServerStart } from "./src/wsProxyServer";
+import { wsServerStart } from "./src/wsServer";
 
 const envFileName = __dirname + "/.env";
 dotenv.config({ path: envFileName });
@@ -12,7 +11,7 @@ export const routerMain = async (
   port: number,
   routingSecret: string
 ): Promise<AppServer> => {
-  return routerServerStart(port, routingSecret);
+  return wsServerStart(port, routingSecret);
 };
 
 if (require.main == module) {
