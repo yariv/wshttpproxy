@@ -2,9 +2,9 @@
 
 WsHTTPProxy is a Node server that forwards HTTP requests to clients that are connected to it by web sockets.
 
-WsHTTPProxy is designed improve iteration speed in a micro service environment. Such environments can make end-to-end testing of backend code changes difficult for a few reasons:
+WsHTTPProxy is designed improve iteration speed in micro-service environments. Such environments can make testing of backend code changes challenging for a few reasons:
 
-- Creating realistic staging or development environments becomes more challenging as the number of production services grows as well as the rate at which new code is deployed among them.
+- Creating realistic staging or development environments becomes more harder as the number of production services grows as well as the rate at which new code is deployed among them.
 - The behavior of production services often depends on production data. Reproducing this data in dev or staging can introduce operational overhead as well as security concerns. Without production data, debugging production issues can be difficult.
 - Having to deploy code to dev or staging can involve much higher latency than reloading code in a locally running service.
 
@@ -16,7 +16,7 @@ WsHTTPProxy addresses these challenges by routing authenticated requests through
 
 Most production services have downstream dependencies: databases, caches, external services, etc. To safely test code changes, care should be taken to prevent requests to those dependencies from impacting users or partners. This can be done by stubbing those dependencies or by using preventing them from mutating data using proxies such as node-db-proxy (link). WsHTTPProxy doesn't provide any stubbing or isolation features for downstream dependencies. Use it at your own risk.
 
-WsHTTPProxy consists of 3 key components:
+WsHTTPProxy consists of 3 components:
 
 ### WsServer
 
