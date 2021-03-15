@@ -27,7 +27,8 @@ This diagram depicts an architecture composed of 4 services, where one of them (
 
 Traditionally, if a developer wanted to make a code change to service B, he or she would have to create or use a replica of the entire production environment wherein they could test their changes in isolation of users or other developers. It would look like this diagram:
 
-<img width="725" alt="Screen Shot 2021-03-15 at 3 57 59 PM" src="https://user-images.githubusercontent.com/12111/111231878-3cbd3e80-85a7-11eb-9009-b01132958fa0.png">
+<img width="863" alt="Screen Shot 2021-03-15 at 3 59 49 PM" src="https://user-images.githubusercontent.com/12111/111232035-81e17080-85a7-11eb-8ff7-92c214232612.png">
+
 
 
 With WsHTTPProxy, the developer could make changes to service B without needing a full replica of the production environment. They could just use their own instance of Service B, routing requests in and out of production.
