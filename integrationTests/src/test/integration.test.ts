@@ -17,6 +17,8 @@ import Koa from "koa";
 import Router from "koa-router";
 import { listenOnPort } from "lib/src/appServer";
 import "util";
+import fetch from "node-fetch";
+
 describe("integration", () => {
   const defer = setupTest();
 
@@ -35,7 +37,7 @@ describe("integration", () => {
       headers: extraHeaders,
     });
     const body = await resp.text();
-    return { status: resp.status, body, headers: resp.headers };
+    return { status: resp.status, body, headers: resp.headers as any };
   };
 
   const expectHttpError = async (
@@ -59,14 +61,14 @@ describe("integration", () => {
       reverseProxyPort,
       "secret",
       getLocalhostUrl(testAppPort),
-      ""
+      getLocalhostUrl(0)
     );
     defer(reverseProxy.close.bind(reverseProxy));
 
     // sidecar should forward standard requests to prod service
     const resp3 = await sendRequest(reverseProxy.url);
     expect(resp3.status).toBe(200);
-    expect(resp3.body).toBe(testAppPort);
+    expect(resp3.body).toBe("" + testAppPort);
   });
 
   const createTestApp = async (port: number) => {
@@ -111,7 +113,7 @@ describe("integration", () => {
 
     const resp = await sendRequest(sideCar.url);
     expect(resp.status).toBe(200);
-    expect(resp.body).toBe("");
+    expect(resp.body).toBe("" + testAppProdPort);
 
     const localProxy = await localProxyMain(
       localProxyPort,
@@ -123,8 +125,7 @@ describe("integration", () => {
     );
     defer(localProxy.close.bind(localProxy));
 
-    const exampleDev = await exampleMain(testAppDevPort, localProxyDbPort);
-    defer(exampleDev.close.bind(exampleDev));
+    await createTestApp(testAppDevPort);
 
     const sendDevRequest = (routeKey: string): ReturnType<typeof sendRequest> =>
       sendRequest(sideCar.url, {

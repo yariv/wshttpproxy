@@ -1,18 +1,9 @@
+import { TypedHttpClient } from "infer-rpc/dist/httpClient";
+import portfinder from "portfinder";
 import { AppServer } from "../../../lib/src/appServer";
 import { routerApiSchema } from "../../../lib/src/routerApiSchema";
-import { ConnectionOptions } from "mysql2";
-import { TypedHttpClient } from "infer-rpc/dist/httpClient";
-import { routerMain } from "../../wsProxyMain";
-import portfinder from "portfinder";
 import { genNewToken } from "../../../lib/src/utils";
-
-export const connOptions: ConnectionOptions = {
-  host: "127.0.0.1",
-  port: 3306,
-  user: "root",
-  password: "root",
-  database: "test",
-};
+import { routerMain } from "../../wsProxyMain";
 
 export const setupRouterTest = async (
   defer: (func: () => Promise<void>) => void
@@ -25,12 +16,7 @@ export const setupRouterTest = async (
   let client: TypedHttpClient<typeof routerApiSchema>;
   const dbProxyPort = await portfinder.getPortPromise();
   const routingSecret = genNewToken();
-  const appServer = await routerMain(
-    0,
-    routingSecret,
-    dbProxyPort,
-    connOptions
-  );
+  const appServer = await routerMain(0, routingSecret);
   client = new TypedHttpClient(appServer.apiUrl, routerApiSchema);
   defer(appServer.close.bind(appServer));
 
