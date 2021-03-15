@@ -25,11 +25,14 @@ It's easiest to understand WsHTTPProxy in the context of a hypothetical micro-se
 
 This diagram depicts an architecture composed of 4 services, where one of them (Service A) takes requests from clients and sends downstream requests to services B, C and D, each of which fronts a dedicated database.
 
-Traditionally, if a developer wanted to make a code change to service B, he or she would have to create or use a replica of the entire production environment wherein they could test their changes in isolation of users or other developers.
+Traditionally, if a developer wanted to make a code change to service B, he or she would have to create or use a replica of the entire production environment wherein they could test their changes in isolation of users or other developers. It would look like this diagram:
+
+<img width="725" alt="Screen Shot 2021-03-15 at 3 57 59 PM" src="https://user-images.githubusercontent.com/12111/111231878-3cbd3e80-85a7-11eb-9009-b01132958fa0.png">
+
 
 With WsHTTPProxy, the developer could make changes to service B without needing a full replica of the production environment. They could just use their own instance of Service B, routing requests in and out of production.
 
-<img width="709" alt="Screen Shot 2021-03-15 at 3 52 35 PM" src="https://user-images.githubusercontent.com/12111/111231418-7c375b00-85a6-11eb-8c6e-c9169c19daac.png">
+<img width="714" alt="Screen Shot 2021-03-15 at 3 58 45 PM" src="https://user-images.githubusercontent.com/12111/111231945-58c0e000-85a7-11eb-8e98-dbcade6f8e7b.png">
 
 
 
