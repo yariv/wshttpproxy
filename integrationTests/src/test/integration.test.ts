@@ -1,7 +1,11 @@
 import { TypedHttpClient } from "infer-rpc/dist/httpClient";
+import Koa from "koa";
+import Router from "koa-router";
+import { listenOnPort } from "lib/src/appServer";
+import fetch from "node-fetch";
 import portfinder from "portfinder";
+import "util";
 import util from "util";
-import { exampleMain as exampleMain } from "../../../example/src/exampleMain";
 import { routerApiSchema } from "../../../lib/src/routerApiSchema";
 import { setupTest } from "../../../lib/src/testLib";
 import {
@@ -9,15 +13,10 @@ import {
   getHttpUrl as getLocalhostUrl,
   globalConfig,
 } from "../../../lib/src/utils";
-import { localProxyMain as localProxyMain } from "../../../localProxy/localProxyMain";
 import { startReverseProxy as startReverseProxy } from "../../../reverseProxy/src/reverseProxy";
+import { wsClientMain as wsClientMain } from "../../../wsClient/wsClientMain";
 import { getRouteKey } from "../../../wsProxy/src/utils";
 import { routerMain as wsProxyMain } from "../../../wsProxy/wsProxyMain";
-import Koa from "koa";
-import Router from "koa-router";
-import { listenOnPort } from "lib/src/appServer";
-import "util";
-import fetch from "node-fetch";
 
 describe("integration", () => {
   const defer = setupTest();
@@ -86,11 +85,9 @@ describe("integration", () => {
     const routingSecret = genNewToken();
     const [
       routerDbProxyPort,
-      localProxyPort,
-      localProxyDbPort,
       testAppDevPort,
       testAppProdPort,
-    ] = await util.promisify(portfinder.getPorts.bind(portfinder))(5, {
+    ] = await util.promisify(portfinder.getPorts.bind(portfinder))(3, {
       startPort: 9000, // prevents race conditions with other tests
     });
 
@@ -115,15 +112,12 @@ describe("integration", () => {
     expect(resp.status).toBe(200);
     expect(resp.body).toBe("" + testAppProdPort);
 
-    const localProxy = await localProxyMain(
-      localProxyPort,
+    const wsClient = await wsClientMain(
       router.wsUrl,
-      { ...dbConnOptions, port: routerDbProxyPort },
       getLocalhostUrl(testAppDevPort),
-      localProxyDbPort,
       authToken
     );
-    defer(localProxy.close.bind(localProxy));
+    defer(wsClient.close.bind(wsClient));
 
     await createTestApp(testAppDevPort);
 

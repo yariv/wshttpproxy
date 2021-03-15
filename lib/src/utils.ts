@@ -6,10 +6,8 @@ const configPorts = {
   routerPort: 3001, // note: should match google app settings
   exampleProdPort: 3002,
   exampleDevPort: 3003,
-  localProxyPort: 3004,
-  sidecarPort: 3005,
+  reverseProxyPort: 3005,
   routerDbProxyPort: 3006,
-  localProxyDbProxyPort: 3007,
 };
 
 export const globalConfig = {

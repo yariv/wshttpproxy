@@ -1,6 +1,10 @@
-# DevInProd Introduction
+# Introduction
 
-DevInProd enables is a new type of development environment that overcomes the shortcomings of traditional environments.
+WebSocketProxy is a Node server that forwards HTTP requests to clients that are connected to it by web sockets.
+
+WebSocketProxy is
+
+
 
 An ideal development environment should provide the following criteria:
 
