@@ -6,7 +6,7 @@ WsHTTPProxy is designed improve iteration speed in micro-service environments. S
 
 - Creating realistic staging or development environments becomes more harder as the number of production services grows as well as the rate at which new code is deployed among them.
 - The behavior of production services often depends on production data. Reproducing this data in dev or staging can introduce operational overhead as well as security concerns. Without production data, debugging production issues can be difficult.
-- Having to deploy code to dev or staging can involve much higher latency than reloading code in a locally running service.
+- Deploying code to a remote dev or staging environment can introduce much higher latencies to the development cycle than reloading code in a locally running service.
 
 WsHTTPProxy addresses these challenges by routing authenticated requests through the production stack to the developer's instance of the service under development. This routing lets you test the application end-to-end. You originate requests at the application's frontend. Those requests are served by production services except for the service under development.
 
