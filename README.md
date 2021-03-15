@@ -19,7 +19,9 @@ Most production services have downstream dependencies: databases, caches, extern
 # Architecture
 
 It's easiest to understand WsHTTPProxy in the context of a hypothetical micro-service architecture as the one depicted below:
-<img src="https://docs.google.com/drawings/d/e/2PACX-1vT2btchiJjmnMBhOKE25JcOqaHd-vzZiiWnMIYfP5xzdGFD7cwmG7tEoje4mJ-FtLWj7Gpd9FIeMaRu/pub?w=960&amp;h=720">
+
+<img width="471" alt="Screen Shot 2021-03-15 at 3 51 30 PM" src="https://user-images.githubusercontent.com/12111/111231358-5c079c00-85a6-11eb-8d2e-2fc90ba0ba3c.png">
+
 
 This diagram depicts an architecture composed of 4 services, where one of them (Service A) takes requests from clients and sends downstream requests to services B, C and D, each of which fronts a dedicated database.
 
