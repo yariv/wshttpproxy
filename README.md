@@ -10,18 +10,11 @@ WsHTTPProxy is designed improve iteration speed in micro-service environments. S
 
 WsHTTPProxy addresses these challenges by routing authenticated requests through the production stack to the developer's instance of the service under development. This routing lets you test the application end-to-end. You originate requests at the application's frontend. Those requests are served by production services except for the service under development.
 
-[Diagram]
-
-# Warning
-
-Most production services have downstream dependencies: databases, caches, external services, etc. To safely test code changes, care should be taken to prevent requests to those dependencies from impacting users or partners. This can be done by stubbing those dependencies or by using preventing them from mutating data using proxies such as node-db-proxy (link). WsHTTPProxy doesn't provide any stubbing or isolation features for downstream dependencies. Use it at your own risk.
-
 # Architecture
 
 It's easiest to understand WsHTTPProxy in the context of a hypothetical micro-service architecture as the one depicted below:
 
 <img width="471" alt="Screen Shot 2021-03-15 at 3 51 30 PM" src="https://user-images.githubusercontent.com/12111/111231358-5c079c00-85a6-11eb-8d2e-2fc90ba0ba3c.png">
-
 
 This diagram depicts an architecture composed of 4 services, where one of them (Service A) takes requests from clients and sends downstream requests to services B, C and D, each of which fronts a dedicated database.
 
@@ -30,40 +23,50 @@ Traditionally, if a developer wanted to make a code change to service B, he or s
 <img width="849" alt="Screen Shot 2021-03-15 at 3 59 49 PM" src="https://user-images.githubusercontent.com/12111/111232094-a3daf300-85a7-11eb-99a4-a3be14a03ea1.png">
 
 
-
 With WsHTTPProxy, the developer could make changes to service B without needing a full replica of the production environment. They could just use their own instance of Service B, routing requests in and out of production.
 
 <img width="714" alt="Screen Shot 2021-03-15 at 3 58 45 PM" src="https://user-images.githubusercontent.com/12111/111231945-58c0e000-85a7-11eb-8e98-dbcade6f8e7b.png">
 
 
+WsHTTPProxy consists of a few components:
 
-WsHTTPProxy consists of 3 components:
-
-### WsServer
+## WsServer
 
 The WsServer serves a few roles:
 
-- It issues `AuthToken`s, which are 40 character pseudo-random strings used to secure request forwarding. In a normal scenario, each developer is granted their own `AuthToken`. The first 6 characters of the `AuthToken` are used as the `RoutingKey` -- the code in the original HTTP request that identifies to which host the request should be proxied.
+- It issues `AuthToken`s, which are 40 character pseudo-random strings used to secure request forwarding. Typically, each developer is granted their own `AuthToken`. The first 6 characters of the `AuthToken` are used as the `RoutingKey` -- the code in the original HTTP request that identifies to which host the request should be proxied.
 
 - It maintains WebSocket connections to `WsClient`s running on developers' machines. Each connection is identified by its `RoutingKey`. To establish a connection, the `WsClient` has to authenticate with a valid `AuthToken`.
 
 - It forwards HTTP requests from the `Reverse Proxy` to the developer's `WsClient` identified by the `RoutingKey` in the request.
 
-### Reverse Proxy
+## Reverse Proxy
 
 When the reverse proxy receives a HTTP request from the browser, it inspects the request and looks for a unique key identifying the developer's session.
 
-The current implementation relies on a subdomain pattern (as a regular expression, `www-(.+)`). This enables easy activation of development routes from a web browser. Other approaches, such as custom HTTP headers, can also be implemented.
+The current implementation relies on a subdomain pattern (as a regular expression, `www-(.+)`). This enables easy access to development services from a web browser. Other ways of embedding `RoutingKey`s in HTTP requests, such as using custom HTTP headers, can be easily supported.
 
-If a request contains a unique route key, the reverse proxy forwards the request to another server, dubbed the Router, that maintains websocket connections to websocket clients running on developers' machines.
+If a request contains a unique `RouteKey`, the reverse proxy forwards the request to the `WsServer`, which maintains connections to `WsClient`s running on developers' machines.
 
-WsHTTPProxy comes with a reference reverse proxy, but you can also use NGINX, Apache, or any other reverse proxy, as long as it allows you to redirect requests based on whether they contain a `RoutingKey`.
+WsHTTPProxy includes a reference reverse proxy, but you can also use NGINX, Apache, or any other reverse proxy, as long as it allows you to redirect requests based on whether they contain a `RoutingKey`.
 
 ## WsClient
 
 The `WsClient` runs on developers' machines. It initiating websocket connections to the router and proxies HTTP request from the router to the local instance of the service under development.
 
 Each WsClient Both of these connections are authenticated with a handshake packet containing the WsClient's `AuthToken`.
+
+## Other Components
+
+### DB Proxy
+The DB Proxy shown in the diagram isn't included with WsHTTPProxy. The DB proxy is a proxy such as [node-db-proxy] [TODO link]. It's a recommended component that automatically rolls-back any writes that occurred during a test. It's recommended to run [node-db-proxy] against a replica of the production database (not shown in the diagram).
+
+### Tracing Framework
+Ideally, there should be some facility to automatically forward the `RouteKey` from the frontend service (Service A in the diagram) to the Reverse Proxy without needing to make code changes to every service that make exist along the request chain between them. A tracing framework like [Jaeger](https://www.jaegertracing.io) can facilitate this automated payload forwarding. 
+
+# Warning
+
+Most production services have downstream dependencies: databases, caches, external services, etc. To safely test code changes, care should be taken to prevent requests to those dependencies from impacting users or partners. This can be done by stubbing those dependencies or by using preventing them from mutating data using proxies such as node-db-proxy (link). WsHTTPProxy doesn't provide any stubbing or isolation features for downstream dependencies. Use it at your own risk.
 
 # Usage Instructions
 
