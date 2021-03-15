@@ -2,6 +2,7 @@ import { log } from "../../lib/src/log";
 import { initWebsocket, WsWrapper } from "../../lib/src/typedWs";
 import { clientSchema, serverSchema } from "../../lib/src/wsSchema";
 import WebSocket from "ws";
+import fetch from "node-fetch";
 
 export const initWsClient = (
   routerWsUrl: string,
@@ -18,7 +19,7 @@ export const initWsClient = (
         const res = await fetch(localServiceUrl + path, {
           headers,
           method,
-          body: reqBody ? reqBody : null,
+          body: reqBody ? reqBody : undefined,
         });
         const resBody = await res.text();
         const headersMap: Record<string, string> = {};

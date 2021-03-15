@@ -1,4 +1,3 @@
-import { MySqlProxy } from "../../dbproxy/src/mysqlProxy";
 import { WsWrapper } from "../../lib/src/typedWs";
 import { clientSchema, serverSchema } from "../../lib/src/wsSchema";
 import { Connection } from "mysql2/promise";
@@ -11,7 +10,6 @@ export class LocalProxy {
   routerDbConnOptions: ConnectionOptions;
   localServiceUrl: string;
   localDbPort: number;
-  dbProxy: MySqlProxy;
   authToken: string;
 
   constructor(
@@ -29,30 +27,6 @@ export class LocalProxy {
     this.authToken = authToken;
 
     this.wsWrapper = null;
-
-    // TODO make sure SSL is used in prod
-    const onProxyConn = async (conn: Connection) => {
-      const authQuery = {
-        type: "authenticate",
-        params: {
-          authToken,
-        },
-      };
-      try {
-        await conn.query(JSON.stringify(authQuery));
-      } catch (e) {
-        console.error("Error authenticating against remote DB", e);
-        throw e;
-      }
-    };
-
-    const dbProxy = new MySqlProxy(
-      this.localDbPort,
-      this.routerDbConnOptions,
-      false
-    );
-    dbProxy.onProxyConn = onProxyConn;
-    this.dbProxy = dbProxy;
   }
 
   async connectWs() {
@@ -71,12 +45,7 @@ export class LocalProxy {
     });
   }
 
-  async listen() {
-    await this.dbProxy.listen();
-  }
-
   async close() {
     this.wsWrapper?.ws.close();
-    await this.dbProxy.close();
   }
 }

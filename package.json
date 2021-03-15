@@ -39,6 +39,7 @@
     "mysql2": "^2.2.5",
     "next-auth": "^3.1.0",
     "node-fetch": "^2.6.1",
+    "nodemon": "^2.0.7",
     "oauth2-server": "^3.1.1",
     "oauth2-server-typescript": "^5.0.0-dev.3",
     "pg": "^8.5.1",

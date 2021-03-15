@@ -20,7 +20,6 @@ export const localProxyMain = async (
     localDbPort,
     authToken
   );
-  await localProxy.listen();
   await localProxy.connectWs();
   return localProxy;
 };

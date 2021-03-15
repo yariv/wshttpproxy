@@ -3,18 +3,16 @@ import { writeFileSync } from "fs";
 import { ConnectionOptions } from "mysql2/typings/mysql";
 import { AppServer } from "../lib/src/appServer";
 import { genNewToken, globalConfig } from "../lib/src/utils";
-import { routerServerStart } from "./src/routerServer";
+import { routerServerStart } from "./src/wsProxyServer";
 
 const envFileName = __dirname + "/.env";
 dotenv.config({ path: envFileName });
 
 export const routerMain = async (
   port: number,
-  routingSecret: string,
-  dbProxyPort: number,
-  dbConnOptions: ConnectionOptions
+  routingSecret: string
 ): Promise<AppServer> => {
-  return routerServerStart(port, routingSecret, dbProxyPort, dbConnOptions);
+  return routerServerStart(port, routingSecret);
 };
 
 if (require.main == module) {
@@ -28,10 +26,5 @@ Proxy requests to the router must include the routing secret in the HTTP header 
     writeFileSync(envFileName, "ROUTING_SECRET=" + routingSecret);
   }
 
-  routerMain(
-    globalConfig.routerPort,
-    routingSecret,
-    globalConfig.routerDbProxyPort,
-    globalConfig.defaultDbConnOptions
-  );
+  routerMain(globalConfig.routerPort, routingSecret);
 }

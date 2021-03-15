@@ -1,15 +1,22 @@
+import { TypedHttpClient } from "infer-rpc/dist/httpClient";
+import portfinder from "portfinder";
+import util from "util";
 import { exampleMain as exampleMain } from "../../../example/src/exampleMain";
 import { routerApiSchema } from "../../../lib/src/routerApiSchema";
 import { setupTest } from "../../../lib/src/testLib";
-import { genNewToken, getHttpUrl, globalConfig } from "../../../lib/src/utils";
+import {
+  genNewToken,
+  getHttpUrl as getLocalhostUrl,
+  globalConfig,
+} from "../../../lib/src/utils";
 import { localProxyMain as localProxyMain } from "../../../localProxy/localProxyMain";
-import { routerMain } from "../../../router/routerMain";
-import { getRouteKey } from "../../../router/src/utils";
-import { startSidecar } from "../../../sidecar/src/sidecarServer";
-import portfinder from "portfinder";
-import { TypedHttpClient } from "infer-rpc/dist/httpClient";
-import util from "util";
-
+import { startReverseProxy as startReverseProxy } from "../../../reverseProxy/src/reverseProxy";
+import { getRouteKey } from "../../../wsProxy/src/utils";
+import { routerMain as wsProxyMain } from "../../../wsProxy/wsProxyMain";
+import Koa from "koa";
+import Router from "koa-router";
+import { listenOnPort } from "lib/src/appServer";
+import "util";
 describe("integration", () => {
   const defer = setupTest();
 
@@ -43,35 +50,35 @@ describe("integration", () => {
     }
   };
 
-  const emptyResponse = "<h1>no posts</h1>";
-  // TODO move to /example
-  it("example works", async () => {
-    // start the prod service and verify it works
-    const example = await exampleMain(0, 3306);
-    defer(example.close.bind(example));
-
-    const resp2 = await sendRequest(example.appServer.url);
-    expect(resp2.status).toBe(200);
-    expect(resp2.body).toBe(emptyResponse);
-  });
-
   it("sidecar works", async () => {
-    const exampleProd = await exampleMain(0, 3306);
-    defer(exampleProd.close.bind(exampleProd));
+    const testAppPort = await portfinder.getPortPromise();
+    await createTestApp(testAppPort);
 
-    const sideCar = await startSidecar(
-      0,
+    const reverseProxyPort = await portfinder.getPortPromise();
+    const reverseProxy = await startReverseProxy(
+      reverseProxyPort,
       "secret",
-      exampleProd.appServer.url,
-      "foo"
+      getLocalhostUrl(testAppPort),
+      ""
     );
-    defer(sideCar.close.bind(sideCar));
+    defer(reverseProxy.close.bind(reverseProxy));
 
     // sidecar should forward standard requests to prod service
-    const resp3 = await sendRequest(sideCar.url);
+    const resp3 = await sendRequest(reverseProxy.url);
     expect(resp3.status).toBe(200);
-    expect(resp3.body).toBe(emptyResponse);
+    expect(resp3.body).toBe(testAppPort);
   });
+
+  const createTestApp = async (port: number) => {
+    const koa = new Koa();
+    const router = new Router();
+    router.get("/", async (ctx) => {
+      ctx.body = "" + port;
+    });
+    koa.use(router.routes()).use(router.allowedMethods());
+    const server = await listenOnPort(koa, port);
+    defer(util.promisify(server.close.bind(server)));
+  };
 
   it("routing works", async () => {
     const routingSecret = genNewToken();
@@ -79,50 +86,44 @@ describe("integration", () => {
       routerDbProxyPort,
       localProxyPort,
       localProxyDbPort,
-      exampleDevPort,
-    ] = await util.promisify(portfinder.getPorts.bind(portfinder))(4, {
+      testAppDevPort,
+      testAppProdPort,
+    ] = await util.promisify(portfinder.getPorts.bind(portfinder))(5, {
       startPort: 9000, // prevents race conditions with other tests
     });
 
     const dbConnOptions = globalConfig.defaultDbConnOptions;
-    const router = await routerMain(
-      0,
-      routingSecret,
-      routerDbProxyPort,
-      dbConnOptions
-    );
+    const router = await wsProxyMain(0, routingSecret);
     defer(router.close.bind(router));
 
     const routerClient = new TypedHttpClient(router.apiUrl, routerApiSchema);
     const { authToken } = await routerClient.call("createAuthToken");
 
-    const exampleProd = await exampleMain(0, dbConnOptions.port);
-    defer(exampleProd.close.bind(exampleProd));
+    await createTestApp(testAppProdPort);
 
-    const sideCar = await startSidecar(
+    const sideCar = await startReverseProxy(
       0,
       routingSecret,
-      exampleProd.appServer.url,
+      getLocalhostUrl(testAppProdPort),
       router.url
     );
     defer(sideCar.close.bind(sideCar));
 
     const resp = await sendRequest(sideCar.url);
     expect(resp.status).toBe(200);
-    expect(resp.body).toBe(emptyResponse);
+    expect(resp.body).toBe("");
 
-    console.log(localProxyPort, localProxyDbPort, exampleDevPort);
     const localProxy = await localProxyMain(
       localProxyPort,
       router.wsUrl,
       { ...dbConnOptions, port: routerDbProxyPort },
-      getHttpUrl(exampleDevPort),
+      getLocalhostUrl(testAppDevPort),
       localProxyDbPort,
       authToken
     );
     defer(localProxy.close.bind(localProxy));
 
-    const exampleDev = await exampleMain(exampleDevPort, localProxyDbPort);
+    const exampleDev = await exampleMain(testAppDevPort, localProxyDbPort);
     defer(exampleDev.close.bind(exampleDev));
 
     const sendDevRequest = (routeKey: string): ReturnType<typeof sendRequest> =>
@@ -137,16 +138,11 @@ describe("integration", () => {
     );
 
     const resp2 = await sendDevRequest(getRouteKey(authToken));
-    expect(resp2.body).toBe(emptyResponse);
+    expect(resp2.body).toBe("" + testAppDevPort);
     expect(resp2.status).toBe(200);
-
-    await exampleDev.conn.query("insert into post(content) values('test')");
-    const resp3 = await sendDevRequest(getRouteKey(authToken));
-    expect(resp3.body).toBe("<h1>Posts</h1><ul><li>test</li></ul>");
-    expect(resp3.status).toBe(200);
 
     const resp4 = await sendRequest(sideCar.url);
     expect(resp4.status).toBe(200);
-    expect(resp4.body).toBe(emptyResponse);
+    expect(resp4.body).toBe("" + testAppProdPort);
   });
 });

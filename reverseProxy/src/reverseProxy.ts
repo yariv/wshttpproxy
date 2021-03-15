@@ -3,7 +3,7 @@ import { getRouteKeyFromCtx, globalConfig } from "../../lib/src/utils";
 import Koa from "koa";
 import proxy from "koa-better-http-proxy";
 
-export const startSidecar = async (
+export const startReverseProxy = async (
   port: number,
   routingSecret: string,
   prodUrl: string,

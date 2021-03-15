@@ -13,7 +13,7 @@ import fetch, { Response } from "node-fetch";
 
 type TestWsType = WsWrapper<typeof serverSchema, typeof clientSchema>;
 
-describe("proxy middleware", () => {
+describe("wsProxy", () => {
   let client: TypedHttpClient<typeof routerApiSchema>;
   let routerUrl: string;
   let appServer: AppServer;
@@ -160,7 +160,7 @@ describe("proxy middleware", () => {
     );
   });
 
-  it("only one websocket per route key", async () => {
+  it("Only one websocket per route key", async () => {
     const wsWrapper = await openWs();
     const wsWrapper2 = await openWs();
     let firstClosed = false;

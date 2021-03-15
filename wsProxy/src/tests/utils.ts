@@ -2,7 +2,7 @@ import { AppServer } from "../../../lib/src/appServer";
 import { routerApiSchema } from "../../../lib/src/routerApiSchema";
 import { ConnectionOptions } from "mysql2";
 import { TypedHttpClient } from "infer-rpc/dist/httpClient";
-import { routerMain } from "../../routerMain";
+import { routerMain } from "../../wsProxyMain";
 import portfinder from "portfinder";
 import { genNewToken } from "../../../lib/src/utils";
 
