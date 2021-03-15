@@ -29,7 +29,8 @@ Traditionally, if a developer wanted to make a code change to service B, he or s
 
 With WsHTTPProxy, the developer could make changes to service B without needing a full replica of the production environment. They could just use their own instance of Service B, routing requests in and out of production.
 
-<img src="https://docs.google.com/drawings/d/e/2PACX-1vTmcZPujLoWu1sxuQpFU9lVfIx7x2IOSJukbMvNv5dyFb54zgMJVzdz9-t2rIKNS1a92H9tK7vU4R6C/pub?w=672&amp;h=504">
+<img width="709" alt="Screen Shot 2021-03-15 at 3 52 35 PM" src="https://user-images.githubusercontent.com/12111/111231418-7c375b00-85a6-11eb-8c6e-c9169c19daac.png">
+
 
 
 WsHTTPProxy consists of 3 components:
