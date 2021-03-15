@@ -16,6 +16,21 @@ WsHTTPProxy addresses these challenges by routing authenticated requests through
 
 Most production services have downstream dependencies: databases, caches, external services, etc. To safely test code changes, care should be taken to prevent requests to those dependencies from impacting users or partners. This can be done by stubbing those dependencies or by using preventing them from mutating data using proxies such as node-db-proxy (link). WsHTTPProxy doesn't provide any stubbing or isolation features for downstream dependencies. Use it at your own risk.
 
+# Architecture
+
+It's easiest to understand WsHTTPProxy in the context of a hypothetical micro-service architecture as the one depicted below:
+
+![wsproxy](https://user-images.githubusercontent.com/12111/111229765-bc490e80-85a3-11eb-93d0-a48ee74ac50a.png)
+
+This diagram depicts an architecture composed of 4 services, where one of them (Service A) takes requests from clients and sends downstream requests to services B, C and D, each of which fronts a dedicated database.
+
+Traditionally, if a developer wanted to make a code change to service B, he or she would have to create or use a replica of the entire production environment wherein they could test their changes in isolation of users or other developers.
+
+With WsHTTPProxy, the developer could make changes to service B without needing a full replica of the production environment. They could just use their own instance of Service B, routing requests in and out of production.
+
+![WsProxy-2](https://user-images.githubusercontent.com/12111/111230296-996b2a00-85a4-11eb-8ea0-31a84610ed44.png)
+
+
 WsHTTPProxy consists of 3 components:
 
 ### WsServer
