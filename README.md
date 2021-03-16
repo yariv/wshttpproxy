@@ -109,7 +109,7 @@ This command takes the following arguments:
 
 You can also use your own reverse proxy such as Nginx or Apache instead of the provided reverse proxy.
 
-If your website uses HTTPS, you may need to obtain a wildcard SSL certificate if you want to be able to proxy requests such as https://www-[`RoutingKey`].[YourDomain].
+If your website uses HTTPS, you may need to obtain a wildcard SSL certificate if you want to be able to proxy requests such as `https://www-[`RoutingKey`].[YourDomain]`.
 
 3. To create a new `AuthToken`, ssh into the machine that's running the `wsServer` if you haven't already, and call
 
