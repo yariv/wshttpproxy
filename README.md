@@ -59,7 +59,7 @@ Each WsClient Both of these connections are authenticated with a handshake packe
 ## Other Components
 
 ### DB Proxy
-The DB Proxy shown in the diagram isn't included with WsHTTPProxy. The DB proxy is a proxy such as [node-db-proxy](https://github.com/yariv/node-db-proxy). It's a recommended component that automatically rolls-back any writes that occurred during a test. It's recommended to run [node-db-proxy](https://github.com/yariv/node-db-proxy) against a replica of the production database (not shown in the diagram).
+The DB Proxy shown in the diagram isn't included with WsHTTPProxy. The DB proxy is a proxy such as [node-db-proxy](https://github.com/yariv/node-db-proxy). It's a recommended component that automatically rolls back any writes that occurred during a test. It's recommended to run [node-db-proxy](https://github.com/yariv/node-db-proxy) against a replica of the production database (not shown in the diagram).
 
 ### Tracing Framework
 Ideally, there should be some facility to automatically forward the `RouteKey` from the frontend service (Service A in the diagram) to the Reverse Proxy without needing to make code changes to every service that make exist along the request chain between them. A tracing framework like [Jaeger](https://www.jaegertracing.io) can facilitate this automated payload forwarding. 
