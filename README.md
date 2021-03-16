@@ -64,9 +64,15 @@ The DB Proxy shown in the diagram isn't included with WsHTTPProxy. The DB proxy 
 ### Tracing Framework
 Ideally, there should be some facility to automatically forward the `RouteKey` from the frontend service (Service A in the diagram) to the Reverse Proxy without needing to make code changes to every service that make exist along the request chain between them. A tracing framework like [Jaeger](https://www.jaegertracing.io) can facilitate this automated payload forwarding. 
 
-# Warning
+# Downstream Dependencies
 
-Most production services have downstream dependencies: databases, caches, external services, etc. To safely test code changes, care should be taken to prevent requests to those dependencies from impacting users or partners. This can be done by stubbing those dependencies or by using preventing them from mutating data using proxies such as node-db-proxy (link). WsHTTPProxy doesn't provide any stubbing or isolation features for downstream dependencies. Use it at your own risk.
+Most production services have downstream dependencies: databases, caches, external services, etc. To safely test code changes, care should be taken to prevent requests to those dependencies from impacting users or partners. A few strageties are possible:
+
+- **Stubbing/Mocking**. Dependencies such as caches can be stubbed. For writes, they can return a successful response without actually caching anything. For reads, they can alway return an empty response.
+- **Using test accounts**. If you're testing interaction between users, you can use test accounts that are only visible to one another but that aren't visible to normal users.
+- **Using DB proxies with safety guarantees**. Proxies such as node-db-proxy (link) ensure that writes are never committed. They can also be used to scrub private or sensitive data from dev environments. They still consume resources, however, and may hold row locks, so they're only recommended against replicas of the production DB.
+- **Logging/monitoring/rate-limiting**. These strategies don't prevent adverse effects but they can be used to mitigate them.
+
 
 # Usage
 
