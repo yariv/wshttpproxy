@@ -64,7 +64,7 @@ The DB Proxy shown in the diagram isn't included with WsHTTPProxy. The DB proxy 
 ### Tracing Framework
 Ideally, there should be some facility to automatically forward the `RouteKey` from the frontend service (Service A in the diagram) to the Reverse Proxy without needing to make code changes to every service that make exist along the request chain between them. A tracing framework like [Jaeger](https://www.jaegertracing.io) can facilitate this automated payload forwarding. 
 
-# Downstream Dependencies
+# Handling Downstream Dependencies
 
 Most production services have downstream dependencies: databases, caches, external services, etc. To safely test code changes, care should be taken to prevent requests to those dependencies from impacting users or partners. A few strageties are possible:
 
