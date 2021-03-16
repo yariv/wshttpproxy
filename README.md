@@ -76,36 +76,46 @@ Most production services have downstream dependencies: databases, caches, extern
 
 # Usage
 
-DevInProd is available as an open source package that you can install and run yourself.
-
-1. To install DevInProd, check out the git repo.
+1. To install WsHTTPProxy on a server machine, make sure you have installed Yarn, and then call the following commmands to install the dependencies and generate your server's `AuthToken` SQLite database.
 
 ```
-npm install devinprod
+git clone https://github.com/yariv/wshttpproxy.git
+cd wshttpproxy
+yarn
+yarn gen-db
 ```
 
-2. Run the Router by calling
+1. Run WsHTTPServer by calling
 
 ```
-cd devinprod
-npm router
+yarn wsServer --port [port]
 ```
 
-The first time you run the router, it generates a new `RoutingKey`, which it saves in a local `.env` file. This `RoutingKey` must be included in all reverse-proxy HTTP requests to the router within the `dev-in-prod-routing-key` header. This ensures that only your reverse proxy can initiate reverse-proxy requests to the router.
+The first time you run `wsServer`, it generates a new `RoutingSecret`, whose hash it saves in a local `.env` file. This `RoutingSecret` must be included in all reverse-proxy HTTP requests to the router as the value of the `ws-http-proxy-routing-key` header. This ensures that only authenticated reverse proxies can initiate reverse-proxy requests to the router.
 
-The router exposes 2 ports: one for HTTP requests and one for the DB proxy. [TODO explain how to configure].
-
-3. Configure your reverse proxy to forward requests that match a route key to the Router. Here's a sample Nginx config: [ TODO LINK ]. You can also use the `sidecar` project in the repo [TODO explain].
-
-4. To create a new `AuthToken`, call
+1. Run the reverse proxy by calling
 
 ```
-curl -X POST http://localhost:3001/api/createToken
+yarn reverseProxy --port [port] --routingSecret [routingSecret] --prodUrl [prodUrl] --wsServerUrl [wsServerUrl]
 ```
 
-Note that for security reasons, this endpoint is by default restricted to clients whose origin address is localhost. It ensures that you can only generate `AuthToken`s if you can ssh into the machine on which the router is running.
+This command takes the following arguments:
+- port: the port on which the reverse proxy should listen
+- routingSecret: the `RoutingSecret` from the step above.
+- prodUrl: the URL of the production service to which normal traffic should be directed
+- wsServerUrl: the URL of your wsServer
 
-5. To run the example app, call
+You can also use your own reverse proxy such as Nginx or Apache instead of the provided reverse proxy.
+
+1. To create a new `AuthToken`, ssh into the machine that's running the `wsServer` if you haven't already, and call
+
+```
+curl -X POST http://localhost:[PORT]/api/createToken
+```
+
+For security, this endpoint is by default restricted to clients whose origin address is localhost.
+
+
 
 ```
 npm example
