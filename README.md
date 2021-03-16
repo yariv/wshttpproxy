@@ -78,7 +78,7 @@ Most production services have downstream dependencies: databases, caches, extern
 
 DevInProd is available as an open source package that you can install and run yourself.
 
-1. To install DevInProd, call
+1. To install DevInProd, check out the git repo.
 
 ```
 npm install devinprod
