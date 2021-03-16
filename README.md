@@ -68,7 +68,7 @@ Ideally, there should be some facility to automatically forward the `RouteKey` f
 
 Most production services have downstream dependencies: databases, caches, external services, etc. To safely test code changes, care should be taken to prevent requests to those dependencies from impacting users or partners. This can be done by stubbing those dependencies or by using preventing them from mutating data using proxies such as node-db-proxy (link). WsHTTPProxy doesn't provide any stubbing or isolation features for downstream dependencies. Use it at your own risk.
 
-# Usage Instructions
+# Usage
 
 DevInProd is available as an open source package that you can install and run yourself.
 
