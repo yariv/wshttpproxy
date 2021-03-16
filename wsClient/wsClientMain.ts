@@ -5,7 +5,7 @@ import { parse } from "ts-command-line-args";
 
 interface ReverseProxyArguments {
   routerWsUrl: string;
-  localServerUrl: string;
+  devServiceUrl: string;
   authToken: string;
 }
 
@@ -22,9 +22,9 @@ export const wsClientMain = async (
 if (require.main == module) {
   const args = parse<ReverseProxyArguments>({
     routerWsUrl: String,
-    localServerUrl: String,
+    devServiceUrl: String,
     authToken: String,
   });
 
-  wsClientMain(args.routerWsUrl, args.localServerUrl, args.authToken);
+  wsClientMain(args.routerWsUrl, args.devServiceUrl, args.authToken);
 }
