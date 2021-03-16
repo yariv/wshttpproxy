@@ -144,7 +144,7 @@ This command takes the following arguments:
 - `devServiceUrl`: the URL of the development version of your service (it should be running on localhost in most cases).
 - `authToken`: the `AuthToken` generated in step 3) above.
 
-Your client's `RoutingKey` is the first 6 characters of the `AuthToken`. If everything was set up correctly, you should be able to send requests to http://www-[RoutingKey].[YourDomain] and those requests will be forwarded to the `devServiceUrl`.
+Your client's `RoutingKey` is the first 6 characters of the `AuthToken`. If everything was set up correctly, you should be able to send requests to `http://www-[RoutingKey].[YourDomain]` and those requests will be forwarded to the `devServiceUrl`.
 
 ```
 npm example
