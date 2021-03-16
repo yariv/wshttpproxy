@@ -76,7 +76,7 @@ Most production services have downstream dependencies: databases, caches, extern
 
 # Usage
 
-1. To install WsHTTPProxy, make sure you have installed Yarn, and then call the following commmands to install the dependencies and generate your server's `AuthToken` SQLite database.
+1. To install WsHTTPProxy on a server machine, make sure you have installed Yarn, and then call the following commmands to install the dependencies and generate your server's `AuthToken` SQLite database.
 
 ```
 git clone https://github.com/yariv/wshttpproxy.git
@@ -105,17 +105,17 @@ This command takes the following arguments:
 - prodUrl: the URL of the production service to which normal traffic should be directed
 - wsServerUrl: the URL of your wsServer
 
-3. Configure your reverse proxy to forward requests that match a route key to the Router. Here's a sample Nginx config: [ TODO LINK ]. You can also use the `sidecar` project in the repo [TODO explain].
+You can also use your own reverse proxy such as Nginx or Apache instead of the provided reverse proxy.
 
-4. To create a new `AuthToken`, call
+1. To create a new `AuthToken`, ssh into the machine that's running the `wsServer` if you haven't already, and call
 
 ```
-curl -X POST http://localhost:3001/api/createToken
+curl -X POST http://localhost:[PORT]/api/createToken
 ```
 
-Note that for security reasons, this endpoint is by default restricted to clients whose origin address is localhost. It ensures that you can only generate `AuthToken`s if you can ssh into the machine on which the router is running.
+For security, this endpoint is by default restricted to clients whose origin address is localhost.
 
-5. To run the example app, call
+
 
 ```
 npm example
