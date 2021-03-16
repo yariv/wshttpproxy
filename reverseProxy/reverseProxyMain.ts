@@ -21,6 +21,5 @@ if (require.main == module) {
     args.prodUrl,
     args.wsServerUrl
   );
-  console.log("TODO");
 }
 export {};
