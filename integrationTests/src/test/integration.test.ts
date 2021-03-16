@@ -9,13 +9,13 @@ import util from "util";
 import { routerApiSchema } from "../../../lib/src/routerApiSchema";
 import { setupTest } from "../../../lib/src/testLib";
 import {
+  config,
   genNewToken,
   getHttpUrl as getLocalhostUrl,
-  config,
 } from "../../../lib/src/utils";
 import { startReverseProxy as startReverseProxy } from "../../../reverseProxy/src/reverseProxy";
 import { wsClientMain as wsClientMain } from "../../../wsClient/wsClientMain";
-import { getRouteKey } from "../../../wsServer/src/utils";
+import { getRouteKey, sha256 } from "../../../wsServer/src/utils";
 import { routerMain as wsServerMain } from "../../../wsServer/wsServerMain";
 
 describe("integration", () => {
@@ -83,15 +83,13 @@ describe("integration", () => {
 
   it("routing works", async () => {
     const routingSecret = genNewToken();
-    const [
-      routerDbProxyPort,
-      testAppDevPort,
-      testAppProdPort,
-    ] = await util.promisify(portfinder.getPorts.bind(portfinder))(3, {
+    const [testAppDevPort, testAppProdPort] = await util.promisify(
+      portfinder.getPorts.bind(portfinder)
+    )(3, {
       startPort: 9000, // prevents race conditions with other tests
     });
 
-    const router = await wsServerMain(0, routingSecret);
+    const router = await wsServerMain(0, sha256(routingSecret));
     defer(router.close.bind(router));
 
     const routerClient = new TypedHttpClient(router.apiUrl, routerApiSchema);
