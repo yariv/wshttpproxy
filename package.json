@@ -5,10 +5,11 @@
   "main": "",
   "scripts": {
     "test": "jest",
-    "gen-prisma": "prisma generate --schema wsServer/prisma/schema.prisma && prisma db push --preview-feature --schema wsServer/prisma/schema.prisma",
+    "gen-db": "prisma generate --schema wsServer/prisma/schema.prisma && prisma db push --preview-feature --schema wsServer/prisma/schema.prisma",
     "wsServer": "ts-node wsServer/wsServer.ts",
     "example": "ts-node example/src/exampleMain.ts",
-    "wsClient": "ts-node wsClient/wsClientMain.ts"
+    "wsClient": "ts-node wsClient/wsClientMain.ts",
+    "reverseProxy": "ts-node reverseProxy/reverseProxyMain.ts"
   },
   "jest": {
     "testEnvironment": "node"
@@ -49,6 +50,7 @@
     "reflect-metadata": "^0.1.13",
     "short-unique-id": "^3.2.3",
     "string-argv": "^0.3.1",
+    "ts-command-line-args": "^1.8.0",
     "ts-jest": "^26.4.4",
     "ts-node": "^9.0.0",
     "ts-node-dev": "^1.0.0",

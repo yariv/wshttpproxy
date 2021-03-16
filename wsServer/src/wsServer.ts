@@ -64,10 +64,10 @@ export class wsServer {
     WsKey,
     WsWrapper<typeof clientSchema, typeof serverSchema>
   > = {};
-  routingSecret: string;
+  routingSecretHash: string;
 
-  constructor(routingSecret: string) {
-    this.routingSecret = routingSecret;
+  constructor(routingSecretHash: string) {
+    this.routingSecretHash = routingSecretHash;
   }
 
   close() {
@@ -85,12 +85,16 @@ export class wsServer {
   }
 
   async proxyMiddleware(ctx: Koa.Context, next: Koa.Next): Promise<void> {
-    const routingSecret = ctx.header[globalConfig.routingSecretHeader];
+    // TODO handle string[]
+    const routingSecret = ctx.header[
+      globalConfig.routingSecretHeader
+    ] as string;
+
     if (!routingSecret) {
       return next();
     }
-    if (!(routingSecret == this.routingSecret)) {
-      ctx.throw(400, "Invalid application secret");
+    if (!(sha256(routingSecret) == this.routingSecretHash)) {
+      ctx.throw(400, "Invalid routing secret");
     }
 
     const originalHost = ctx.header[globalConfig.originalHostHeader];

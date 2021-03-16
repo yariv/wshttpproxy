@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import { writeFileSync } from "fs";
 import { AppServer } from "../lib/src/appServer";
 import { genNewToken, globalConfig } from "../lib/src/utils";
+import { sha256 } from "./src/utils";
 import { wsServerStart } from "./src/wsServer";
 
 const envFileName = __dirname + "/.env";
@@ -20,9 +21,9 @@ if (require.main == module) {
     routingSecret = genNewToken();
     console.log(`
 Your new routing secret is ${routingSecret}.
-It's saved in ${envFileName}.
+Its hash saved in ${envFileName}.
 Proxy requests to the router must include the routing secret in the HTTP header "${globalConfig.routingSecretHeader}".`);
-    writeFileSync(envFileName, "ROUTING_SECRET=" + routingSecret);
+    writeFileSync(envFileName, "ROUTING_SECRET_HASH=" + sha256(routingSecret));
   }
 
   routerMain(globalConfig.routerPort, routingSecret);
