@@ -2,7 +2,7 @@ import { initWebsocket, WsWrapper } from "../../lib/src/typedWs";
 import {
   genNewToken,
   getRouteKeyFromCtx,
-  globalConfig,
+  config,
 } from "../../lib/src/utils";
 import { clientSchema, serverSchema } from "../../lib/src/wsSchema";
 import Koa from "koa";
@@ -87,7 +87,7 @@ export class wsServer {
   async proxyMiddleware(ctx: Koa.Context, next: Koa.Next): Promise<void> {
     // TODO handle string[]
     const routingSecret = ctx.header[
-      globalConfig.routingSecretHeader
+      config.routingSecretHeader
     ] as string;
 
     if (!routingSecret) {
@@ -97,9 +97,9 @@ export class wsServer {
       ctx.throw(400, "Invalid routing secret");
     }
 
-    const originalHost = ctx.header[globalConfig.originalHostHeader];
+    const originalHost = ctx.header[config.originalHostHeader];
     if (!originalHost) {
-      ctx.throw(400, `Missing ${globalConfig.originalHostHeader} header`);
+      ctx.throw(400, `Missing ${config.originalHostHeader} header`);
     }
 
     const routeKey = getRouteKeyFromCtx(ctx, originalHost);
@@ -114,8 +114,8 @@ export class wsServer {
 
     const requestId = genNewToken();
 
-    delete ctx.headers[globalConfig.routingSecretHeader];
-    delete ctx.headers[globalConfig.routeKeyHeader];
+    delete ctx.headers[config.routingSecretHeader];
+    delete ctx.headers[config.routeKeyHeader];
 
     // TODO deal with non utf-8 blobs
     const body = await getRawBody(ctx.req, { encoding: "utf-8" });
@@ -133,7 +133,7 @@ export class wsServer {
         ctx.status = 500;
         ctx.body = "Request timed out";
       });
-    }, globalConfig.proxyTimeout) as any;
+    }, config.proxyTimeout) as any;
 
     const promise = new Promise<void>((resolve) => {
       this.proxyRequests[requestId] = { timeoutId, ctx, resolve };

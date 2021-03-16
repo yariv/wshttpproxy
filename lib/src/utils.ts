@@ -3,29 +3,21 @@ export const getHttpUrl = (port: number): string => {
 };
 
 const configPorts = {
-  routerPort: 3001, // note: should match google app settings
-  exampleProdPort: 3002,
-  exampleDevPort: 3003,
-  reverseProxyPort: 3005,
-  routerDbProxyPort: 3006,
+  // routerPort: 3001, // note: should match google app settings
+  // exampleProdPort: 3002,
+  // exampleDevPort: 3003,
+  // reverseProxyPort: 3005,
+  // routerDbProxyPort: 3006,
 };
 
-export const globalConfig = {
+export const config = {
   ...configPorts,
-  exampleProdUrl: getHttpUrl(configPorts.exampleProdPort),
-  routeKeyHeader: "dev-in-prod-route-key",
-  routingSecretHeader: "dev-in-prod-routing-secret",
+  routeKeyHeader: "ws-http-proxy-route-key",
+  routingSecretHeader: "ws-http-proxy-routing-secret",
   routeKeyRegex: /^.+-(.+)$/,
   apiPathPrefix: "/api/",
   originalHostHeader: "x-forwarded-host",
   proxyTimeout: 10000,
-  defaultDbConnOptions: {
-    host: "localhost",
-    port: 3306,
-    user: "root",
-    password: "root",
-    database: "devinproddemo",
-  },
 };
 
 export const getRouteKeyFromHostname = (
@@ -38,7 +30,7 @@ export const getRouteKeyFromHostname = (
       return null;
     }
     const lastSubdomain = toks[toks.length - 3];
-    const reRes = globalConfig.routeKeyRegex.exec(lastSubdomain);
+    const reRes = config.routeKeyRegex.exec(lastSubdomain);
     if (reRes) {
       return reRes[1];
     }
@@ -54,7 +46,7 @@ export const getRouteKeyFromCtx = (
   hostnameHeader?: string | string[]
 ): string | undefined => {
   const res =
-    (ctx.headers[globalConfig.routeKeyHeader] as string) ||
+    (ctx.headers[config.routeKeyHeader] as string) ||
     getRouteKeyFromHostname(hostnameHeader || ctx.hostname);
   return res?.toLowerCase();
 };

@@ -11,7 +11,7 @@ import { setupTest } from "../../../lib/src/testLib";
 import {
   genNewToken,
   getHttpUrl as getLocalhostUrl,
-  globalConfig,
+  config,
 } from "../../../lib/src/utils";
 import { startReverseProxy as startReverseProxy } from "../../../reverseProxy/src/reverseProxy";
 import { wsClientMain as wsClientMain } from "../../../wsClient/wsClientMain";
@@ -91,7 +91,6 @@ describe("integration", () => {
       startPort: 9000, // prevents race conditions with other tests
     });
 
-    const dbConnOptions = globalConfig.defaultDbConnOptions;
     const router = await wsServerMain(0, routingSecret);
     defer(router.close.bind(router));
 
@@ -123,7 +122,7 @@ describe("integration", () => {
 
     const sendDevRequest = (routeKey: string): ReturnType<typeof sendRequest> =>
       sendRequest(sideCar.url, {
-        [globalConfig.routeKeyHeader]: routeKey,
+        [config.routeKeyHeader]: routeKey,
       });
 
     await expectHttpError(

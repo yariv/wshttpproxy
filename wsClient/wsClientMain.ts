@@ -1,9 +1,13 @@
 import dotenv from "dotenv";
-import { ConnectionOptions } from "mysql2";
-import { globalConfig } from "../lib/src/utils";
+import { config } from "../lib/src/utils";
 import { WsClient } from "./src/wsClient";
-const envFileName = __dirname + "/.env";
-dotenv.config({ path: envFileName });
+import { parse } from "ts-command-line-args";
+
+interface ReverseProxyArguments {
+  routerWsUrl: string;
+  localServerUrl: string;
+  authToken: string;
+}
 
 export const wsClientMain = async (
   routerWsUrl: string,
@@ -16,16 +20,11 @@ export const wsClientMain = async (
 };
 
 if (require.main == module) {
-  if (!process.env.AUTH_TOKEN) {
-    console.error(
-      `Missing AUTH_TOKEN environment variable. Please add it in ${envFileName}.`
-    );
-    process.exit();
-  }
+  const args = parse<ReverseProxyArguments>({
+    routerWsUrl: String,
+    localServerUrl: String,
+    authToken: String,
+  });
 
-  const authToken = process.env.AUTH_TOKEN;
-  const routerWsUrl = "wss://dsee.io/ws";
-  const localServiceUrl = globalConfig.exampleProdUrl;
-
-  wsClientMain(routerWsUrl, localServiceUrl, authToken);
+  wsClientMain(args.routerWsUrl, args.localServerUrl, args.authToken);
 }

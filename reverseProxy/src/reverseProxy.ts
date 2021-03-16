@@ -1,5 +1,5 @@
 import { AppServer, listenOnPort } from "../../lib/src/appServer";
-import { getRouteKeyFromCtx, globalConfig } from "../../lib/src/utils";
+import { getRouteKeyFromCtx, config } from "../../lib/src/utils";
 import Koa from "koa";
 import proxy from "koa-better-http-proxy";
 
@@ -25,9 +25,9 @@ export const startReverseProxy = async (
         return getRouteKeyFromCtx(ctx) != null;
       },
       proxyReqOptDecorator: (opts, ctx) => {
-        opts.headers[globalConfig.routingSecretHeader] = routingSecret;
-        opts.headers[globalConfig.routeKeyHeader] = getRouteKeyFromCtx(ctx);
-        opts.headers[globalConfig.originalHostHeader] = ctx.host;
+        opts.headers[config.routingSecretHeader] = routingSecret;
+        opts.headers[config.routeKeyHeader] = getRouteKeyFromCtx(ctx);
+        opts.headers[config.originalHostHeader] = ctx.host;
         return opts;
       },
     })

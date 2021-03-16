@@ -1,5 +1,5 @@
 import { AppServer, listenOnPort } from "../../lib/src/appServer";
-import { globalConfig } from "../../lib/src/utils";
+import { config } from "../../lib/src/utils";
 import Koa from "koa";
 import Router from "koa-router";
 import logger from "koa-logger";
@@ -20,6 +20,7 @@ class Example {
     await this.appServer.close();
   }
 }
+
 export const exampleMain = async (
   port: number,
   dbPort: number
@@ -31,7 +32,10 @@ export const exampleMain = async (
   const router = new Router();
 
   const connOptions: ConnectionOptions = {
-    ...globalConfig.defaultDbConnOptions,
+    host: "localhost",
+    user: "root",
+    password: "root",
+    database: "devinproddemo",
     port: dbPort,
   };
   const conn = await mysql.createConnection(connOptions);
@@ -54,5 +58,5 @@ export const exampleMain = async (
 };
 
 if (require.main == module) {
-  exampleMain(globalConfig.exampleProdPort, globalConfig.routerDbProxyPort);
+  exampleMain(config.exampleProdPort, config.routerDbProxyPort);
 }

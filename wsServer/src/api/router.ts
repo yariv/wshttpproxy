@@ -1,11 +1,11 @@
 import { routerApiSchema } from "../../../lib/src/routerApiSchema";
-import { globalConfig } from "../../../lib/src/utils";
+import { config } from "../../../lib/src/utils";
 import Router from "koa-router";
 import { createKoaRoute } from "infer-rpc/dist/koaAdapter";
 import { createAuthToken } from "../utils";
 
 export const router = new Router({
-  prefix: globalConfig.apiPathPrefix,
+  prefix: config.apiPathPrefix,
 });
 
 createKoaRoute(

@@ -1,6 +1,6 @@
 import { Server } from "http";
 import util from "util";
-import { getHttpUrl, globalConfig } from "./utils";
+import { getHttpUrl, config } from "./utils";
 const logger = require("koa-logger");
 
 export class AppServer {
@@ -29,7 +29,7 @@ export class AppServer {
   }
 
   get apiUrl(): string {
-    return getHttpUrl(this.port) + globalConfig.apiPathPrefix;
+    return getHttpUrl(this.port) + config.apiPathPrefix;
   }
 
   get wsUrl(): string {

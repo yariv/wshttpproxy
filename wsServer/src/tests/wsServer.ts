@@ -2,7 +2,7 @@ import { AppServer } from "../../../lib/src/appServer";
 import { routerApiSchema } from "../../../lib/src/routerApiSchema";
 import { setupTest } from "../../../lib/src/testLib";
 import { WsWrapper } from "../../../lib/src/typedWs";
-import { globalConfig } from "../../../lib/src/utils";
+import { config } from "../../../lib/src/utils";
 import { clientSchema, serverSchema } from "../../../lib/src/wsSchema";
 import { TypedHttpClient } from "infer-rpc/dist/httpClient";
 import WebSocket from "ws";
@@ -50,7 +50,7 @@ describe("wsServer", () => {
 
   it("Requires x-forwarded-host header", async () => {
     const res = await fetch(routerUrl, {
-      headers: { [globalConfig.routingSecretHeader]: routingSecret },
+      headers: { [config.routingSecretHeader]: routingSecret },
     });
     await checkRes(res, 400, "Missing x-forwarded-host header");
   });
@@ -59,8 +59,8 @@ describe("wsServer", () => {
     const originalHost = "http://localhost";
     const res = await fetch(routerUrl, {
       headers: {
-        [globalConfig.routingSecretHeader]: routingSecret,
-        [globalConfig.originalHostHeader]: originalHost,
+        [config.routingSecretHeader]: routingSecret,
+        [config.originalHostHeader]: originalHost,
       },
     });
     await checkRes(res, 400, "Missing route key");
@@ -70,8 +70,8 @@ describe("wsServer", () => {
     const originalHost = "rk-123.localhost.localhost";
     const res = await fetch(routerUrl, {
       headers: {
-        [globalConfig.routingSecretHeader]: "foo",
-        [globalConfig.originalHostHeader]: originalHost,
+        [config.routingSecretHeader]: "foo",
+        [config.originalHostHeader]: originalHost,
       },
     });
     await checkRes(res, 400, "Invalid application secret");
@@ -85,9 +85,9 @@ describe("wsServer", () => {
     const originalHost = "rk-123.localhost.localhost";
     const res = await fetch(routerUrl, {
       headers: {
-        [globalConfig.routingSecretHeader]: routingSecret,
-        [globalConfig.originalHostHeader]: originalHost,
-        [globalConfig.routeKeyHeader]: "foo",
+        [config.routingSecretHeader]: routingSecret,
+        [config.originalHostHeader]: originalHost,
+        [config.routeKeyHeader]: "foo",
       },
     });
     await checkRes(res, 400, "Route isn't connected");
@@ -98,8 +98,8 @@ describe("wsServer", () => {
     const originalHost = `www-rk-${routeKey}.localhost.localhost`;
     const res = await fetch(routerUrl, {
       headers: {
-        [globalConfig.routingSecretHeader]: routingSecret,
-        [globalConfig.originalHostHeader]: originalHost,
+        [config.routingSecretHeader]: routingSecret,
+        [config.originalHostHeader]: originalHost,
       },
     });
     await checkRes(res, 400, "Route isn't connected");
@@ -128,9 +128,9 @@ describe("wsServer", () => {
   ): Promise<Response> => {
     return fetch(routerUrl + testPath, {
       headers: {
-        [globalConfig.routingSecretHeader]: routingSecret,
-        [globalConfig.originalHostHeader]: "localhost",
-        [globalConfig.routeKeyHeader]: routeKey,
+        [config.routingSecretHeader]: routingSecret,
+        [config.originalHostHeader]: "localhost",
+        [config.routeKeyHeader]: routeKey,
       },
       method: "POST",
       body: bodyStr,
@@ -213,7 +213,7 @@ describe("wsServer", () => {
           expect(body).toStrictEqual(bodyStr);
           expect(path).toStrictEqual(testPath);
           expect(requestId).toBeTruthy();
-          expect(headers[globalConfig.originalHostHeader]).toStrictEqual(
+          expect(headers[config.originalHostHeader]).toStrictEqual(
             "localhost"
           );
           expect(headers["host"]).toStrictEqual("localhost:" + appServer.port);
