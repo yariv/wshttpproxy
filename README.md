@@ -121,7 +121,6 @@ For security, this endpoint is by default restricted to clients whose origin add
 
 The AuthToken isn't persisted in the DB -- only its hash is. If you lose it, you won't be able to retrieve it and you'll have to generate a new `AuthToken`.
 
-4. If you 
 
 ### Client side
 
