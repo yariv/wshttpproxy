@@ -145,9 +145,3 @@ This command takes the following arguments:
 - `authToken`: the `AuthToken` generated in step 3) above.
 
 Your client's `RoutingKey` is the first 6 characters of the `AuthToken`. If everything was set up correctly, you should be able to send requests to `http://www-[RoutingKey].[YourDomain]` and those requests will be forwarded to the `devServiceUrl`.
-
-```
-npm example
-```
-
-5. Your local example app is now ready to accept requests from your `Router`. To initiate a request, go to `www-[route-key].yourdomain.com`. If you don't have wildcard DNS set up, you can also send the `RouteKey` in a HTTP header.
