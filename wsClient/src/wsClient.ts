@@ -1,4 +1,4 @@
-import { clientSchema, serverSchema } from "lib/src/wsSchema";
+import { clientSchema, serverSchema } from "../../lib/src/wsSchema";
 import fetch from "node-fetch";
 import WebSocket from "ws";
 import { log } from "../../lib/src/log";
