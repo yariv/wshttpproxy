@@ -4,7 +4,7 @@ WsHTTPProxy is a Node server that forwards HTTP requests to clients that are con
 
 WsHTTPProxy is designed improve iteration speed in micro-service environments. Such environments can make testing of backend code changes challenging for a few reasons:
 
-- Creating realistic staging or development environments becomes more harder as the number of production services grows as well as the rate at which new code is deployed among them.
+- Creating realistic staging or development environments becomes more harder as the number of production services grows as well as the rate at which new code is deployed across those services.
 - The behavior of production services often depends on production data. Reproducing this data in dev or staging can introduce operational overhead as well as security concerns. Without production data, debugging production issues can be difficult.
 - Deploying code to a remote dev or staging environment can introduce much higher latencies to the development cycle than reloading code in a locally running service.
 
