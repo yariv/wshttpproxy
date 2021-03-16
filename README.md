@@ -74,7 +74,9 @@ Most production services have downstream dependencies: databases, caches, extern
 - **Logging/monitoring/rate-limiting**. These strategies don't prevent adverse effects but they can be used to mitigate them.
 
 
-# Usage
+# Installation
+
+## Server Side
 
 1. To install WsHTTPProxy on a server machine, make sure you have installed Yarn, and then call the following commmands to install the dependencies and generate your server's `AuthToken` SQLite database.
 
@@ -93,7 +95,7 @@ yarn wsServer --port [port]
 
 The first time you run `wsServer`, it generates a new `RoutingSecret`, whose hash it saves in a local `.env` file. This `RoutingSecret` must be included in all reverse-proxy HTTP requests to the router as the value of the `ws-http-proxy-routing-key` header. This ensures that only authenticated reverse proxies can initiate reverse-proxy requests to the router.
 
-1. Run the reverse proxy by calling
+2. Run the reverse proxy by calling
 
 ```
 yarn reverseProxy --port [port] --routingSecret [routingSecret] --prodUrl [prodUrl] --wsServerUrl [wsServerUrl]
@@ -107,7 +109,7 @@ This command takes the following arguments:
 
 You can also use your own reverse proxy such as Nginx or Apache instead of the provided reverse proxy.
 
-1. To create a new `AuthToken`, ssh into the machine that's running the `wsServer` if you haven't already, and call
+3. To create a new `AuthToken`, ssh into the machine that's running the `wsServer` if you haven't already, and call
 
 ```
 curl -X POST http://localhost:[PORT]/api/createToken
@@ -115,30 +117,32 @@ curl -X POST http://localhost:[PORT]/api/createToken
 
 For security, this endpoint is by default restricted to clients whose origin address is localhost.
 
+The AuthToken isn't persisted in the DB -- only its hash is. If you lose it, you won't be able to retrieve it and you'll have to generate a new `AuthToken`.
 
 
-```
-npm example
-```
+### Client side
 
-### Dev environment setup
-
-1. Install the same dev-in-prod npm package as in the prod environment:
+1. Check out the git repo and dependencies as above (you don't need to call ```yarn gen-db```):
 
 ```
-git clone dev-in-prod [TODO]
-cd dev-in-prod
+git clone https://github.com/yariv/wshttpproxy.git
+cd wshttpproxy
+yarn
 ```
 
-2. Configure the WsClient so it knows how to connect to your Router, both on the HTTP and MySQL Proxy port. This includes configuring its `AuthToken`. The first 6 characters of the `AuthToken` are used as the `RouteKey` for your WsClient. [TODO explain]
-
-3. Run your WsClient by calling
+2. Run your WsClient by calling
 
 ```
-npm WsClient
+yarn wsClient --routerWsUrl [routerWsUrl] --devServiceUrl [devServiceUrl] --authToken [AuthToken]
 ```
 
-4. Run the same example app locally by calling
+This command takes the following arguments:
+- routerWsUrl: a URL of the form ```ws://[wsServerDomain]:[wsServerPort]/ws```
+- devServiceUrl: the URL of the development version of your service (it should be running on localhost in most cases).
+- authToken: the `AuthToken` generated in step 3) above.
+
+
+3. Run the same example app locally by calling
 
 ```
 npm example
