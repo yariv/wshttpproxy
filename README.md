@@ -4,11 +4,11 @@ WsHTTPProxy is a Node server that forwards HTTP requests to clients that are con
 
 WsHTTPProxy is designed improve iteration speed in micro-service environments. Such environments can make testing of backend code changes challenging for a few reasons:
 
-- Creating realistic staging or development environments becomes more harder as the number of production services grows as well as the rate at which new code is deployed among them.
+- Creating realistic staging or development environments becomes more harder as the number of production services grows as well as the rate at which new code is deployed across those services.
 - The behavior of production services often depends on production data. Reproducing this data in dev or staging can introduce operational overhead as well as security concerns. Without production data, debugging production issues can be difficult.
 - Deploying code to a remote dev or staging environment can introduce much higher latencies to the development cycle than reloading code in a locally running service.
 
-WsHTTPProxy addresses these challenges by routing authenticated requests through the production stack to the developer's instance of the service under development. This routing lets you test the application end-to-end. You originate requests at the application's frontend. Those requests are served by production services except for the service under development.
+WsHTTPProxy addresses these challenges by routing authenticated requests through the production stack to the developer's instance of the service under development. This routing lets you test the your code changes as they would behave if they were deployed to production. To instantiate a dev request, you load a URL such as `http://www-abc123.your-domain.com`, where `abc123` is a unique identifier for your development environment. Those requests are routed through upstream production services and out to your service under development. This enables realistic end-to-end testing prior to deploying your code.
 
 # Architecture
 
@@ -59,12 +59,12 @@ Each WsClient Both of these connections are authenticated with a handshake packe
 ## Other Components
 
 ### DB Proxy
-The DB Proxy shown in the diagram isn't included with WsHTTPProxy. The DB proxy is a proxy such as [node-db-proxy] [TODO link]. It's a recommended component that automatically rolls-back any writes that occurred during a test. It's recommended to run [node-db-proxy] against a replica of the production database (not shown in the diagram).
+The DB Proxy shown in the diagram isn't included with WsHTTPProxy. The DB proxy is a proxy such as [node-db-proxy](https://github.com/yariv/node-db-proxy). It's a recommended component that automatically rolls back any writes that occurred during a test. It's recommended to run [node-db-proxy](https://github.com/yariv/node-db-proxy) against a replica of the production database (not shown in the diagram).
 
 ### Tracing Framework
 Ideally, there should be some facility to automatically forward the `RouteKey` from the frontend service (Service A in the diagram) to the Reverse Proxy without needing to make code changes to every service that make exist along the request chain between them. A tracing framework like [Jaeger](https://www.jaegertracing.io) can facilitate this automated payload forwarding. 
 
-# Downstream Dependencies
+# Handling Downstream Dependencies
 
 Most production services have downstream dependencies: databases, caches, external services, etc. To safely test code changes, care should be taken to prevent requests to those dependencies from impacting users or partners. A few strageties are possible:
 
@@ -74,7 +74,9 @@ Most production services have downstream dependencies: databases, caches, extern
 - **Logging/monitoring/rate-limiting**. These strategies don't prevent adverse effects but they can be used to mitigate them.
 
 
-# Usage
+# Installation
+
+## Server Side
 
 1. To install WsHTTPProxy on a server machine, make sure you have installed Yarn, and then call the following commmands to install the dependencies and generate your server's `AuthToken` SQLite database.
 
@@ -93,21 +95,23 @@ yarn wsServer --port [port]
 
 The first time you run `wsServer`, it generates a new `RoutingSecret`, whose hash it saves in a local `.env` file. This `RoutingSecret` must be included in all reverse-proxy HTTP requests to the router as the value of the `ws-http-proxy-routing-key` header. This ensures that only authenticated reverse proxies can initiate reverse-proxy requests to the router.
 
-1. Run the reverse proxy by calling
+2. Run the reverse proxy by calling
 
 ```
 yarn reverseProxy --port [port] --routingSecret [routingSecret] --prodUrl [prodUrl] --wsServerUrl [wsServerUrl]
 ```
 
 This command takes the following arguments:
-- port: the port on which the reverse proxy should listen
-- routingSecret: the `RoutingSecret` from the step above.
-- prodUrl: the URL of the production service to which normal traffic should be directed
-- wsServerUrl: the URL of your wsServer
+- `port`: the port on which the reverse proxy should listen
+- `routingSecret`: the `RoutingSecret` from the step above.
+- `prodUrl`: the URL of the production service to which normal traffic should be directed
+- `wsServerUrl`: the URL of your wsServer
 
 You can also use your own reverse proxy such as Nginx or Apache instead of the provided reverse proxy.
 
-1. To create a new `AuthToken`, ssh into the machine that's running the `wsServer` if you haven't already, and call
+If your website uses HTTPS, you may need to obtain a wildcard SSL certificate if you want to be able to proxy requests such as `https://www-[`RoutingKey`].[YourDomain]`.
+
+3. To create a new `AuthToken`, ssh into the machine that's running the `wsServer` if you haven't already, and call
 
 ```
 curl -X POST http://localhost:[PORT]/api/createToken
@@ -115,33 +119,28 @@ curl -X POST http://localhost:[PORT]/api/createToken
 
 For security, this endpoint is by default restricted to clients whose origin address is localhost.
 
+The AuthToken isn't persisted in the DB -- only its hash is. If you lose it, you won't be able to retrieve it and you'll have to generate a new `AuthToken`.
 
 
-```
-npm example
-```
+### Client side
 
-### Dev environment setup
-
-1. Install the same dev-in-prod npm package as in the prod environment:
+1. Check out the git repo and dependencies as above (you don't need to call ```yarn gen-db```):
 
 ```
-git clone dev-in-prod [TODO]
-cd dev-in-prod
+git clone https://github.com/yariv/wshttpproxy.git
+cd wshttpproxy
+yarn
 ```
 
-2. Configure the WsClient so it knows how to connect to your Router, both on the HTTP and MySQL Proxy port. This includes configuring its `AuthToken`. The first 6 characters of the `AuthToken` are used as the `RouteKey` for your WsClient. [TODO explain]
-
-3. Run your WsClient by calling
+2. Run your WsClient by calling
 
 ```
-npm WsClient
+yarn wsClient --routerWsUrl [routerWsUrl] --devServiceUrl [devServiceUrl] --authToken [AuthToken]
 ```
 
-4. Run the same example app locally by calling
+This command takes the following arguments:
+- `routerWsUrl`: a URL of the form ```ws://[wsServerDomain]:[wsServerPort]/ws```
+- `devServiceUrl`: the URL of the development version of your service (it should be running on localhost in most cases).
+- `authToken`: the `AuthToken` generated in step 3) above.
 
-```
-npm example
-```
-
-5. Your local example app is now ready to accept requests from your `Router`. To initiate a request, go to `www-[route-key].yourdomain.com`. If you don't have wildcard DNS set up, you can also send the `RouteKey` in a HTTP header.
+Your client's `RoutingKey` is the first 6 characters of the `AuthToken`. If everything was set up correctly, you should be able to send requests to `http://www-[RoutingKey].[YourDomain]` and those requests will be forwarded to the `devServiceUrl`.
