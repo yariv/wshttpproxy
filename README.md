@@ -102,12 +102,14 @@ yarn reverseProxy --port [port] --routingSecret [routingSecret] --prodUrl [prodU
 ```
 
 This command takes the following arguments:
-- port: the port on which the reverse proxy should listen
-- routingSecret: the `RoutingSecret` from the step above.
-- prodUrl: the URL of the production service to which normal traffic should be directed
-- wsServerUrl: the URL of your wsServer
+- `port`: the port on which the reverse proxy should listen
+- `routingSecret`: the `RoutingSecret` from the step above.
+- `prodUrl`: the URL of the production service to which normal traffic should be directed
+- `wsServerUrl`: the URL of your wsServer
 
 You can also use your own reverse proxy such as Nginx or Apache instead of the provided reverse proxy.
+
+If your website uses HTTPS, you may need to obtain a wildcard SSL certificate if you want to be able to proxy requests such as https://www-[`RoutingKey`].[YourDomain].
 
 3. To create a new `AuthToken`, ssh into the machine that's running the `wsServer` if you haven't already, and call
 
@@ -119,6 +121,7 @@ For security, this endpoint is by default restricted to clients whose origin add
 
 The AuthToken isn't persisted in the DB -- only its hash is. If you lose it, you won't be able to retrieve it and you'll have to generate a new `AuthToken`.
 
+4. If you 
 
 ### Client side
 
@@ -137,12 +140,11 @@ yarn wsClient --routerWsUrl [routerWsUrl] --devServiceUrl [devServiceUrl] --auth
 ```
 
 This command takes the following arguments:
-- routerWsUrl: a URL of the form ```ws://[wsServerDomain]:[wsServerPort]/ws```
-- devServiceUrl: the URL of the development version of your service (it should be running on localhost in most cases).
-- authToken: the `AuthToken` generated in step 3) above.
+- `routerWsUrl`: a URL of the form ```ws://[wsServerDomain]:[wsServerPort]/ws```
+- `devServiceUrl`: the URL of the development version of your service (it should be running on localhost in most cases).
+- `authToken`: the `AuthToken` generated in step 3) above.
 
-
-3. Run the same example app locally by calling
+Your client's `RoutingKey` is the first 6 characters of the `AuthToken`. If everything was set up correctly, you should be able to send requests to http://www-[RoutingKey].[YourDomain] and those requests will be forwarded to the `devServiceUrl`.
 
 ```
 npm example
